@@ -52,26 +52,26 @@ echo "Continuing..."
 
 
 
-echo "
+# echo "
 
-+-----------------------------+ 
+# +-----------------------------+ 
 
-      START GNOME INSTALL
+#       START GNOME INSTALL
 
-+-----------------------------+
+# +-----------------------------+
 
-"
-# gnome
-sudo apt install gnome -y
-echo "
+# "
+# # gnome
+# sudo apt install gnome -y
+# echo "
 
-+---------------------------+ 
+# +---------------------------+ 
 
-      END GNOME INSTALL
+#       END GNOME INSTALL
 
-+---------------------------+
+# +---------------------------+
 
-"
+# "
 
 
 
@@ -2068,7 +2068,6 @@ sudo apt purge pix -y
 sudo apt purge remmina -y
 sudo apt purge five-or-more -y
 sudo apt purge four-in-a-row -y
-sudo apt purge mintwelcome -y
 sudo apt purge drawing -y
 sudo apt purge xed -y
 sudo apt purge lightsoff -y
@@ -2078,7 +2077,7 @@ sudo apt purge shotwell -y
 sudo apt purge swell-foop -y
 sudo apt purge tali -y
 sudo apt purge evolution -y
-
+sudo apt purge evince -y
 
 sudo apt purge gnome-mahjongg -y
 sudo apt purge gnome-mines -y
@@ -2096,10 +2095,11 @@ sudo apt purge gnome-robots -y
 sudo apt purge gnome-weather -y
 sudo apt purge gnome-remote-desktop -y
 sudo apt purge gnome-taquin -y
-sudo apt purge evince -y
 
-### cinammon DE remove
-sudo apt purge cinnamon* -y
+
+# sudo apt purge mintwelcome -y
+# ### cinammon DE remove
+# sudo apt purge cinnamon* -y
 
 
 
