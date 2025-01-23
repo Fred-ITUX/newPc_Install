@@ -49,7 +49,6 @@ read -r -p "Press Enter to continue..." key
 echo "Continuing..."
 
 
-## asdasdasd
 
 
 
@@ -154,7 +153,6 @@ sudo apt install python3-srt -y
 # speech to text -- global configuration
 pip3 install vosk --break-system-packages
 
-
 echo "
 
 +-----------------------------+ 
@@ -182,8 +180,9 @@ echo "
 "
 sudo apt install texlive-full -y
 
-# cv dependencies
-sudo apt install texlive awesome* -y
+#### compatibility fonts (also for open office)
+sudo apt install ttf-mscorefonts-installer -y
+
 echo "
 
 +-----------------------+ 
@@ -1028,27 +1027,6 @@ echo "
 ###################       OTHER                ################
 
 ###############################################################
-
-echo "
-
-+------------------------+ 
-
-    NANO CUSTOM SYNTAX
-
-+------------------------+
-
-"
-# nano highlights syntax
-curl https://raw.githubusercontent.com/scopatz/nanorc/master/install.sh | sh
-
-
-
-echo "
-
-
-
-
-"
 
 
 # terminal padding 
