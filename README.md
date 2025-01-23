@@ -1,1 +1,1 @@
-Big list of apps, utilities and libs to install on a fresh pc
+Big list of apps, utilities and libs to download for a fresh install (UBUNTU and/or UBUNTU-BASED)
