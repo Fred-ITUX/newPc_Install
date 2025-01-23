@@ -49,6 +49,7 @@ read -r -p "Press Enter to continue..." key
 echo "Continuing..."
 
 
+## asdasdasd
 
 
 
@@ -146,12 +147,13 @@ sudo apt install python3-notify2 -y
 # metadata modifier - mp3 script
 sudo apt install python3-mutagen -y
 # fuzzy check
-sudo apt install python3-fuzzywuzzy 
+sudo apt install python3-fuzzywuzzy -y
 
 # speech to text - kdenlive subtitle dependencies
 sudo apt install python3-srt -y
 # speech to text -- global configuration
 pip3 install vosk --break-system-packages
+
 
 echo "
 
