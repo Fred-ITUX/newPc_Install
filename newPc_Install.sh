@@ -933,6 +933,7 @@ echo "
 
 "
 sudo apt install git -y
+sudo apt install gh -y
 echo "
 
 +---------------------+ 
