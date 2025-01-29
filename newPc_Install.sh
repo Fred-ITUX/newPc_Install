@@ -58,6 +58,9 @@ echo "
 "
 # gnome
 sudo apt install gnome -y
+
+# REQUIREMENT for ffmpeg media online (twitch and other streaming platforms)
+sudo apt ubuntu-restricted-extras -y
 echo "
 
 
