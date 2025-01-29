@@ -4,6 +4,7 @@ start_time=$(date '+%d-%m-%Y___%H-%M-%S')
 
 pathFile="$HOME/newPC_$start_time.txt"
 
+
 SWAP=16
 
 ########################################################
@@ -191,7 +192,7 @@ echo "
 "
 echo "If it freezes spam ENTER"
 # latex 
-sudo apt install texlive-full -y &
+sudo apt install texlive-full -y 
 
 
 echo "
@@ -452,7 +453,7 @@ echo "
 
 "
 # keep apt version for CLI command (clvc) + libs
-sudo apt install vlc libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y &
+sudo apt install vlc libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
 echo "
 
 
@@ -531,7 +532,7 @@ echo "
 "
 
 # gedit for cli - gnome-text-editor for daily use
-sudo apt install gedit gnome-text-editor -y &
+sudo apt install gedit gnome-text-editor -y 
 echo "
 
 
@@ -573,13 +574,13 @@ echo "
 "
 
 # apps, utilities, checkers, AMD GPU info
-sudo apt install gamemode zram-tools cpufrequtils radeontop -y &
+sudo apt install gamemode zram-tools cpufrequtils radeontop -y 
 
 # libs
-sudo apt install lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386 -y &
+sudo apt install lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386 -y 
 
 # Install additional libraries for compatibility
-sudo apt install libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y &
+sudo apt install libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y 
 echo "
 
 
@@ -620,12 +621,12 @@ echo "
 
 "
 # kden plugins and addons, melt (backend), mediainfo (media details), handbrake (file converter), nomacs (simple photo editor/viewer)
-sudo apt install ffmpeg melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs -y &
+sudo apt install ffmpeg melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs -y 
 # more media and editing oriented libs
-sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic -y &
+sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic -y 
 
 # gimp 
-sudo apt install libjpeg-turbo8 libgegl-dev libheif1 libjpeg-turbo8 libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 -y &
+sudo apt install libjpeg-turbo8 libgegl-dev libheif1 libjpeg-turbo8 libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 -y 
 echo "
 
 
@@ -669,10 +670,10 @@ echo "
 sudo apt install libreoffice -y
 
 # compatibility fonts
-sudo apt install fonts-liberation fonts-dejavu fonts-cantarell fonts-noto -y &
+sudo apt install fonts-liberation fonts-dejavu fonts-cantarell fonts-noto -y 
 
 # math font, improve PDF, quickstarter, theme compatibility
-sudo apt install fonts-stix pdftk tesseract-ocr poppler-utils libreoffice-gtk3 -y &
+sudo apt install fonts-stix pdftk tesseract-ocr poppler-utils libreoffice-gtk3 -y 
 echo "
 
 
@@ -711,7 +712,7 @@ echo "
 
 "
 # redshift - required for night light script 
-sudo apt install redshift -y &
+sudo apt install redshift -y 
 echo "
 
 
@@ -796,7 +797,7 @@ echo "
 
 "
 # gnome-tweaks
-sudo apt install gnome-tweaks -y &
+sudo apt install gnome-tweaks -y 
 echo "
 
 
@@ -837,7 +838,7 @@ echo "
 
 "
 # clipboard manager - lib dependencies
-sudo apt install gir1.2-gda-5.0 gir1.2-gsound-1.0 -y &
+sudo apt install gir1.2-gda-5.0 gir1.2-gsound-1.0 -y 
 echo "
 
 
@@ -875,7 +876,7 @@ echo "
 
 "
 # htop - task manager
-sudo apt install htop -y &
+sudo apt install htop -y 
 echo "
 
 
@@ -915,7 +916,7 @@ echo "
 "
 
 # piper - logitech mouse software
-sudo apt install piper -y &
+sudo apt install piper -y 
 echo "
 
 
@@ -956,9 +957,9 @@ echo "
 "
 
 # pulse audio - mixer 
-sudo apt install pulseaudio pavucontrol -y &
+sudo apt install pulseaudio pavucontrol -y 
 # bluetooth utilities
-sudo apt install pulseaudio-module-bluetooth bluez bluez-tools -y &
+sudo apt install pulseaudio-module-bluetooth bluez bluez-tools -y 
 echo "
 
 
@@ -998,7 +999,7 @@ echo "
 "
 
 # gufw firewall
-sudo apt install gufw -y &
+sudo apt install gufw -y 
 echo "
 
 
@@ -1040,7 +1041,7 @@ echo "
 "
 
 # neofetch - system info
-sudo apt install neofetch -y &
+sudo apt install neofetch -y 
 echo "
 
 
@@ -1081,7 +1082,7 @@ echo "
 "
 
 #### font-manager - custom font add / install
-sudo apt install font-manager -y &
+sudo apt install font-manager -y 
 echo "
 
 
@@ -1122,7 +1123,7 @@ echo "
 "
 
 # temp check for HDD, SSD, NVME ... --- required for Nextcloud/Linux/scripts/disk_check.py
-sudo apt install smartmontools -y &
+sudo apt install smartmontools -y 
 echo "
 
 
@@ -1138,6 +1139,46 @@ echo "
 
 
 "
+
+
+
+
+echo "
+
+
+
+
++--------------------------------+ 
+
+        START INSTALL NEMO
+
++--------------------------------+
+
+
+
+
+"
+# nemo - file explorer
+sudo apt install nemo -y
+echo "
+
+
+
+
++--------------------------------+ 
+
+        END   INSTALL NEMO
+
++--------------------------------+
+
+
+
+
+"
+
+
+
+
 
 
 
@@ -1336,7 +1377,7 @@ echo "
 
 "
 # flatseal - flatpak permissions
-flatpak install flatseal -y
+flatpak install com.github.tchx84.Flatseal/x86_64/stable -y
 echo "
 
 
@@ -1425,7 +1466,7 @@ echo "
 flatpak install com.valvesoftware.Steam -y
 
 # required addon
-sudo apt install steam-devices -y &
+sudo apt install steam-devices -y 
 
 # protonGE
 flatpak install com.valvesoftware.Steam.CompatibilityTool.Proton-GE -y 
@@ -1549,9 +1590,8 @@ echo "
 
 
 "
-
 # musescore - music sheet editor
-flatpak install musescore -y 
+flatpak install app/org.musescore.MuseScore/x86_64/stable -y 
 echo "
 
 
@@ -1594,7 +1634,7 @@ echo "
 
 "
 # gromit - on screen annotations (draw on screen)
-flatpak install gromit -y
+flatpak install app/net.christianbeier.Gromit-MPX/x86_64/stable -y
 echo "
 
 
