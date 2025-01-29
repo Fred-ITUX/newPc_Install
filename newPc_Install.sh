@@ -4,20 +4,9 @@ start_time=$(date '+%d-%m-%Y___%H-%M-%S')
 
 pathFile="$HOME/newPC_$start_time.txt"
 
-## sudo no pswd 
-user=$(whoami)
-echo "ADD
-    $user ALL=(ALL) NOPASSWD:ALL
-    to 'sudo visudo'
-    before '@includedir /etc/sudoers.d'
-"
-read -r -p "Press Enter to continue..." key
+SWAP=16
 
-
-
-
-
-
+########################################################
 
 
 echo "
@@ -30,7 +19,7 @@ echo "
 
     > ~45GB of apps and utilities (7GB for latex)
     > ~30min to end
-    > 16GB swap memory will be created
+    > "$SWAP"GB swap memory will be created
     > The pc will automatically reboot at the end
     
         
@@ -1262,7 +1251,7 @@ echo "
 sudo swapon --show
 free -h
 df -h
-sudo fallocate -l 16G /swapspace
+sudo fallocate -l "$SWAP"G /swapspace
 ls -lh /swapspace
 sudo chmod 700 /swapspace
 ls -lh /swapspace
