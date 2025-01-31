@@ -354,7 +354,7 @@ echo "
 
 "
 # update , full-upgrade to avoid packages issues , autoremove and clean
-sudo apt update && sudo apt full-upgrade -y && sudo apt --fix-broken install -y && sudo apt autoremove -y && sudo apt clean
+sudo apt update && sudo apt full-upgrade -y && sudo apt --fix-broken install -y && sudo dpkg --configure -a && sudo apt autoremove -y && sudo apt clean
 echo "
 
 +---------------------------------------------------------+ 
@@ -2444,24 +2444,17 @@ echo "
 ###############################################################
 
 
-echo "
-
-
-
-
-
-
-
-
-
-
-
-"
-
-
 
 
 echo "
+
+
+
+
+
+
+
+
 
 +------------------------------------------------------------+ 
 
@@ -2469,9 +2462,11 @@ echo "
 
 +------------------------------------------------------------+
 
+
+
 "
 # update , upgrade , autoremove
-sudo apt update && sudo apt full-upgrade -y && sudo apt --fix-broken install -y && sudo apt autoremove -y && sudo apt clean && flatpak update -y
+sudo apt update && sudo apt full-upgrade -y && sudo apt --fix-broken install -y && sudo dpkg --configure -a && sudo apt autoremove -y && sudo apt clean
 echo "
 
 +----------------------------------------------------------+ 
@@ -2479,6 +2474,8 @@ echo "
         END FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
 
 +----------------------------------------------------------+
+
+
 
 "
 
