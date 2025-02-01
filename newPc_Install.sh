@@ -2,6 +2,8 @@
 
 start_time=$(date '+%d-%m-%Y___%H-%M-%S')
 
+StartDiskSpace=$(df -h)
+
 pathFile="$HOME/newPC_$start_time.txt"
 
 
@@ -160,8 +162,6 @@ sudo apt install python3-mutagen -y
 # fuzzy check
 sudo apt install python3-fuzzywuzzy -y
 
-# gimpfu - gimp scripter
-sudo apt install gimp-python -y
 
 # speech to text - kdenlive subtitle dependencies
 sudo apt install python3-srt -y
@@ -2507,7 +2507,29 @@ echo "
 #### log
 end_time=$(date '+%d-%m-%Y___%H:%M:%S')
 
+EndDiskSpace=$(df -h)
+
+
+echo "
+
+                +------------------+ 
+
+                        INFO
+
+                +------------------+
+
+"
+
 echo -e "Start time:\t\t$start_time"
 echo -e "End time:\t\t$end_time"
+
+echo -e "\n\n"
+
+
+echo -e "Start disk space:\t\t$StartDiskSpace"
+echo -e "End disk space:\t\t$EndDiskSpace"
+
+
+echo -e "\n\n"
 
 } >> "$pathFile" 2>&1 && reboot 
