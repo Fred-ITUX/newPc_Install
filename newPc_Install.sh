@@ -160,6 +160,9 @@ sudo apt install python3-mutagen -y
 # fuzzy check
 sudo apt install python3-fuzzywuzzy -y
 
+# gimpfu - gimp scripter
+sudo apt install gimp-python -y
+
 # speech to text - kdenlive subtitle dependencies
 sudo apt install python3-srt -y
 # speech to text -- global configuration
@@ -2407,9 +2410,8 @@ sudo apt purge gnome-taquin -y
 
 ### cinammon DE remove
 sudo apt purge cinnamon* -y
-sudo apt purge blueman -y
 sudo apt purge mintwelcome -y
-
+sudo apt purge warpinator -y
 
 
 echo "
@@ -2502,7 +2504,7 @@ echo "
 
 
 
-## log
+#### log
 end_time=$(date '+%d-%m-%Y___%H:%M:%S')
 
 echo -e "Start time:\t\t$start_time"
