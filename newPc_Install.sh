@@ -155,17 +155,23 @@ sudo apt install python3-pandas -y
 sudo apt install python3-xlsxwriter -y
 # seaborn
 sudo apt install python3-seaborn -y
+
 # notifications
 sudo apt install python3-notify2 -y
+
 # metadata modifier - mp3 script
 sudo apt install python3-mutagen -y
+
 # fuzzy check
 sudo apt install python3-fuzzywuzzy -y
+
+# pil / pillow
+sudo apt install python3-pil -y
 
 
 # speech to text - kdenlive subtitle dependencies
 sudo apt install python3-srt -y
-# speech to text -- global configuration
+# speech to text -- system-wide install
 pip3 install vosk --break-system-packages
 
 echo "
@@ -1195,6 +1201,45 @@ echo "
 
 
 
+echo "
+
+
+
+
++-------------------------------------+ 
+
+        START INSTALL PLAYERCTL
+
++-------------------------------------+
+
+
+
+
+"
+# media player control (&& visualization)
+sudo apt install playerctl -y
+echo "
+
+
+
+
++-------------------------------------+ 
+
+        END   INSTALL PLAYERCTL
+
++-------------------------------------+
+
+
+
+
+"
+
+
+
+
+
+
+
 
 
 
@@ -1903,51 +1948,6 @@ echo "
 
 
 "
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+----------------------------------------+ 
-
-        START INSTALL STICKY NOTES
-
-+----------------------------------------+
-
-
-
-
-"
-# sticky notes
-flatpak install com.vixalien.sticky -y
-echo "
-
-
-
-
-+----------------------------------------+ 
-
-        END   INSTALL STICKY NOTES
-
-+----------------------------------------+
-
-
-
-
-"
-
-
-
-
 
 
 
