@@ -1716,44 +1716,6 @@ echo "
 
 
 
-echo "
-
-
-
-
-+--------------------------------------+ 
-
-        START INSTALL STRAWBERRY
-
-+--------------------------------------+
-
-
-
-
-"
-# strawberry - music player ( alternative to Clementine(EOL) )
-flatpak install org.strawberrymusicplayer.strawberry -y 
-echo "
-
-
-
-
-+--------------------------------------+ 
-
-        END   INSTALL STRAWBERRY
-
-+--------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
 
 
 echo "
@@ -2031,51 +1993,6 @@ echo "
 
 
 "
-
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-----------------------------------------+ 
-
-        START INSTALL TUBECONVERTER
-
-+-----------------------------------------+
-
-
-
-
-"
-
-# tubeconverter
-flatpak install org.nickvision.tubeconverter -y
-echo "
-
-
-
-
-+-----------------------------------------+ 
-
-        END   INSTALL TUBECONVERTER
-
-+-----------------------------------------+
-
-
-
-
-"
-
-
 
 
 
