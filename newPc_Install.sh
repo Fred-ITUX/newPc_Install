@@ -2449,4 +2449,13 @@ echo -e "End disk space:\t\t$EndDiskSpace"
 
 echo -e "\n\n"
 
-} >> "$pathFile" 2>&1 && reboot 
+} >> "$pathFile" 2>&1 
+
+
+#### Bash easy updater
+# bashupd
+sudo cp $HOME/newPc_Install/bashRC.sh $HOME/.bashrc && exec bash
+# aliupd
+sudo cp $HOME/newPc_Install/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases
+
+reboot 
