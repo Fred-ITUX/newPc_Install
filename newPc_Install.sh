@@ -362,8 +362,13 @@ echo "
 +-----------------------------------------------------------+
 
 "
-# update , full-upgrade to avoid packages issues , autoremove and clean
-sudo apt update && sudo apt full-upgrade -y && sudo apt --fix-broken install -y && sudo dpkg --configure -a && sudo apt autoremove -y && sudo apt clean
+# check broken pkg and updater
+sudo dpkg --configure -a 
+sudo apt --fix-broken install -y  
+sudo apt update
+sudo apt full-upgrade -y 
+sudo apt autoremove -y 
+sudo apt clean
 echo "
 
 +---------------------------------------------------------+ 
@@ -2384,8 +2389,14 @@ echo "
 
 
 "
-# update , upgrade , autoremove
-sudo apt update && sudo apt full-upgrade -y && sudo apt --fix-broken install -y && sudo dpkg --configure -a && sudo apt autoremove -y && sudo apt clean
+# check broken pkg and updater
+sudo dpkg --configure -a 
+sudo apt --fix-broken install -y  
+sudo apt update
+sudo apt full-upgrade -y 
+sudo apt autoremove -y 
+sudo apt clean
+
 echo "
 
 +----------------------------------------------------------+ 
@@ -2457,5 +2468,6 @@ echo -e "\n\n"
 sudo cp $HOME/newPc_Install/bashRC.sh $HOME/.bashrc && exec bash
 # aliupd
 sudo cp $HOME/newPc_Install/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases
+
 
 reboot 
