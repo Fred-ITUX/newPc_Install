@@ -32,7 +32,8 @@ sudo apt --fix-broken install -y
 echo "
     
     • Update:"
-sudo apt --fix-missing -q update | grep -v "Run 'apt list --upgradable' to see them."
+# sudo apt --fix-missing -q update | grep -v "Run 'apt list --upgradable' to see them."
+sudo apt --fix-missing -q update
     
 
 
