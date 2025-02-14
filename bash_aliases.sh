@@ -137,7 +137,8 @@ alias newPcUPD='
     cp $LXscripts/New_Pc/newPc_Install.sh $HOME/newPc_Install/
     cp $LXscripts/bash_aliases.sh $HOME/newPc_Install/
     cp $LXscripts/bashRC.sh $HOME/newPc_Install/
-    
+    cp $LXscripts/sys_updater.sh $HOME/newPc_Install/
+
     cd $HOME/newPc_Install/
     git add .
     git commit -m "updated script"
