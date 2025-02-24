@@ -2326,7 +2326,9 @@ echo "
 
 
 
-sudo apt purge firefox* -y
+#### keep firefox
+# sudo apt purge firefox* -y
+
 sudo apt purge thunderbird* -y
 sudo apt purge cheese -y
 sudo apt purge hypnotix -y
