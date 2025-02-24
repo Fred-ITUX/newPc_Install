@@ -2,6 +2,8 @@
 #### distro name for logging
 osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
 
+#### date log for debugging
+dateStr=$(date +'%Y-%m-%d_%H-%M-%S')
 
 
 ######################################################################
@@ -33,8 +35,10 @@ alias e='exit'
 alias bashrc='sudo nano .bashrc'
 alias aliases='sudo nano .bash_aliases'
 alias kernels='dpkg --list | grep linux-image'
-#### copy with ETA and progress bar
+#### copy,zip and unzip with ETA and progress bar
 alias cp2='rsync -ah --progress -r'
+alias zip2='7z a -tzip'
+alias unzip2='7z x'
 
 #### Apps & Utilities
 alias neo='neofetch'
@@ -60,7 +64,6 @@ alias rscan='$LXscripts/Scans/rk_hunter_scan.sh  >> "$pathROOTKIT" 2>&1'
 
 
 
-
 ######################################################################
 #### Scripts shortcut
 
@@ -70,6 +73,7 @@ alias pswd="python3 $PYscripts/passwd_gen.py"
 alias kden="$HOME/Nextcloud/Kden/scripts/kden_custom_launch.sh"
 alias kdenProject="$HOME/Nextcloud/Kden/scripts/kden_project_template.sh"
 
+
 alias sub="python3 $PYscripts/subtitle.py"
 alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
 
@@ -78,7 +82,6 @@ alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
 alias table="python3 $PYscripts/Style/tableStyle.py"
 alias tableEcho="python3 $PYscripts/Style/tableStyle_ECHO.py"
 alias title="python3 $PYscripts/Style/titleCase.py"
-
 
 #### Converters
 alias converterImg="python3 $PYscripts/FileModder/image_converter.py"
