@@ -60,8 +60,12 @@ alias updater='$LXscripts/sys_updater.sh  >> "$pathManualUpd" 2>&1'
 alias rscan='$LXscripts/Scans/rk_hunter_scan.sh  >> "$pathROOTKIT" 2>&1'
 
 
+#### Ps5 github triggers script
+alias ps5Triggers="$HOME/trigger-control/build/trigger-control"
 
 
+#### Night light with delay for when starting games
+alias gameNightLight="sleep 15s && $LXscripts/Shortcuts/night_light_on.sh && exit"
 
 
 ######################################################################
@@ -70,10 +74,14 @@ alias rscan='$LXscripts/Scans/rk_hunter_scan.sh  >> "$pathROOTKIT" 2>&1'
 #### Password gen
 alias pswd="python3 $PYscripts/passwd_gen.py"
 
+
+#### kden
 alias kden="$HOME/Nextcloud/Kden/scripts/kden_custom_launch.sh"
 alias kdenProject="$HOME/Nextcloud/Kden/scripts/kden_project_template.sh"
+alias kdenBKP="$HOME/Nextcloud/Kden/scripts/kden_temp_bkp.sh"
 
 
+#### editing utilities
 alias sub="python3 $PYscripts/subtitle.py"
 alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
 
@@ -82,6 +90,7 @@ alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
 alias table="python3 $PYscripts/Style/tableStyle.py"
 alias tableEcho="python3 $PYscripts/Style/tableStyle_ECHO.py"
 alias title="python3 $PYscripts/Style/titleCase.py"
+
 
 #### Converters
 alias converterImg="python3 $PYscripts/FileModder/image_converter.py"
