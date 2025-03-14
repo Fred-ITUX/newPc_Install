@@ -65,7 +65,7 @@ alias ps5Triggers="$HOME/trigger-control/build/trigger-control"
 
 
 #### Night light with delay for when starting games
-alias gameNightLight="sleep 15s && $LXscripts/Shortcuts/night_light_on.sh && exit"
+alias gameNightLight="sleep 30s && $LXscripts/Shortcuts/night_light_on.sh && exit"
 
 
 ######################################################################
@@ -150,6 +150,7 @@ alias newPcUPD='
     cp $LXscripts/bash_aliases.sh $HOME/newPc_Install/
     cp $LXscripts/bashRC.sh $HOME/newPc_Install/
     cp $LXscripts/sys_updater.sh $HOME/newPc_Install/
+    cp $LXscripts/New_Pc/setup.sh $HOME/newPc_Install/
 
     cd $HOME/newPc_Install/
     git add .

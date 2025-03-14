@@ -13,8 +13,6 @@ SWAP=16
 
 
 
-
-
 ########################################################
 
 
@@ -62,7 +60,7 @@ echo "
 sudo apt install gnome -y
 
 # REQUIREMENT for ffmpeg media online (twitch and other streaming platforms)
-sudo apt ubuntu-restricted-extras -y
+sudo apt install ubuntu-restricted-extras -y
 echo "
 
 
@@ -571,6 +569,48 @@ echo "
 
 
 "
+
+
+
+echo "
+
+
+
+
++-------------------------------+ 
+
+        START INSTALL FZF
+
++-------------------------------+
+
+
+
+
+"
+# lightweight terminal interactive selection
+sudo apt install fzf -y
+echo "
+
+
+
+
++-------------------------------+ 
+
+        END   INSTALL FZF
+
++-------------------------------+
+
+
+
+
+"
+
+
+
+
+
+
+
 
 
 
