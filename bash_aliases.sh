@@ -151,6 +151,7 @@ alias newPcUPD='
     cp $LXscripts/bashRC.sh $HOME/newPc_Install/
     cp $LXscripts/sys_updater.sh $HOME/newPc_Install/
     cp $LXscripts/New_Pc/setup.sh $HOME/newPc_Install/
+    cp $LXscripts/New_Pc/README.md $HOME/newPc_Install/
 
     cd $HOME/newPc_Install/
     git add .
