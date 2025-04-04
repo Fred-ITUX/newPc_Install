@@ -2493,7 +2493,6 @@ reboot
 
 
 
-
 # # # telegram
 # # flatpak install app/org.telegram.desktop/x86_64/stable -y
 
