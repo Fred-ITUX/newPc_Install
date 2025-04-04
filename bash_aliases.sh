@@ -71,8 +71,16 @@ alias gameNightLight="sleep 30s && $LXscripts/Shortcuts/night_light_on.sh && exi
 ######################################################################
 #### Scripts shortcut
 
+
 #### Password gen
 alias pswd="python3 $PYscripts/passwd_gen.py"
+
+
+#### weather check
+alias weather="$LXscripts/DE_Addon/weatherFIXED.sh"
+
+#### percentage calculator
+alias percentage="python3 $PYscripts/perc_calc.py"
 
 
 #### kden
