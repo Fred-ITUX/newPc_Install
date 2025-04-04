@@ -2498,3 +2498,4 @@ reboot
 
 # # # whatsapp
 # # flatpak install app/com.github.eneshecan.WhatsAppForLinux/x86_64/stable -y
+

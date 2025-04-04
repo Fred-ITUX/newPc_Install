@@ -164,7 +164,9 @@ alias newPcUPD='
     cd $HOME/newPc_Install/
     git add .
     git commit -m "updated script"
+    echo -e "\nPulling..."
     git pull origin main
+    echo "\nPushing..."
     git push
     cd
 }
