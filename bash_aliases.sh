@@ -166,6 +166,7 @@ alias newPcUPD='
     git commit -m "updated script"
     git pull origin main
     git push
+    cd
 }
 '
 
