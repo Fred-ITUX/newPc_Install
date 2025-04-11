@@ -68,6 +68,13 @@ alias ps5Triggers="$HOME/trigger-control/build/trigger-control"
 alias gameNightLight="sleep 30s && $LXscripts/Shortcuts/night_light_on.sh && exit"
 
 
+##### auto cursor mover
+alias mouseMover="$LXscripts/DE_Addon/mouse_mover.sh"
+
+#### auto clicker
+alias mouseClicker="$LXscripts/DE_Addon/auto_clicker.sh"
+
+
 ######################################################################
 #### Scripts shortcut
 

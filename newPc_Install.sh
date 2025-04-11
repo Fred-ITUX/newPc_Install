@@ -1885,44 +1885,6 @@ echo "
 
 
 
-+------------------------------------+ 
-
-        START INSTALL XCLICKER
-
-+------------------------------------+
-
-
-
-
-"
-# xclicker - auto clicker
-flatpak install xyz.xclicker.xclicker -y 
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        END   INSTALL XCLICKER
-
-+------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-echo "
-
-
-
-
 +----------------------------------------+ 
 
         START INSTALL COREKEYBOARD
@@ -2500,4 +2462,6 @@ reboot
 # # flatpak install app/com.github.eneshecan.WhatsAppForLinux/x86_64/stable -y
 
 
+# # # xclicker - auto clicker --- replaced by script
+# # # flatpak install xyz.xclicker.xclicker -y 
 
