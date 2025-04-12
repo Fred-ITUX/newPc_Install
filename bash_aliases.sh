@@ -69,10 +69,10 @@ alias gameNightLight="sleep 30s && $LXscripts/Shortcuts/night_light_on.sh && exi
 
 
 ##### auto cursor mover
-alias mouseMover="$LXscripts/DE_Addon/mouse_mover.sh"
+alias mouseMover="$LXscripts/Other/mouse_mover.sh"
 
 #### auto clicker
-alias mouseClicker="$LXscripts/DE_Addon/auto_clicker.sh"
+alias mouseClicker="$LXscripts/Other/auto_clicker.sh"
 
 
 ######################################################################
@@ -112,10 +112,10 @@ alias converterImg="python3 $PYscripts/FileModder/image_converter.py"
 alias converterWav="python3 $PYscripts/FileModder/wav_converter.py"
 alias converterMkv="python3 $PYscripts/FileModder/mkv_converter.py"
 
+#### Github newPc_Install script update (from Nextcloud to Github repo)
+alias newPcUPD="$LXscripts/Other/github_newPc.sh"
 
 ######################################################################
-
-
 
 
 
@@ -127,57 +127,15 @@ alias converterMkv="python3 $PYscripts/FileModder/mkv_converter.py"
 ######################################################################
 #### Shutdown aliases
 
-alias end="read -r -p '' key && shutdown"
-alias shutdown=" 
-{
-    echo \"___________________________________________\"
-    uptime_result=\$(uptime | cut -d ',' -f 1 | awk '{print \$3, \$4}')
-    echo \"Uptime: \$uptime_result\"
-    date
-} >> \"\$pathShutdown\" 2>&1 && sudo shutdown now
-"
+alias end="read -r -p '' && shutdown"
 
+alias shutdown="$LXscripts/Other/shutdown_routine.sh && sudo shutdown now"
 
-alias reboot="
-read -r -p '' key
-{
-    echo \"___________________________________________\"
-    uptime_result=\$(uptime | cut -d ',' -f 1 | awk '{print \$3, \$4}')
-    echo \"Uptime: \$uptime_result\"
-    date
-} >> \"\$pathShutdown\" 2>&1 && sudo reboot now
-"
+alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo reboot now"
 
 ######################################################################
 
 
-
-
-
-
-######################################################################
-
-#### Git newPc_Install script update (from Nextcloud to Github repo)
-
-alias newPcUPD='
-{
-    cp $LXscripts/New_Pc/newPc_Install.sh $HOME/newPc_Install/
-    cp $LXscripts/bash_aliases.sh $HOME/newPc_Install/
-    cp $LXscripts/bashRC.sh $HOME/newPc_Install/
-    cp $LXscripts/sys_updater.sh $HOME/newPc_Install/
-    cp $LXscripts/New_Pc/setup.sh $HOME/newPc_Install/
-    cp $LXscripts/New_Pc/README.md $HOME/newPc_Install/
-
-    cd $HOME/newPc_Install/
-    git add .
-    git commit -m "updated script"
-    echo -e "\n • Pulling..."
-    git pull origin main
-    echo -e "\n • Pushing..."
-    git push
-    cd
-}
-'
 
 
 
