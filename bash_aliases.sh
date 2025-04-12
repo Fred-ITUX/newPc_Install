@@ -133,14 +133,11 @@ alias newPcUPD="$LXscripts/Other/github_newPc.sh"
 ################################################################################################
 #### Shutdown aliases
 
-plot_script="python3 $PYscripts/UptimePlot/uptime_check.py"
-
-
 alias end="read -r -p '' && shutdown"
 
-alias shutdown="$LXscripts/Other/shutdown_routine.sh && "$plot_script" && sudo shutdown now"
+alias shutdown="$LXscripts/Other/shutdown_routine.sh && sudo shutdown now"
 
-alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && "$plot_script" && sudo reboot now"
+alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo reboot now"
 
 ################################################################################################
 
