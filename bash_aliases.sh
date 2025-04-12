@@ -1,4 +1,5 @@
 
+
 #### distro name for logging
 osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
 
@@ -6,7 +7,7 @@ osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/l
 dateStr=$(date +'%Y-%m-%d_%H-%M-%S')
 
 
-######################################################################
+################################################################################################
 
 #### Logs path
 pathManualUpd="$HOME/Nextcloud/Linux/log/manual_updater.txt" 
@@ -20,7 +21,7 @@ LXscripts="$HOME/Nextcloud/Linux/scripts"
 PYscripts="$HOME/Nextcloud/Python/scripts"
 
 
-######################################################################
+################################################################################################
 
 
 
@@ -70,12 +71,12 @@ alias gameNightLight="sleep 30s && $LXscripts/Shortcuts/night_light_on.sh && exi
 
 ##### auto cursor mover
 alias mouseMover="$LXscripts/Other/mouse_mover.sh"
-
 #### auto clicker
 alias mouseClicker="$LXscripts/Other/auto_clicker.sh"
 
 
-######################################################################
+
+################################################################################################
 #### Scripts shortcut
 
 
@@ -112,10 +113,13 @@ alias converterImg="python3 $PYscripts/FileModder/image_converter.py"
 alias converterWav="python3 $PYscripts/FileModder/wav_converter.py"
 alias converterMkv="python3 $PYscripts/FileModder/mkv_converter.py"
 
+
 #### Github newPc_Install script update (from Nextcloud to Github repo)
 alias newPcUPD="$LXscripts/Other/github_newPc.sh"
 
-######################################################################
+
+
+################################################################################################
 
 
 
@@ -124,25 +128,34 @@ alias newPcUPD="$LXscripts/Other/github_newPc.sh"
 
 
 
-######################################################################
+
+
+################################################################################################
 #### Shutdown aliases
+
+plot_script="python3 $PYscripts/UptimePlot/uptime_check.py"
+
 
 alias end="read -r -p '' && shutdown"
 
-alias shutdown="$LXscripts/Other/shutdown_routine.sh && sudo shutdown now"
+alias shutdown="$LXscripts/Other/shutdown_routine.sh && "$plot_script" && sudo shutdown now"
 
-alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo reboot now"
+alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && "$plot_script" && sudo reboot now"
 
-######################################################################
-
-
+################################################################################################
 
 
 
 
 
 
-######################################################################
+
+
+
+
+
+
+################################################################################################
 
                 #################################
                 ####                         ####
@@ -165,7 +178,7 @@ alias vscanpwd='vscan "$(pwd)"'
 
 
 
-######################################################################
+################################################################################################
 
 #### zips all files in current dir individually
 
@@ -181,6 +194,6 @@ zip_folders() {
         echo -e "\nCompressed $folder_name into ${folder_name}.zip\n"
     done
 }
-######################################################################
+################################################################################################
 
 
