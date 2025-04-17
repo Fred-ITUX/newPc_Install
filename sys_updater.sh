@@ -62,6 +62,16 @@ sudo apt clean
 
 
 
+
+echo "
+    
+    • 2nd Fix broken pkg:"
+sudo dpkg --configure -a 
+sudo apt --fix-broken install -y 
+
+
+
+
 echo " 
     End  --  $(date)
 "
