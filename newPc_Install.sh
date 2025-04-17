@@ -379,7 +379,7 @@ pcUtilitiesPackages=(
         wget 
         curl 
         git 
-        gh              #### gh (github session login)
+        gh              #### github session login
         smartmontools   #### temp check
         neofetch        #### sys info
         gufw            #### firewall
