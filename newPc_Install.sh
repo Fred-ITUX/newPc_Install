@@ -34,7 +34,7 @@ echo "
         
         
 "
-read -r -p "Press Enter to continue..." key
+read -r -p "Press Enter to continue..."
 echo "Continuing..."
 
 
@@ -57,7 +57,7 @@ echo "
 
 "
 # gnome
-sudo apt install gnome -y
+sudo apt install gnome gnome-tweaks -y
 
 # REQUIREMENT for ffmpeg media online (twitch and other streaming platforms)
 sudo apt install ubuntu-restricted-extras -y
@@ -134,41 +134,29 @@ echo "
 
 
 "
-# pyhton3 addons
-sudo apt install python3-full -y
-# pip install
-sudo apt install python3-pip -y
-# pip kernel 
-sudo apt install python3-ipykernel -y
+# Python apt packages
+pythonPackages=(
+  python3-full
+  python3-pip
+  python3-ipykernel
+  python3-pandas
+  python3-xlsxwriter
+  python3-seaborn
+  python3-notify2
+  python3-mutagen
+  python3-fuzzywuzzy
+  python3-pil
+  python3-srt
+  pipx
+)
+
+printf '%s\n\n' "${pythonPackages[@]}" \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
+>> "$pathFile" 2>&1
 
 
-# pipx install
-sudo apt install pipx -y
 # pipx path fix
 pipx ensurepath
-
-
-# pandas
-sudo apt install python3-pandas -y
-sudo apt install python3-xlsxwriter -y
-# seaborn
-sudo apt install python3-seaborn -y
-
-# notifications
-sudo apt install python3-notify2 -y
-
-# metadata modifier - mp3 script
-sudo apt install python3-mutagen -y
-
-# fuzzy check
-sudo apt install python3-fuzzywuzzy -y
-
-# pil / pillow
-sudo apt install python3-pil -y
-
-
-# speech to text - kdenlive subtitle dependencies
-sudo apt install python3-srt -y
 # speech to text -- system-wide install
 pip3 install vosk --break-system-packages
 
@@ -206,10 +194,9 @@ echo "
 
 
 "
-echo "If it freezes spam ENTER"
+echo -e "If it freezes spam ENTER:\n"
 # latex 
 sudo apt install texlive-full -y 
-
 
 echo "
 
@@ -229,50 +216,6 @@ echo "
 
 
 
-
-
-
-
-
-echo "
-
-
-
-
-+----------------------------------+ 
-
-        START INSTALL CLAMAV
-
-+----------------------------------+
-
-
-
-
-"
-
-echo "Prompts will appear..."
-# clamav - antivirus and DB create-update
-sudo apt install clamav clamav-daemon clamav-freshclam -y
-clamconf
-sudo freshclam
-echo "
-
-
-
-
-+----------------------------------+ 
-
-        END   INSTALL CLAMAV       
-
-+----------------------------------+
-
-
-
-
-"
-
-
-
 echo "
 
 
@@ -280,7 +223,7 @@ echo "
 
 +------------------------------------+ 
 
-        START INSTALL RKHUNTER
+        START INSTALL SCANNERS
 
 +------------------------------------+
 
@@ -288,7 +231,12 @@ echo "
 
 
 "
-
+echo -e "\n\n\n\n  Clamav:"
+# clamav - antivirus and DB create-update
+sudo apt install clamav clamav-daemon clamav-freshclam -y
+clamconf
+sudo freshclam
+echo -e "\n\n\n\n  Rk hunter:"
 # rkhunter - rootkit
 sudo apt install rkhunter -y
 echo "
@@ -298,7 +246,7 @@ echo "
 
 +------------------------------------+ 
 
-        END   INSTALL RKHUNTER
+        END   INSTALL SCANNERS
 
 +------------------------------------+
 
@@ -313,23 +261,20 @@ echo "
 
 
 
+
+
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
 
 
-
-
-
-
-echo "From now on is automatic
-    Continuing with the script..."
 
 
 touch "$pathFile"
 
-echo "Created file $pathFile"
+echo -e "\n\nFrom now on is automatic\n Continuing with the script...\n\n\tCheck log: $pathFile "
+
 
 
 #### prompt avoid
@@ -413,206 +358,69 @@ echo "
 
 
 
-
-
-
-
-
 echo "
 
 
 
 
-+-------------------------------------------------+ 
++----------------------------------------+ 
 
-        START INSTALL CURL, WGET, GIT && GH
+        START INSTALL PC UTILITIES
 
-+-------------------------------------------------+
-
-
-
-
-"
-# wget , curl, git, gh (github session login)
-sudo apt install wget curl git gh -y 
-echo "
-
-
-
-
-+-------------------------------------------------+ 
-
-        END   INSTALL CURL, WGET, GIT && GH
-
-+-------------------------------------------------+
++----------------------------------------+
 
 
 
 
 "
 
+pcUtilitiesPackages=(
+        #### Github & gh
+        wget 
+        curl 
+        git 
+        gh              #### gh (github session login)
+        smartmontools   #### temp check
+        neofetch        #### sys info
+        gufw            #### firewall
+        htop            #### task manager
+        redshift        #### night light
+        playerctl       #### media player control
+        fzf             #### terminal interactive selection
+        nemo            #### file explorer
+        #### Wine
+        wine 
+        wine64 
+        wine32 
+        winetricks
+        #### Pulseaudio
+        pulseaudio
+        pavucontrol 
+        pulseaudio-module-bluetooth 
+        bluez 
+        bluez-tools
+        font-manager
+)
 
-
-
-
-
-
-
-echo "
-
-
-
-
-+---------------------------------------------+ 
-
-        START INSTALL VLC && MEDIA LIBS
-
-+---------------------------------------------+
-
-
-
-
-"
-# keep apt version for CLI command (clvc) + libs
-sudo apt install vlc libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
-echo "
-
-
-
-
-+---------------------------------------------+ 
-
-        END   INSTALL VLC && MEDIA LIBS
-
-+---------------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
+printf '%s\n\n' "${pcUtilitiesPackages[@]}" \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing: {}" && sudo apt install -y "{}"' \
+>> "$pathFile" 2>&1
 
 echo "
 
 
 
 
-+-----------------------------------+ 
++----------------------------------------+ 
 
-        START INSTALL XREADER
+        END   INSTALL PC UTILITIES
 
-+-----------------------------------+
-
-
-
-
-"
-# pdf reader
-sudo apt install xreader -y
-echo "
-
-
-
-
-+-----------------------------------+ 
-
-        END   INSTALL XREADER
-
-+-----------------------------------+
++----------------------------------------+
 
 
 
 
 "
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+----------------------------------------------+ 
-
-        START INSTALL SIMPLE TEXT EDITOR
-
-+----------------------------------------------+
-
-
-
-
-"
-
-# gedit for cli - gnome-text-editor for daily use
-sudo apt install gedit gnome-text-editor -y 
-echo "
-
-
-
-
-+----------------------------------------------+ 
-
-        END   INSTALL SIMPLE TEXT EDITOR
-
-+----------------------------------------------+
-
-
-
-
-"
-
-
-
-echo "
-
-
-
-
-+-------------------------------+ 
-
-        START INSTALL FZF
-
-+-------------------------------+
-
-
-
-
-"
-# lightweight terminal interactive selection
-sudo apt install fzf -y
-echo "
-
-
-
-
-+-------------------------------+ 
-
-        END   INSTALL FZF
-
-+-------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
 
 
 
@@ -639,11 +447,9 @@ echo "
 # apps, utilities, checkers, AMD GPU info
 sudo apt install gamemode zram-tools cpufrequtils radeontop -y 
 
-# libs
-sudo apt install lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386 -y 
+# additional libraries for compatibility
+sudo apt install lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386  libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y
 
-# Install additional libraries for compatibility
-sudo apt install libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y 
 echo "
 
 
@@ -685,8 +491,11 @@ echo "
 "
 # kden plugins and addons, melt (backend), mediainfo (media details), handbrake (file converter), nomacs (simple photo editor/viewer)
 sudo apt install ffmpeg melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs -y 
+
 # more media and editing oriented libs
-sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic -y 
+sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
+
+
 
 # gimp 
 sudo apt install libjpeg-turbo8 libgegl-dev libheif1 libjpeg-turbo8 libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 -y 
@@ -710,582 +519,64 @@ echo "
 
 
 
+echo "
 
 
 
+
++---------------------------------------+ 
+
+        START INSTALL COMMON APPS
+
++---------------------------------------+
+
+
+
+
+"
+appPackages=(
+        vlc
+        gedit 
+        gnome-text-editor 
+        xreader
+        #### libre office & fonts
+        libreoffice 
+        fonts-liberation 
+        fonts-dejavu 
+        fonts-cantarell 
+        fonts-noto 
+        fonts-stix 
+        pdftk 
+        tesseract-ocr 
+        poppler-utils 
+        libreoffice-gtk3
+        piper           #### logitech mouse software
+        #### clipboard manager - lib dependencies
+        gir1.2-gda-5.0 
+        gir1.2-gsound-1.0 
+
+)
+
+
+printf '%s\n\n' "${appPackages[@]}" \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
+>> "$pathFile" 2>&1
 
 echo "
 
 
 
 
-+--------------------------------------------------------+ 
++---------------------------------------+ 
 
-        START INSTALL LIBRE OFFICE, LIBS && PLUGIN
+        END   INSTALL COMMON APPS
 
-+--------------------------------------------------------+
-
-
-
-
-"
-# libre office full
-sudo apt install libreoffice -y
-
-# compatibility fonts
-sudo apt install fonts-liberation fonts-dejavu fonts-cantarell fonts-noto -y 
-
-# math font, improve PDF, quickstarter, theme compatibility
-sudo apt install fonts-stix pdftk tesseract-ocr poppler-utils libreoffice-gtk3 -y 
-echo "
-
-
-
-
-+--------------------------------------------------------+ 
-
-        END   INSTALL LIBRE OFFICE, LIBS && PLUGIN
-
-+--------------------------------------------------------+
++---------------------------------------+
 
 
 
 
 "
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        START INSTALL REDSHIFT
-
-+------------------------------------+
-
-
-
-
-"
-# redshift - required for night light script 
-sudo apt install redshift -y 
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        END   INSTALL REDSHIFT
-
-+------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-----------------------------------------+ 
-
-        START INSTALL WINE COMPLETE
-
-+-----------------------------------------+
-
-
-
-
-"
-# standard package + explicit redundancy
-sudo apt install wine wine64 wine32 winetricks -y
-echo "
-
-
-
-
-+-----------------------------------------+ 
-
-        END   INSTALL WINE COMPLETE
-
-+-----------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+----------------------------------------+ 
-
-        START INSTALL GNOME TWEAKS
-
-+----------------------------------------+
-
-
-
-
-"
-# gnome-tweaks
-sudo apt install gnome-tweaks -y 
-echo "
-
-
-
-
-+----------------------------------------+ 
-
-        END   INSTALL GNOME TWEAKS
-
-+----------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+--------------------------------------------------+ 
-
-        START INSTALL CLIPBOARD MANAGER LIBS
-
-+--------------------------------------------------+
-
-
-
-
-"
-# clipboard manager - lib dependencies
-sudo apt install gir1.2-gda-5.0 gir1.2-gsound-1.0 -y 
-echo "
-
-
-
-
-+--------------------------------------------------+ 
-
-        END   INSTALL CLIPBOARD MANAGER LIBS
-
-+--------------------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-echo "
-
-
-
-
-+--------------------------------+ 
-
-        START INSTALL HTOP
-
-+--------------------------------+
-
-
-
-
-"
-# htop - task manager
-sudo apt install htop -y 
-echo "
-
-
-
-
-+--------------------------------+ 
-
-        END   INSTALL HTOP
-
-+--------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+---------------------------------+ 
-
-        START INSTALL PIPER
-
-+---------------------------------+
-
-
-
-
-"
-
-# piper - logitech mouse software
-sudo apt install piper -y 
-echo "
-
-
-
-
-+---------------------------------+ 
-
-        END   INSTALL PIPER
-
-+---------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-----------------------------------------------------+ 
-
-        START INSTALL PULSEAUDIO && PAVUCONTROL
-
-+-----------------------------------------------------+
-
-
-
-
-"
-
-# pulse audio - mixer 
-sudo apt install pulseaudio pavucontrol -y 
-# bluetooth utilities
-sudo apt install pulseaudio-module-bluetooth bluez bluez-tools -y 
-echo "
-
-
-
-
-+-----------------------------------------------------+ 
-
-        END   INSTALL PULSEAUDIO && PAVUCONTROL
-
-+-----------------------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-----------------------------------------+ 
-
-        START INSTALL GUFW FIREWALL
-
-+-----------------------------------------+
-
-
-
-
-"
-
-# gufw firewall
-sudo apt install gufw -y 
-echo "
-
-
-
-
-+-----------------------------------------+ 
-
-        END   INSTALL GUFW FIREWALL
-
-+-----------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        START INSTALL NEOFETCH
-
-+------------------------------------+
-
-
-
-
-"
-
-# neofetch - system info
-sudo apt install neofetch -y 
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        END   INSTALL NEOFETCH
-
-+------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+----------------------------------------+ 
-
-        START INSTALL FONT-MANAGER
-
-+----------------------------------------+
-
-
-
-
-"
-
-#### font-manager - custom font add / install
-sudo apt install font-manager -y 
-echo "
-
-
-
-
-+----------------------------------------+ 
-
-        END   INSTALL FONT-MANAGER
-
-+----------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-----------------------------------------+ 
-
-        START INSTALL SMARTMONTOOLS
-
-+-----------------------------------------+
-
-
-
-
-"
-
-# temp check for HDD, SSD, NVME ... --- required for Nextcloud/Linux/scripts/disk_check.py
-sudo apt install smartmontools -y 
-echo "
-
-
-
-
-+-----------------------------------------+ 
-
-        END   INSTALL SMARTMONTOOLS
-
-+-----------------------------------------+
-
-
-
-
-"
-
-
-
-
-echo "
-
-
-
-
-+--------------------------------+ 
-
-        START INSTALL NEMO
-
-+--------------------------------+
-
-
-
-
-"
-# nemo - file explorer
-sudo apt install nemo -y
-echo "
-
-
-
-
-+--------------------------------+ 
-
-        END   INSTALL NEMO
-
-+--------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-------------------------------------+ 
-
-        START INSTALL PLAYERCTL
-
-+-------------------------------------+
-
-
-
-
-"
-# media player control (&& visualization)
-sudo apt install playerctl -y
-echo "
-
-
-
-
-+-------------------------------------+ 
-
-        END   INSTALL PLAYERCTL
-
-+-------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
 
 
 
@@ -1376,11 +667,7 @@ vte-terminal {
 
 
 
-
-
-
-
-# swap allocation 
+#### swap allocation 
 echo "
 
 +-----------------------------------+ 
@@ -1425,22 +712,10 @@ echo "
 
 
 
-
-
-
-
-
-
-
-
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-
-
-
-
 
 echo "
 
@@ -1460,587 +735,35 @@ echo "
 
 
 
-
-
-
-echo "
-
-
-
-
-+---------------------------------+ 
-
-        START INSTALL BRAVE
-
-+---------------------------------+
-
-
-
-
-"
-
-# brave 
-flatpak install com.brave.Browser -y
-echo "
-
-
-
-
-+---------------------------------+ 
-
-        END   INSTALL BRAVE
-
-+---------------------------------+
-
-
-
-
-"
-
-
-
-
-
-echo "
-
-
-
-
-+----------------------------------+ 
-
-        START INSTALL CHROME
-
-+----------------------------------+
-
-
-
-
-"
-# chrome
-flatpak install  app/com.google.Chrome/x86_64/stable -y
-echo "
-
-
-
-
-+----------------------------------+ 
-
-        END   INSTALL CHROME
-
-+----------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        START INSTALL FLATSEAL
-
-+------------------------------------+
-
-
-
-
-"
-# flatseal - flatpak permissions
-flatpak install com.github.tchx84.Flatseal/x86_64/stable -y
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        END   INSTALL FLATSEAL
-
-+------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+---------------------------------------------------+ 
-
-        START INSTALL GNOME EXTENSION MANAGER
-
-+---------------------------------------------------+
-
-
-
-
-"
-# GNOME - Extension Manager 
-flatpak install app/com.mattjakeman.ExtensionManager/x86_64/stable -y 
-echo "
-
-
-
-
-+---------------------------------------------------+ 
-
-        END   INSTALL GNOME EXTENSION MANAGER
-
-+---------------------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+---------------------------------+ 
-
-        START INSTALL STEAM
-
-+---------------------------------+
-
-
-
-
-"
-
-# steam
-flatpak install com.valvesoftware.Steam -y
-
-# required addon
+flatpakAppPackages=(
+    com.brave.Browser
+    app/com.google.Chrome/x86_64/stable
+    com.github.tchx84.Flatseal/x86_64/stable    #### flatseal - flatpak permissions
+    app/com.mattjakeman.ExtensionManager/x86_64/stable  #### GNOME - Extension Manager
+    #### Steam
+    com.valvesoftware.Steam 
+    com.valvesoftware.Steam.CompatibilityTool.Proton-GE
+    #### Gimp
+    org.gimp.GIMP/x86_64/stable
+    ##############
+    app/com.discordapp.Discord/x86_64/stable
+    app/org.musescore.MuseScore/x86_64/stable   #### music sheet editor
+    app/net.christianbeier.Gromit-MPX/x86_64/stable #### draw on screen
+    page.codeberg.libre_menu_editor.LibreMenuEditor #### app info and editor
+    org.cubocore.CoreKeyboard       #### virtual keyboard (EOL)
+    com.obsproject.Studio           #### OBS
+    org.audacityteam.Audacity       #### Audacity
+    app/org.keepassxc.KeePassXC/x86_64/stable   #### Database DB
+)
+
+
+
+printf '%s\n\n' "${flatpakAppPackages[@]}" \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && flatpak install -y "{}"' \
+>> "$pathFile" 2>&1
+
+#### required steam addon
 sudo apt install steam-devices -y 
-
-# protonGE
-flatpak install com.valvesoftware.Steam.CompatibilityTool.Proton-GE -y 
-echo "
-
-
-
-
-+---------------------------------+ 
-
-        END   INSTALL STEAM
-
-+---------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+--------------------------------+ 
-
-        START INSTALL GIMP
-
-+--------------------------------+
-
-
-
-
-"
-# gimp - photo editor + libs
-flatpak install org.gimp.GIMP runtime/org.gimp.GIMP.Plugin.GMic/x86_64/2-40 -y
-echo "
-
-
-
-
-+--------------------------------+ 
-
-        END   INSTALL GIMP
-
-+--------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-----------------------------------+ 
-
-        START INSTALL DISCORD
-
-+-----------------------------------+
-
-
-
-
-"
-# discord
-flatpak install app/com.discordapp.Discord/x86_64/stable -y 
-echo "
-
-
-
-
-+-----------------------------------+ 
-
-        END   INSTALL DISCORD
-
-+-----------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-------------------------------------+ 
-
-        START INSTALL MUSESCORE
-
-+-------------------------------------+
-
-
-
-
-"
-# musescore - music sheet editor
-flatpak install app/org.musescore.MuseScore/x86_64/stable -y 
-echo "
-
-
-
-
-+-------------------------------------+ 
-
-        END   INSTALL MUSESCORE
-
-+-------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+----------------------------------+ 
-
-        START INSTALL GROMIT
-
-+----------------------------------+
-
-
-
-
-"
-# gromit - on screen annotations (draw on screen)
-flatpak install app/net.christianbeier.Gromit-MPX/x86_64/stable -y
-echo "
-
-
-
-
-+----------------------------------+ 
-
-        END   INSTALL GROMIT
-
-+----------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-------------------------------------+ 
-
-        START INSTALL MAIN MENU
-
-+-------------------------------------+
-
-
-
-
-"
-# main menu - detailed app info and editor
-flatpak install page.codeberg.libre_menu_editor.LibreMenuEditor -y 
-echo "
-
-
-
-
-+-------------------------------------+ 
-
-        END   INSTALL MAIN MENU
-
-+-------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+----------------------------------------+ 
-
-        START INSTALL COREKEYBOARD
-
-+----------------------------------------+
-
-
-
-
-"
-# CoreKeyboard - virtual keyboard (EOL)
-flatpak install org.cubocore.CoreKeyboard -y
-echo "
-
-
-
-
-+----------------------------------------+ 
-
-        END   INSTALL COREKEYBOARD
-
-+----------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-------------------------------+ 
-
-        START INSTALL OBS
-
-+-------------------------------+
-
-
-
-
-"
-# obs - screen capture
-flatpak install com.obsproject.Studio -y
-echo "
-
-
-
-
-+-------------------------------+ 
-
-        END   INSTALL OBS
-
-+-------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        START INSTALL AUDACITY
-
-+------------------------------------+
-
-
-
-
-"
-# audacity
-flatpak install org.audacityteam.Audacity -y
-echo "
-
-
-
-
-+------------------------------------+ 
-
-        END   INSTALL AUDACITY
-
-+------------------------------------+
-
-
-
-
-"
-
-
-
-
-
-
-
-
-echo "
-
-
-
-
-+-------------------------------------+ 
-
-        START INSTALL KEEPASSXC
-
-+-------------------------------------+
-
-
-
-
-"
-
-# database - password manager
-flatpak install app/org.keepassxc.KeePassXC/x86_64/stable -y
-echo "
-
-
-
-
-+-------------------------------------+ 
-
-        END   INSTALL KEEPASSXC
-
-+-------------------------------------+
-
-
-
-
-"
-
-
-
-
-
 
 
 
@@ -2064,10 +787,6 @@ echo "
 
 
 "
-
-
-
-
 
 
 ########################################################################################################
@@ -2190,11 +909,6 @@ echo "
 
 
 
-
-
-
-
-
 echo "
 
 
@@ -2214,15 +928,10 @@ echo "
 "
 
 
-
-
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-
-
-
 
 
 echo "
@@ -2244,60 +953,60 @@ echo "
 "
 
 
+appToPurge=(
+        #### Mint / Ubuntu apps
+        thunderbird* 
+        cheese 
+        hypnotix 
+        rhythmbox 
+        aisleriot 
+        celluloid  
+        hexchat 
+        onboard 
+        mahjongg 
+        pix 
+        remmina 
+        five-or-more 
+        four-in-a-row 
+        drawing 
+        xed 
+        lightsoff 
+        hitori 
+        quadrapassel 
+        shotwell 
+        swell-foop 
+        tali 
+        evolution 
+        evince 
+        iagno 
+        warpinator
+        #### Gnome apps
+        gnome-mahjongg 
+        gnome-mines 
+        gnome-sudoku 
+        gnome-todo 
+        gnome-chess 
+        gnome-2048 
+        gnome-contacts 
+        gnome-maps 
+        gnome-tetravex 
+        gnome-music 
+        gnome-nibbles 
+        gnome-klotski 
+        gnome-robots 
+        gnome-weather 
+        gnome-remote-desktop 
+        gnome-taquin 
+)
 
-#### keep firefox
-# sudo apt purge firefox* -y
+printf '%s\n' "${appToPurge[@]}" \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Uninstalling {}..." && sudo apt purge -y "{}"' \
+>> "$pathFile" 2>&1
 
-sudo apt purge thunderbird* -y
-sudo apt purge cheese -y
-sudo apt purge hypnotix -y
-sudo apt purge rhythmbox -y
-sudo apt purge aisleriot -y
-sudo apt purge celluloid -y 
-sudo apt purge hexchat -y
-sudo apt purge onboard -y
-sudo apt purge mahjongg -y
-sudo apt purge pix -y
-sudo apt purge remmina -y
-sudo apt purge five-or-more -y
-sudo apt purge four-in-a-row -y
-sudo apt purge drawing -y
-sudo apt purge xed -y
-sudo apt purge lightsoff -y
-sudo apt purge hitori -y
-sudo apt purge quadrapassel -y
-sudo apt purge shotwell -y
-sudo apt purge swell-foop -y
-sudo apt purge tali -y
-sudo apt purge evolution -y
-sudo apt purge evince -y
-sudo apt purge iagno -y
-
-
-
-sudo apt purge gnome-mahjongg -y
-sudo apt purge gnome-mines -y
-sudo apt purge gnome-sudoku -y
-sudo apt purge gnome-todo -y
-sudo apt purge gnome-chess -y
-sudo apt purge gnome-2048 -y
-sudo apt purge gnome-contacts -y
-sudo apt purge gnome-maps -y
-sudo apt purge gnome-tetravex -y
-sudo apt purge gnome-music -y
-sudo apt purge gnome-nibbles -y
-sudo apt purge gnome-klotski -y
-sudo apt purge gnome-robots -y
-sudo apt purge gnome-weather -y
-sudo apt purge gnome-remote-desktop -y
-sudo apt purge gnome-taquin -y
-
-
-
-### cinammon DE remove
+#### Cinammon DE remover
 sudo apt purge cinnamon* -y
 sudo apt purge mintwelcome -y
-sudo apt purge warpinator -y
+
 
 
 echo "
@@ -2419,10 +1128,10 @@ echo -e "\n\n"
 
 
 echo -e "Start disk space:\t\t$StartDiskSpace"
-echo -e "End disk space:\t\t$EndDiskSpace"
+echo -e "End disk space:\t\t$EndDiskSpace \n\n"
 
 
-echo -e "\n\n"
+
 
 } >> "$pathFile" 2>&1 
 
@@ -2433,7 +1142,8 @@ sudo cp $HOME/newPc_Install/bashRC.sh $HOME/.bashrc && exec bash
 # aliupd
 sudo cp $HOME/newPc_Install/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases
 
-
+echo -e "Rebooting now..."
+sleep 3s
 reboot 
 
 

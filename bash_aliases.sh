@@ -36,10 +36,13 @@ alias e='exit'
 alias bashrc='sudo nano .bashrc'
 alias aliases='sudo nano .bash_aliases'
 alias kernels='dpkg --list | grep linux-image'
+
+
 #### copy,zip and unzip with ETA and progress bar
 alias cp2='rsync -ah --progress -r'
 alias zip2='7z a -tzip'
 alias unzip2='7z x'
+
 
 #### Apps & Utilities
 alias neo='neofetch'
