@@ -257,17 +257,10 @@ echo "
 
 
 
-
-
-
-
-
-
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-
 
 
 
@@ -379,15 +372,15 @@ pcUtilitiesPackages=(
         wget 
         curl 
         git 
-        gh              #### github session login
-        smartmontools   #### temp check
-        neofetch        #### sys info
-        gufw            #### firewall
-        htop            #### task manager
-        redshift        #### night light
-        playerctl       #### media player control
-        fzf             #### terminal interactive selection
-        nemo            #### file explorer
+        gh                                      #### github session login
+        smartmontools                           #### temp check
+        neofetch                                #### sys info
+        gufw                                    #### firewall
+        htop                                    #### task manager
+        redshift                                #### night light
+        playerctl                               #### media player control
+        fzf                                     #### terminal interactive selection
+        nemo                                    #### file explorer
         #### Wine
         wine 
         wine64 
@@ -539,6 +532,7 @@ appPackages=(
         gedit 
         gnome-text-editor 
         xreader
+        piper                                   #### logitech mouse software
         #### libre office & fonts
         libreoffice 
         fonts-liberation 
@@ -550,7 +544,6 @@ appPackages=(
         tesseract-ocr 
         poppler-utils 
         libreoffice-gtk3
-        piper           #### logitech mouse software
         #### clipboard manager - lib dependencies
         gir1.2-gda-5.0 
         gir1.2-gsound-1.0 
@@ -611,11 +604,6 @@ echo "
 
 
 
-
-
-
-
-
 echo "
 
             +-------------------+ 
@@ -629,7 +617,6 @@ echo "
 
 
 
-# terminal padding 
 echo "
 
 +----------------------------------+ 
@@ -641,7 +628,7 @@ echo "
 "
 
 
-# padding for older and newer gtk compatibility
+#### padding for older and newer gtk compatibility
 
 echo "VteTerminal,
 TerminalScreen,
@@ -738,8 +725,8 @@ echo "
 flatpakAppPackages=(
     com.brave.Browser
     app/com.google.Chrome/x86_64/stable
-    com.github.tchx84.Flatseal/x86_64/stable    #### flatseal - flatpak permissions
-    app/com.mattjakeman.ExtensionManager/x86_64/stable  #### GNOME - Extension Manager
+    com.github.tchx84.Flatseal/x86_64/stable                    #### flatseal - flatpak permissions
+    app/com.mattjakeman.ExtensionManager/x86_64/stable          #### GNOME - Extension Manager
     #### Steam
     com.valvesoftware.Steam 
     com.valvesoftware.Steam.CompatibilityTool.Proton-GE
@@ -747,13 +734,13 @@ flatpakAppPackages=(
     org.gimp.GIMP/x86_64/stable
     ##############
     app/com.discordapp.Discord/x86_64/stable
-    app/org.musescore.MuseScore/x86_64/stable   #### music sheet editor
-    app/net.christianbeier.Gromit-MPX/x86_64/stable #### draw on screen
-    page.codeberg.libre_menu_editor.LibreMenuEditor #### app info and editor
-    org.cubocore.CoreKeyboard       #### virtual keyboard (EOL)
-    com.obsproject.Studio           #### OBS
-    org.audacityteam.Audacity       #### Audacity
-    app/org.keepassxc.KeePassXC/x86_64/stable   #### Database DB
+    app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
+    app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
+    page.codeberg.libre_menu_editor.LibreMenuEditor             #### app info and editor
+    org.cubocore.CoreKeyboard                                   #### virtual keyboard (EOL)
+    com.obsproject.Studio                                       #### OBS
+    org.audacityteam.Audacity                                   #### Audacity
+    app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
 )
 
 
