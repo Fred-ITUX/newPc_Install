@@ -7,11 +7,15 @@ osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
 #### formatted date
 dateSTR=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py)
 
+#### formatted date for file names
+dateSTR_FILE=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date_filename.py)
+
 #### log standard setup (Start -- date , Running for: ...)
 sysInfo=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo.sh)
+
+#### log standard setup end part (end date)
+sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
 #########################################################################
-
-
 
 
 ################################################################################################
