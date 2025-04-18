@@ -48,7 +48,6 @@ alias unzip2='7z x'
 alias neo='neofetch'
 alias py='python3'
 alias sql='sudo mysql'
-alias alarm="vlc $HOME/Nextcloud/Linux/Stuff/alarm.mp3 --gain=5"
 alias minecraft='gamemoderun java -jar $HOME/Nextcloud/Games/Minecraft/TLauncher/TLauncher.jar && exit'
 
 
@@ -169,13 +168,40 @@ vscan() {
     
     files=$(ls -A) #### -A removes the dots
 
-    echo -e "Checking files:\n$files"
+    echo -e "🦠 Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
     
-    echo -e "\n\nOutput file: $pathCLAMSCAN"
     $LXscripts/Scans/clamav_scan.sh >> "$pathCLAMSCAN" 2>&1
     
 }
 
+################################################################################################
+
+alarm(){
+
+    #### alarm in minutes
+    timeAmount="$1"
+    total_seconds=$((timeAmount * 60))
+
+    echo -e "⏰ Starting timer: ${timeAmount} minute(s)"
+    sleep 1s
+
+    #### Clean output in terminal at each iteration
+    while (( total_seconds > 0 )); do
+        mins=$(( total_seconds / 60 ))
+        secs=$(( total_seconds % 60 ))
+
+        printf "\r⏳ Time left: %02d:%02d " "$mins" "$secs"
+
+        sleep 1s
+        (( total_seconds-- ))
+    done
+
+    #### Clear line + newline before playing sound
+    printf "\r%*s\r" "$(tput cols)" ""
+
+    #### Launch vlc (cvlc terminal only)
+    cvlc $HOME/Nextcloud/Linux/Stuff/alarm.mp3 --gain=3
+}
 
 
 
