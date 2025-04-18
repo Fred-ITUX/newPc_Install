@@ -166,15 +166,16 @@ alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo rebo
 vscan() {
 
     cd "$1"
-    echo "Checking files:"
-    ls -al
+    
+    files=$(ls -A) #### -A removes the dots
 
+    echo -e "Checking files:\n$files"
+    
     echo -e "\n\nOutput file: $pathCLAMSCAN"
     $LXscripts/Scans/clamav_scan.sh >> "$pathCLAMSCAN" 2>&1
     
 }
 
-alias vscanpwd='vscan "$(pwd)"'
 
 
 

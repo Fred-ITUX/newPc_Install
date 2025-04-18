@@ -6,18 +6,14 @@ StartDiskSpace=$(df -h)
 
 pathFile="$HOME/newPC_$start_time.txt"
 
-
 SWAP=16
-
-
 
 
 
 ########################################################
 
 
-echo "
-
+echo -e "\n\n
     +--------------------------+ 
 
             REQUIREMENTS
@@ -27,113 +23,68 @@ echo "
     > ~45GB of apps and utilities (7GB for latex)
     > ~30min to end
     > "$SWAP"GB swap memory will be created
-    > The pc will automatically reboot at the end
-    
-        
-        
-        
-        
+    > The pc will automatically reboot at the end \n\n\n
 "
 read -r -p "Press Enter to continue..."
-echo "Continuing..."
+echo -e "Continuing..."
 
 
 
 
 
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
         START INSTALL GNOME
 
-+---------------------------------+
++---------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 # gnome
 sudo apt install gnome gnome-tweaks -y
 
 # REQUIREMENT for ffmpeg media online (twitch and other streaming platforms)
 sudo apt install ubuntu-restricted-extras -y
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
         END   INSTALL GNOME
 
-+---------------------------------+
-
-
-
-
-"
++---------------------------------+\n\n\n\n\n"
 
 
 
 
 
-echo "
 
-
-
-
+echo -e "\n\n\n\n\n
 +-----------------------------------+ 
 
         START INSTALL FLATPAK
 
-+-----------------------------------+
++-----------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 # flatpak download
 sudo apt install flatpak -y
 flatpak install flathub -y
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +-----------------------------------+ 
 
         END   INSTALL FLATPAK
 
-+-----------------------------------+
++-----------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 
 
 
 
  
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +----------------------------------+ 
 
         START INSTALL PYTON3
 
-+----------------------------------+
++----------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 # Python apt packages
 pythonPackages=(
   python3-full
@@ -160,77 +111,44 @@ pipx ensurepath
 # speech to text -- system-wide install
 pip3 install vosk --break-system-packages
 
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +----------------------------------+ 
 
         END   INSTALL PYTON3
 
-+----------------------------------+
++----------------------------------+\n\n\n\n\n"
 
 
 
 
-"
-
-
-
-
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
         START INSTALL LATEX
 
-+---------------------------------+
++---------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 echo -e "If it freezes spam ENTER:\n"
 # latex 
 sudo apt install texlive-full -y 
 
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
         END   INSTALL LATEX
 
-+---------------------------------+
++---------------------------------+\n\n\n\n\n"
 
 
 
 
-"
-
-
-
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +------------------------------------+ 
 
         START INSTALL SCANNERS
 
-+------------------------------------+
++------------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 echo -e "\n\n\n\n  Clamav:"
 # clamav - antivirus and DB create-update
 sudo apt install clamav clamav-daemon clamav-freshclam -y
@@ -239,29 +157,16 @@ sudo freshclam
 echo -e "\n\n\n\n  Rk hunter:"
 # rkhunter - rootkit
 sudo apt install rkhunter -y
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +------------------------------------+ 
 
         END   INSTALL SCANNERS
 
-+------------------------------------+
-
-
-
-
-"
-
-
++------------------------------------+\n\n\n\n\n"
 
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-########################################################################################################
-
 
 
 touch "$pathFile"
@@ -276,7 +181,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 {
 
-echo "
+echo -e "
 
         +------------------------+ 
 
@@ -289,15 +194,13 @@ echo "
 
 
 
-echo "
-
+echo -e "\n\n\n
 +-----------------------------------------------------------+ 
 
         START UPDATE, FULL UPGRADE AND CHECK INSTALLS
 
-+-----------------------------------------------------------+
++-----------------------------------------------------------+\n\n\n"
 
-"
 # check broken pkg and updater
 sudo dpkg --configure -a 
 sudo apt --fix-broken install -y  
@@ -305,67 +208,38 @@ sudo apt update
 sudo apt full-upgrade -y 
 sudo apt autoremove -y 
 sudo apt clean
-echo "
-
+echo -e "\n\n\n
 +---------------------------------------------------------+ 
 
         END UPDATE, FULL UPGRADE AND CHECK INSTALLS
 
-+---------------------------------------------------------+
-
-"
-
-
-
++---------------------------------------------------------+\n\n\n"
 
 
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-########################################################################################################
 
 
 
 
-
-
-
-
-echo "
-
-
-
-
-
+echo -e "\n\n\n\n\n
         +------------------------------------------+ 
 
                 REPOSITORY && APT APPS BEGIN
 
-        +------------------------------------------+
+        +------------------------------------------+\n\n\n\n\n"
 
 
 
 
-
-"
-
-
-
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +----------------------------------------+ 
 
         START INSTALL PC UTILITIES
 
-+----------------------------------------+
++----------------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 
 pcUtilitiesPackages=(
         #### Github & gh
@@ -399,21 +273,12 @@ printf '%s\n\n' "${pcUtilitiesPackages[@]}" \
   | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing: {}" && sudo apt install -y "{}"' \
 >> "$pathFile" 2>&1
 
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +----------------------------------------+ 
 
         END   INSTALL PC UTILITIES
 
-+----------------------------------------+
-
-
-
-
-"
++----------------------------------------+\n\n\n\n\n"
 
 
 
@@ -421,21 +286,14 @@ echo "
 
 
 
-echo "
 
-
-
-
+echo -e "\n\n\n\n\n
 +----------------------------------------------------+ 
 
         START INSTALL GAMING LIBS && UTILITIES
 
-+----------------------------------------------------+
++----------------------------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 
 # apps, utilities, checkers, AMD GPU info
 sudo apt install gamemode zram-tools cpufrequtils radeontop -y 
@@ -443,21 +301,12 @@ sudo apt install gamemode zram-tools cpufrequtils radeontop -y
 # additional libraries for compatibility
 sudo apt install lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386  libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y
 
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +----------------------------------------------------+ 
 
         END   INSTALL GAMING LIBS && UTILITIES
 
-+----------------------------------------------------+
-
-
-
-
-"
++----------------------------------------------------+\n\n\n\n\n"
 
 
 
@@ -467,21 +316,14 @@ echo "
 
 
 
-echo "
 
-
-
-
+echo -e "\n\n\n\n\n
 +--------------------------------------------------------------+ 
 
         START INSTALL EDITING DEPENDENCIES && MEDIA LIBS
 
-+--------------------------------------------------------------+
++--------------------------------------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 # kden plugins and addons, melt (backend), mediainfo (media details), handbrake (file converter), nomacs (simple photo editor/viewer)
 sudo apt install ffmpeg melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs -y 
 
@@ -492,41 +334,26 @@ sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev 
 
 # gimp 
 sudo apt install libjpeg-turbo8 libgegl-dev libheif1 libjpeg-turbo8 libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 -y 
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +--------------------------------------------------------------+ 
 
         END   INSTALL EDITING DEPENDENCIES && MEDIA LIBS
 
-+--------------------------------------------------------------+
-
-
-
-
-"
++--------------------------------------------------------------+\n\n\n\n\n"
 
 
 
 
 
-echo "
 
-
-
-
+echo -e "\n\n\n\n\n
 +---------------------------------------+ 
 
         START INSTALL COMMON APPS
 
-+---------------------------------------+
++---------------------------------------+\n\n\n\n\n"
 
 
-
-
-"
 appPackages=(
         vlc
         gedit 
@@ -555,43 +382,24 @@ printf '%s\n\n' "${appPackages[@]}" \
   | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
 >> "$pathFile" 2>&1
 
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +---------------------------------------+ 
 
         END   INSTALL COMMON APPS
 
-+---------------------------------------+
-
-
-
-
-"
++---------------------------------------+\n\n\n\n\n"
 
 
 
 
 
-echo "
 
-
-
-
-
+echo -e "\n\n\n\n\n
         +----------------------------------------+ 
 
                 REPOSITORY && APT APPS END
 
-        +----------------------------------------+
-
-
-
-
-
-"
+        +----------------------------------------+\n\n\n\n\n"
 
 
 
@@ -600,11 +408,10 @@ echo "
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-########################################################################################################
 
 
 
-echo "
+echo -e "
 
             +-------------------+ 
 
@@ -617,32 +424,29 @@ echo "
 
 
 
-echo "
-
+echo -e "\n\n\n
 +----------------------------------+ 
 
         GTK TERMINAL PADDING
 
-+----------------------------------+
-
-"
++----------------------------------+\n\n\n"
 
 
 #### padding for older and newer gtk compatibility
 
-echo "VteTerminal,
+echo -e "VteTerminal,
 TerminalScreen,
 vte-terminal {
     padding: 20px 20px 20px 20px;
     -VteTerminal-inner-border: 20px 20px 20px 20px;}" | sudo tee -a ~/.config/gtk-2.0/gtk.css
 
-echo "VteTerminal,
+echo -e "VteTerminal,
 TerminalScreen,
 vte-terminal {
     padding: 20px 20px 20px 20px;
     -VteTerminal-inner-border: 20px 20px 20px 20px;}" | sudo tee -a ~/.config/gtk-3.0/gtk.css
 
-echo "VteTerminal,
+echo -e "VteTerminal,
 TerminalScreen,
 vte-terminal {
     padding: 20px 20px 20px 20px;
@@ -655,15 +459,13 @@ vte-terminal {
 
 
 #### swap allocation 
-echo "
+echo -e "\n\n\n\n\n
 
 +-----------------------------------+ 
 
         START SWAP ALLOCATION
 
-+-----------------------------------+
-
-"
++-----------------------------------+\n\n\n"
 
 sudo swapon --show
 free -h
@@ -680,11 +482,11 @@ sudo cp /etc/fstab /etc/fstab.bak
 echo '/swapspace none swap sw 0 0' | sudo tee -a /etc/fstab
 cat /proc/sys/vm/swappiness
 sudo sysctl vm.swappiness=30
-echo "vm.swappiness=30" | sudo tee -a /etc/sysctl.conf    
+echo -e "vm.swappiness=30" | sudo tee -a /etc/sysctl.conf    
 cat /proc/sys/vm/vfs_cache_pressure
 sudo sysctl vm.vfs_cache_pressure=40
-echo "vm.vfs_cache_pressure=40" | sudo tee -a /etc/sysctl.conf
-echo "
+echo -e "vm.vfs_cache_pressure=40" | sudo tee -a /etc/sysctl.conf
+echo -e "
 
 +---------------------------------+ 
 
@@ -695,30 +497,17 @@ echo "
 "
 
 
-
-
-
-
-########################################################################################################
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
 
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
         +--------------------------------+ 
 
                 FLATPAK APPS BEGIN
 
-        +--------------------------------+
+        +--------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 
 
 
@@ -754,74 +543,35 @@ sudo apt install steam-devices -y
 
 
 
-echo "
-
-
-
-
-
-
+echo -e "\n\n\n\n\n
             +------------------------------+ 
 
                     FLATPAK APPS END
 
-            +------------------------------+
+            +------------------------------+\n\n\n\n\n"
 
-
-
-
-
-
-
-"
 
 
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-########################################################################################################
 
-
-
-
-echo "
-
-
-
-
-
+echo -e "\n\n\n\n\n
             +------------------------------------------+ 
 
                     PPA APPS INSTALLATIONS BEGIN
 
-            +------------------------------------------+
+            +------------------------------------------+\n\n\n\n\n"
 
 
 
-
-
-"
-
-
-
-
-
-
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +------------------------------------+ 
 
         START INSTALL VSCODIUM
 
-+------------------------------------+
++------------------------------------+\n\n\n\n\n"
 
-
-
-
-"
 # vscodium - open source and telemetry-free visual studio code
 wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
     | gpg --dearmor \
@@ -831,113 +581,58 @@ wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.g
     | sudo tee /etc/apt/sources.list.d/vscodium.list
     
     sudo apt update && sudo apt install codium
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +------------------------------------+ 
 
         END   INSTALL VSCODIUM
 
-+------------------------------------+
-
-
-
-
-"
++------------------------------------+\n\n\n\n\n"
 
 
 
 
 
-
-
-
-
-
-
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +-------------------------------------+ 
 
         START INSTALL NEXTCLOUD
 
-+-------------------------------------+
-
-
-
-
-"
++-------------------------------------+\n\n\n\n\n"
 
 # nextcloud - self-hosted cloud storage -- webhosting
 sudo add-apt-repository ppa:nextcloud-devs/client -y
 sudo apt update
 sudo apt install nextcloud-client -y
-echo "
-
-
-
-
+echo -e "\n\n\n\n\n
 +-------------------------------------+ 
 
         END   INSTALL NEXTCLOUD
 
-+-------------------------------------+
-
-
-
-
-"
-
-
-
-
-echo "
++-------------------------------------+\n\n\n\n\n"
 
 
 
 
 
+echo -e "\n\n\n\n\n
             +----------------------------------------+ 
 
                     PPA APPS INSTALLATIONS END
 
-            +----------------------------------------+
-
-
-
-
-
-"
+            +----------------------------------------+\n\n\n\n\n"
 
 
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-########################################################################################################
 
-
-echo "
-
-
-
-
-
+echo -e "\n\n\n\n\n
             +--------------------------------------------+ 
 
                     START PRE-INSTALLED APPS PURGE
 
-            +--------------------------------------------+
+            +--------------------------------------------+\n\n\n\n\n"
 
-
-
-
-
-"
 
 
 appToPurge=(
@@ -996,24 +691,13 @@ sudo apt purge mintwelcome -y
 
 
 
-echo "
-
-
-
-
-
-
+echo -e "\n\n\n\n\n
             +------------------------------------------+ 
 
                     END PRE-INSTALLED APPS PURGE
 
-            +------------------------------------------+
+            +------------------------------------------+\n\n\n\n\n"
 
-
-
-
-
-"
 
 
 
@@ -1028,27 +712,13 @@ echo "
 ###############################################################
 
 
-
-
-echo "
-
-
-
-
-
-
-
-
-
+echo -e "\n\n\n\n\n
 +------------------------------------------------------------+ 
 
         START FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
 
-+------------------------------------------------------------+
++------------------------------------------------------------+\n\n\n\n\n"
 
-
-
-"
 # check broken pkg and updater
 sudo dpkg --configure -a 
 sudo apt --fix-broken install -y  
@@ -1057,39 +727,28 @@ sudo apt full-upgrade -y
 sudo apt autoremove -y 
 sudo apt clean
 
-echo "
-
+echo -e "\n\n
 +----------------------------------------------------------+ 
 
         END FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
 
-+----------------------------------------------------------+
-
-
-
-"
++----------------------------------------------------------+\n\n\n\n\n"
 
 
 
 
-echo "
 
+echo -e "\n\n\n
             +----------------------+ 
 
                     END CODE
 
-            +----------------------+
-
-"
-
-
+            +----------------------+\n\n\n"
 
 
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-########################################################################################################
-
 
 
 #### log
@@ -1098,26 +757,18 @@ end_time=$(date '+%d-%m-%Y___%H:%M:%S')
 EndDiskSpace=$(df -h)
 
 
-echo "
-
+echo -e "\n\n
                 +------------------+ 
 
                         INFO
 
-                +------------------+
+                +------------------+\n\n\n\n"
 
-"
+echo -e "Start time:\t$start_time"
+echo -e "End time  :\t$end_time"
 
-echo -e "Start time:\t\t$start_time"
-echo -e "End time:\t\t$end_time"
-
-echo -e "\n\n"
-
-
-echo -e "Start disk space:\t\t$StartDiskSpace"
-echo -e "End disk space:\t\t$EndDiskSpace \n\n"
-
-
+echo -e "\n\nStart disk space:\t$StartDiskSpace"
+echo -e "End disk space      :\t$EndDiskSpace \n\n"
 
 
 } >> "$pathFile" 2>&1 
@@ -1135,29 +786,20 @@ reboot
 
 
 
-
-
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
-########################################################################################################
-
-
-                                ####################################
-                                ####                            ####
-                                ####        OLD & UNUSED        ####
-                                ####                            ####
-                                ####################################
-
-
-
+                        ####################################
+                        ####                            ####
+                        ####        OLD & UNUSED        ####
+                        ####                            ####
+                        ####################################
 
 # # # telegram
 # # flatpak install app/org.telegram.desktop/x86_64/stable -y
 
 # # # whatsapp
 # # flatpak install app/com.github.eneshecan.WhatsAppForLinux/x86_64/stable -y
-
 
 # # # xclicker - auto clicker --- replaced by script
 # # # flatpak install xyz.xclicker.xclicker -y 
