@@ -1,79 +1,66 @@
 #!/bin/bash
 
-#### distro name for logging
-osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
-
 #### prompt avoid
 export DEBIAN_FRONTEND=noninteractive
 
+#########################################################################
+#### distro name for logging
+osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
 
-echo -e "
-_____________________________________________________ 
-\t" #### keep a empty line under, otherwise gets removed from log_cleaner.py script 
+#### formatted date
+dateSTR=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py)
 
-echo "
-    Start  --  $(date)
-    Running for:  $(whoami)@$osname [$(hostname)]"
+#### log standard setup (Start -- date , Running for: ...)
+sysInfo=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo.sh)
 
-####
+#### log standard setup end part (end date)
+sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
+#########################################################################
+
+#### log setup - START
+echo -e "$sysInfo"
 
 
-
-echo "
-    
-    • Fix broken pkg:"
+echo -e "\n\t
+    • Fix broken pkg:
+    \t"
 sudo dpkg --configure -a 
 sudo apt --fix-broken install -y 
 
 
-
-
-
-echo "
-    
-    • Update:"
+echo -e "\n\t
+    • Update:
+    \t"
 # sudo apt --fix-missing -q update | grep -v "Run 'apt list --upgradable' to see them."
 sudo apt --fix-missing -q update
     
 
-
-
-echo "
-    
-    • Upgrade:"
+echo -e "\n\t
+    • Upgrade:
+    \t"
 sudo apt full-upgrade -y
 
 
-
-
-echo "
-    
-    • Flatpak update:" 
+echo -e "\n\t
+    • Flatpak update:
+    \t" 
 sudo flatpak update -y 
 
 
-
-
-echo "
-    
-    • Autoremove:"
+echo -e "\n\t
+    • Autoremove:
+    \t"
 sudo apt autoremove -y
 sudo apt clean
 
 
-
-
-echo "
-    
-    • 2nd Fix broken pkg:"
+echo -e "\n\t
+    • 2nd Fix broken pkg:
+    \t"
 sudo dpkg --configure -a 
 sudo apt --fix-broken install -y 
 
 
-
-
-echo " 
-    End  --  $(date)
-"
-
-
+#### log setup - END
+sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
+echo -e "$sysInfo_END"

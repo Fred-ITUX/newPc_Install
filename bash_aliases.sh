@@ -1,10 +1,17 @@
 
 
+#########################################################################
 #### distro name for logging
-osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
+osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
 
-#### date log for debugging
-dateStr=$(date +'%Y-%m-%d_%H-%M-%S')
+#### formatted date
+dateSTR=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py)
+
+#### log standard setup (Start -- date , Running for: ...)
+sysInfo=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo.sh)
+#########################################################################
+
+
 
 
 ################################################################################################
@@ -22,6 +29,7 @@ PYscripts="$HOME/Nextcloud/Python/scripts"
 
 
 ################################################################################################
+
 
 
 
@@ -56,7 +64,7 @@ alias lowCpu="sudo systemd-run --scope -p CPUWeight=5"
 
 
 #### manual updater
-alias updater='$LXscripts/sys_updater.sh  >> "$pathManualUpd" 2>&1'
+alias updater='$LXscripts/sys_updater.sh  >> "$pathManualUpd" 2>&1 && python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py'
 
 
 #### rootkit scan
