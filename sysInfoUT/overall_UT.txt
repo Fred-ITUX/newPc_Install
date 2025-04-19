@@ -1,3 +1,4 @@
+
 #########################################################################
 #### distro name for logging
 osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
@@ -16,8 +17,10 @@ sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
 #########################################################################
 
 
+
 #### log setup - START
 echo -e "$sysInfo"
+
 
 
 #### log setup - END
