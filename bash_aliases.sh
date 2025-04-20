@@ -18,6 +18,8 @@ sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
 #########################################################################
 
 
+
+
 ################################################################################################
 
 #### Logs path
@@ -48,7 +50,7 @@ alias e='exit'
 alias bashrc='sudo nano .bashrc'
 alias aliases='sudo nano .bash_aliases'
 alias kernels='dpkg --list | grep linux-image'
-
+alias addx='sudo chmod +x'
 
 #### copy,zip and unzip with ETA and progress bar
 alias cp2='rsync -ah --progress -r'
@@ -183,8 +185,9 @@ vscan() {
     echo -e "🦠 Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
     
     $LXscripts/Scans/clamav_scan.sh >> "$pathCLAMSCAN" 2>&1
-    
-}
+
+    python3 $LXscripts/Startup_Routine/log_checker_Vscan.py  
+} 
 
 ################################################################################################
 

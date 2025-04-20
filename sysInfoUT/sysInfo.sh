@@ -4,6 +4,7 @@ osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
 
 dateSTR=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py)
 
+
 echo -e "
 ________________________________________________________ 
 \t
