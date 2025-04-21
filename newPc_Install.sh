@@ -110,6 +110,8 @@ printf '%s\n\n' "${pythonPackages[@]}" \
 pipx ensurepath
 # speech to text -- system-wide install
 pip3 install vosk --break-system-packages
+# yt downloader
+pipx install "yt-dlp[default]"
 
 echo -e "\n\n\n\n\n
 +----------------------------------+ 
@@ -330,8 +332,6 @@ sudo apt install ffmpeg melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav li
 # more media and editing oriented libs
 sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
 
-
-
 # gimp 
 sudo apt install libjpeg-turbo8 libgegl-dev libheif1 libjpeg-turbo8 libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 -y 
 echo -e "\n\n\n\n\n
@@ -374,7 +374,6 @@ appPackages=(
         #### clipboard manager - lib dependencies
         gir1.2-gda-5.0 
         gir1.2-gsound-1.0 
-
 )
 
 
@@ -460,7 +459,6 @@ vte-terminal {
 
 #### swap allocation 
 echo -e "\n\n\n\n\n
-
 +-----------------------------------+ 
 
         START SWAP ALLOCATION
@@ -486,15 +484,12 @@ echo -e "vm.swappiness=30" | sudo tee -a /etc/sysctl.conf
 cat /proc/sys/vm/vfs_cache_pressure
 sudo sysctl vm.vfs_cache_pressure=40
 echo -e "vm.vfs_cache_pressure=40" | sudo tee -a /etc/sysctl.conf
-echo -e "
-
+echo -e "\n\n\n
 +---------------------------------+ 
 
         END SWAP ALLOCATION
 
-+---------------------------------+
-
-"
++---------------------------------+\n\n\n\n\n"
 
 
 ########################################################################################################
@@ -508,9 +503,6 @@ echo -e "\n\n\n\n\n
 
         +--------------------------------+\n\n\n\n\n"
 
-
-
-
 flatpakAppPackages=(
     com.brave.Browser
     app/com.google.Chrome/x86_64/stable
@@ -522,7 +514,7 @@ flatpakAppPackages=(
     #### Gimp
     org.gimp.GIMP/x86_64/stable
     ##############
-    app/com.discordapp.Discord/x86_64/stable
+    #app/com.discordapp.Discord/x86_64/stable
     app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
     app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
     page.codeberg.libre_menu_editor.LibreMenuEditor             #### app info and editor
@@ -542,15 +534,12 @@ printf '%s\n\n' "${flatpakAppPackages[@]}" \
 sudo apt install steam-devices -y 
 
 
-
 echo -e "\n\n\n\n\n
             +------------------------------+ 
 
                     FLATPAK APPS END
 
             +------------------------------+\n\n\n\n\n"
-
-
 
 ########################################################################################################
 ########################################################################################################
@@ -599,7 +588,7 @@ echo -e "\n\n\n\n\n
 
 +-------------------------------------+\n\n\n\n\n"
 
-# nextcloud - self-hosted cloud storage -- webhosting
+# nextcloud -- webhosting
 sudo add-apt-repository ppa:nextcloud-devs/client -y
 sudo apt update
 sudo apt install nextcloud-client -y
@@ -632,8 +621,6 @@ echo -e "\n\n\n\n\n
                     START PRE-INSTALLED APPS PURGE
 
             +--------------------------------------------+\n\n\n\n\n"
-
-
 
 appToPurge=(
         #### Mint / Ubuntu apps
@@ -690,17 +677,12 @@ sudo apt purge cinnamon* -y
 sudo apt purge mintwelcome -y
 
 
-
 echo -e "\n\n\n\n\n
             +------------------------------------------+ 
 
                     END PRE-INSTALLED APPS PURGE
 
             +------------------------------------------+\n\n\n\n\n"
-
-
-
-
 
 
 
@@ -727,7 +709,7 @@ sudo apt full-upgrade -y
 sudo apt autoremove -y 
 sudo apt clean
 
-echo -e "\n\n
+echo -e "\n\n\n\n\n
 +----------------------------------------------------------+ 
 
         END FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
@@ -738,7 +720,7 @@ echo -e "\n\n
 
 
 
-echo -e "\n\n\n
+echo -e "\n\n\n\n\n\n\n\n\n\n\n\n\n
             +----------------------+ 
 
                     END CODE
@@ -762,7 +744,7 @@ echo -e "\n\n
 
                         INFO
 
-                +------------------+\n\n\n\n"
+                +------------------+\n\n"
 
 echo -e "Start time:\t$start_time"
 echo -e "End time  :\t$end_time"
@@ -786,9 +768,11 @@ reboot
 
 
 
+
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
+
                         ####################################
                         ####                            ####
                         ####        OLD & UNUSED        ####

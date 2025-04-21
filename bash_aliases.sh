@@ -2,6 +2,7 @@
 
 #########################################################################
 #### distro name for logging
+# osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
 osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
 
 #### formatted date
@@ -111,6 +112,7 @@ alias percentage="python3 $PYscripts/perc_calc.py"
 alias kden="$HOME/Nextcloud/Kden/scripts/kden_custom_launch.sh"
 alias kdenProject="$HOME/Nextcloud/Kden/scripts/kden_project_template.sh"
 alias kdenBKP="$HOME/Nextcloud/Kden/scripts/kden_temp_bkp.sh"
+alias kdenUpd="$HOME/Nextcloud/Kden/scripts/kden_bkp_version_update.sh"
 
 
 #### editing utilities
@@ -128,6 +130,8 @@ alias title="python3 $PYscripts/Style/titleCase.py"
 alias converterImg="python3 $PYscripts/FileModder/image_converter.py"
 alias converterWav="python3 $PYscripts/FileModder/wav_converter.py"
 alias converterMkv="python3 $PYscripts/FileModder/mkv_converter.py"
+alias converterMetric="python3 $PYscripts/imp_to_metric_conv.py"
+
 
 
 #### Github newPc_Install script update (from Nextcloud to Github repo)
