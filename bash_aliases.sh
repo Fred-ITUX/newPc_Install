@@ -1,50 +1,15 @@
 
-#########################################################################
-####                        Sys Info
-# osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
-osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
-
-#### formatted date
-dateSTR=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py)
-
-#### formatted date for file names
-dateSTR_FILE=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date_filename.py)
-
-#### log standard setup (Start -- date , Running for: ...)
-sysInfo=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo.sh)
-
-#### log standard setup end part (end date)
-sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
-#########################################################################
-
-
-
-
-
-################################################################################################
-#### Scripts path
-LXscripts="$HOME/Nextcloud/Linux/scripts"
-PYscripts="$HOME/Nextcloud/Python/scripts"
-
-#### Logs path
-pathManualUpd="$HOME/Nextcloud/Linux/log/manual_updater.txt" 
-pathShutdown="$HOME/Nextcloud/Linux/log/shutdown_log.txt"
-pathROOTKIT="$HOME/Nextcloud/Linux/log/rk_scan.txt"
-pathCLAMSCAN="$HOME/Nextcloud/Linux/log/clamav_scan.txt"
-################################################################################################
-
-
-
-
-
-
+#### SysInfo & path 
+if [ -f ~/.sysUT.sh ]; then
+    . ~/.sysUT.sh
+fi
 
 
 ################################################################################################
 #### Bash easy updater
 alias bashupd='sudo cp $LXscripts/bashRC.sh $HOME/.bashrc && exec bash'
 alias aliupd='sudo cp $LXscripts/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases'
-
+alias utupd='sudo cp $LXscripts/sysInfoUT/sysUT.sh $HOME/.sysUT.sh && source $HOME/.sysUT.sh'
 
 #### Quality of life
 alias c='clear'
@@ -53,6 +18,7 @@ alias bashrc='sudo nano .bashrc'
 alias aliases='sudo nano .bash_aliases'
 alias kernels='dpkg --list | grep linux-image'
 alias addx='sudo chmod +x'
+
 
 #### copy,zip and unzip with ETA and progress bar
 alias cp2='rsync -ah --progress -r'
@@ -91,11 +57,6 @@ alias gameNightLight="sleep 30s && $LXscripts/Shortcuts/night_light_on.sh && exi
 alias mouseMover="$LXscripts/Other/mouse_mover.sh"
 #### auto clicker
 alias mouseClicker="$LXscripts/Other/auto_clicker.sh"
-
-
-
-################################################################################################
-#### Scripts shortcut
 
 
 #### Password gen
@@ -153,13 +114,11 @@ alias newPcUPD="$LXscripts/Other/github_newPc.sh"
 
 ################################################################################################
 #### Shutdown aliases
-
 alias end="read -r -p '' && shutdown"
 
 alias shutdown="$LXscripts/Other/shutdown_routine.sh && sudo shutdown now"
 
 alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo reboot now"
-
 ################################################################################################
 
 
@@ -175,11 +134,11 @@ alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo rebo
 
 ################################################################################################
 
-                #################################
-                ####                         ####
-                ####        FUNCTIONS        ####
-                ####                         ####
-                #################################
+                        #################################
+                        ####                         ####
+                        ####        FUNCTIONS        ####
+                        ####                         ####
+                        #################################
 
 vscan() {
 
