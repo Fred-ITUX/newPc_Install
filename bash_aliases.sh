@@ -6,10 +6,19 @@ fi
 
 
 ################################################################################################
+
+                            ###############################
+                            ####                       ####
+                            ####        ALIASES        ####
+                            ####                       ####
+                            ###############################
+
 #### Bash easy updater
 alias bashupd='sudo cp $LXscripts/bashRC.sh $HOME/.bashrc && exec bash'
 alias aliupd='sudo cp $LXscripts/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases'
 alias utupd='sudo cp $LXscripts/sysInfoUT/sysUT.sh $HOME/.sysUT.sh && source $HOME/.sysUT.sh'
+
+
 
 #### Quality of life
 alias c='clear'
@@ -20,7 +29,7 @@ alias kernels='dpkg --list | grep linux-image'
 alias addx='sudo chmod +x'
 
 
-#### copy,zip and unzip with ETA and progress bar
+#### Copy,zip and unzip with ETA and progress bar
 alias cp2='rsync -ah --progress -r'
 alias zip2='7z a -tzip'
 alias unzip2='7z x'
@@ -37,12 +46,12 @@ alias minecraft='gamemoderun java -jar $HOME/Nextcloud/Games/Minecraft/TLauncher
 alias lowCpu="sudo systemd-run --scope -p CPUWeight=5"
 
 
-#### manual updater
-alias updater='$LXscripts/sys_updater.sh  >> "$pathManualUpd" 2>&1 && python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py'
+#### Manual updater
+alias updater="$LXscripts/sys_updater.sh  >> "$pathManualUpd" 2>&1 && python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py"
 
 
-#### rootkit scan
-alias rscan='$LXscripts/Scans/rk_hunter_scan.sh  >> "$pathROOTKIT" 2>&1'
+#### Rootkit scan
+alias rscan="$LXscripts/Scans/rk_hunter_scan.sh  >> "$pathROOTKIT" 2>&1"
 
 
 #### Ps5 github triggers script
@@ -65,6 +74,7 @@ alias pswd="python3 $PYscripts/passwd_gen.py"
 
 #### weather check
 alias weather="$LXscripts/DE_Addon/weatherFIXED.sh"
+
 
 #### percentage calculator
 alias percentage="python3 $PYscripts/perc_calc.py"
@@ -100,25 +110,22 @@ alias converterMetric="python3 $PYscripts/imp_to_metric_conv.py"
 alias newPcUPD="$LXscripts/Other/github_newPc.sh"
 
 
-
-################################################################################################
-
-
+#### Testing script
+alias test="$LXscripts/Other/test.sh"
 
 
 
 
 
-
-
-
-################################################################################################
 #### Shutdown aliases
 alias end="read -r -p '' && shutdown"
 
 alias shutdown="$LXscripts/Other/shutdown_routine.sh && sudo shutdown now"
 
 alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo reboot now"
+
+################################################################################################
+################################################################################################
 ################################################################################################
 
 
@@ -131,7 +138,8 @@ alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo rebo
 
 
 
-
+################################################################################################
+################################################################################################
 ################################################################################################
 
                         #################################

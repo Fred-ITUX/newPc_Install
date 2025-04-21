@@ -50,6 +50,7 @@ pathShutdown="$HOME/Nextcloud/Linux/log/shutdown_log.txt"
 pathROOTKIT="$HOME/Nextcloud/Linux/log/rk_scan.txt"
 pathCLAMSCAN="$HOME/Nextcloud/Linux/log/clamav_scan.txt"
 
+ufw_log_check="$HOME/Nextcloud/Linux/log/ufw_log_check.txt"
 
 ################################################################################################
 
