@@ -210,4 +210,19 @@ zip_folders() {
 }
 ################################################################################################
 
+#### Kill all for specific app PID
+killp9() {
+    process="$1"
 
+    #### Reads each PID into an indexed array, splitting on whitespace/newlines:
+    pids=($(pgrep -f "$process"))
+
+    for pid in "${pids[@]}"; do
+        echo -e "Killing process - $process: $pid"
+        sudo kill -9 $pid
+    done
+}
+
+
+
+################################################################################################
