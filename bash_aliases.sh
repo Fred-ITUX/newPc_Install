@@ -15,9 +15,9 @@ fi
                             ###############################
 
 #### Bash easy updater
-alias bashupd='sudo cp $LXscripts/bashRC.sh $HOME/.bashrc && source ~/.bashrc'
-alias aliupd='sudo cp $LXscripts/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases'
-alias utupd='sudo cp $LXscripts/sysInfoUT/sysUT.sh $HOME/.sysUT.sh && source $HOME/.sysUT.sh'
+alias bashupd='cp $LXscripts/bashRC.sh $HOME/.bashrc && source ~/.bashrc'
+alias aliupd='cp $LXscripts/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases'
+alias utupd='cp $LXscripts/sysInfoUT/sysUT.sh $HOME/.sysUT.sh && source $HOME/.sysUT.sh'
 
 alias bashrc='sudo nano .bashrc'
 alias aliases='sudo nano .bash_aliases'

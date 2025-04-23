@@ -4,8 +4,8 @@
 export DEBIAN_FRONTEND=noninteractive
 
 #### SysInfo & path 
-if [ -f ~/.sysUT.sh ]; then
-    . ~/.sysUT.sh
+if [ -f ~/.bash_UT ]; then
+    . ~/.bash_UT
 fi
 
 
