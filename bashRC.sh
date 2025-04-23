@@ -8,23 +8,43 @@ esac
 
 # History settings
 HISTCONTROL=ignoreboth
-HISTSIZE=1000
-HISTFILESIZE=2000
+# HISTSIZE=1000
+# HISTFILESIZE=1000
+HISTSIZE=10
+HISTFILESIZE=10
 shopt -s histappend
 
 # Update terminal size
 shopt -s checkwinsize
 
 
-# Alias definitions.
+
+
+#### Aliases definition
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
 
-# Enable bash completion if available
+
+#### Functions definition
+if [ -f ~/.bash_functions ]; then
+    . ~/.bash_functions
+fi
+
+
+#### SysInfo & path 
+if [ -f ~/.sysUT.sh ]; then
+    . ~/.sysUT.sh
+fi
+
+
+
+
+#### Enable bash completion if available
 if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion
 fi
+
 
 
             ###################  
@@ -33,9 +53,6 @@ fi
             ###             ###
             ###################
 
-
-# Get the OS name dynamically
-osname=$(cat /etc/os-release | grep -o "Mint" | head -n 1 | tr '[:upper:]' '[:lower:]')
 
 # Prompt components --- ANSI color codes
 debian_chroot_part='${debian_chroot:+($debian_chroot)}'     # Show chroot if applicable

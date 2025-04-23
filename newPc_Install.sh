@@ -514,7 +514,7 @@ flatpakAppPackages=(
     #### Gimp
     org.gimp.GIMP/x86_64/stable
     ##############
-    #app/com.discordapp.Discord/x86_64/stable
+    app/com.discordapp.Discord/x86_64/stable
     app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
     app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
     page.codeberg.libre_menu_editor.LibreMenuEditor             #### app info and editor

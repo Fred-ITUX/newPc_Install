@@ -3,19 +3,11 @@
 #### prompt avoid
 export DEBIAN_FRONTEND=noninteractive
 
-#########################################################################
-#### distro name for logging
-osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
+#### SysInfo & path 
+if [ -f ~/.sysUT.sh ]; then
+    . ~/.sysUT.sh
+fi
 
-#### formatted date
-dateSTR=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py)
-
-#### log standard setup (Start -- date , Running for: ...)
-sysInfo=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo.sh)
-
-#### log standard setup end part (end date)
-sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
-#########################################################################
 
 #### log setup - START
 echo -e "$sysInfo"
