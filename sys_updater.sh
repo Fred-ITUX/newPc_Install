@@ -53,6 +53,6 @@ sudo dpkg --configure -a
 sudo apt --fix-broken install -y 
 
 
-#### log setup - END
+#### log standard setup end part (end date)
 sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
 echo -e "$sysInfo_END"

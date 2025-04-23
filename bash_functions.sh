@@ -1,9 +1,8 @@
 
 #### SysInfo & path 
-if [ -f ~/.sysUT.sh ]; then
-    . ~/.sysUT.sh
+if [ -f ~/.bash_UT ]; then
+    . ~/.bash_UT
 fi
-
 
 
 ################################################################################################
@@ -17,17 +16,17 @@ fi
 
 infoUpd(){
 
-    sudo cp "$LXscripts"/bashRC.sh "$HOME"/.bashrc 
+    cp "$LXscripts"/bashRC.sh "$HOME"/.bashrc 
     source "$HOME"/.bashrc
     
-    sudo cp "$LXscripts"/bash_aliases.sh "$HOME"/.bash_aliases
+    cp "$LXscripts"/bash_aliases.sh "$HOME"/.bash_aliases
     source "$HOME"/.bash_aliases
     
-    sudo cp "$LXscripts"/bash_functions.sh "$HOME"/.bash_functions
+    cp "$LXscripts"/bash_functions.sh "$HOME"/.bash_functions
     source "$HOME"/.bash_functions
 
-    sudo cp "$LXscripts"/sysInfoUT/sysUT.sh "$HOME"/.sysUT.sh
-    source "$HOME"/.sysUT.sh
+    cp "$LXscripts"/sysInfoUT/bash_UT.sh "$HOME"/.bash_UT
+    source "$HOME"/.bash_UT
 
 }
 

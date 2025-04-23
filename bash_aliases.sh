@@ -1,7 +1,7 @@
 
 #### SysInfo & path 
-if [ -f ~/.sysUT.sh ]; then
-    . ~/.sysUT.sh
+if [ -f ~/.bash_UT ]; then
+    . ~/.bash_UT
 fi
 
 
@@ -108,6 +108,9 @@ alias converterImg="python3 $PYscripts/FileModder/image_converter.py"
 alias converterWav="python3 $PYscripts/FileModder/wav_converter.py"
 alias converterMkv="python3 $PYscripts/FileModder/mkv_converter.py"
 alias converterMetric="python3 $PYscripts/imp_to_metric_conv.py"
+
+
+
 
 
 
