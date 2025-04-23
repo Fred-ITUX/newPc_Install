@@ -31,8 +31,6 @@ infoUpd(){
 
 }
 
-
-
 ################################################################################################
 
 vscan(){
@@ -77,12 +75,9 @@ alarm(){
     cvlc $HOME/Nextcloud/Linux/Stuff/alarm.mp3 --gain=3
 }
 
-
-
 ################################################################################################
 
 #### zips all files in current dir individually
-
 zip_folders() {
     # Loop through each folder in the current directory
     for folder in */; do
@@ -95,6 +90,7 @@ zip_folders() {
         echo -e "\nCompressed $folder_name into ${folder_name}.zip\n"
     done
 }
+
 ################################################################################################
 
 #### Kill all for specific app PID
@@ -109,6 +105,5 @@ killp9() {
         sudo kill -9 $pid
     done
 }
-
 
 ################################################################################################

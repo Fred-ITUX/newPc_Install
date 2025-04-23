@@ -21,9 +21,11 @@ alias utupd='sudo cp $LXscripts/sysInfoUT/sysUT.sh $HOME/.sysUT.sh && source $HO
 
 alias bashrc='sudo nano .bashrc'
 alias aliases='sudo nano .bash_aliases'
+alias functions='sudo nano .bash_functions'
 
 
-
+#### Making files executable
+alias addx='sudo chmod +x'
 alias addExec="echo -e 'Adding x to all .sh files in $LXscripts' && sudo find $HOME/Nextcloud/Linux/scripts -type f -name "*.sh" -exec chmod +x {} +"
 
 
@@ -31,7 +33,8 @@ alias addExec="echo -e 'Adding x to all .sh files in $LXscripts' && sudo find $H
 alias c='clear'
 alias e='exit'
 alias kernels='dpkg --list | grep linux-image'
-alias addx='sudo chmod +x'
+alias neo='neofetch'
+alias py='python3'
 
 
 #### Copy,zip and unzip with ETA and progress bar
@@ -40,10 +43,7 @@ alias zip2='7z a -tzip'
 alias unzip2='7z x'
 
 
-#### Apps & Utilities
-alias neo='neofetch'
-alias py='python3'
-alias sql='sudo mysql'
+#### minecraft
 alias minecraft='gamemoderun java -jar $HOME/Nextcloud/Games/Minecraft/TLauncher/TLauncher.jar && exit'
 
 

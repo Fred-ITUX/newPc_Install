@@ -18,6 +18,20 @@ sysInfo=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo.sh)
 sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
 
 
+#### Pc checks
+pc=$(hostname)
+main="federico"
+laptop_HP="federico-HP"
+
+
+#### day to check
+dayToCheck=$(date +"%A") #### "%a" --- 3 letter day
+if [ "$dayToCheck" != "Saturday" ] && [ "$dayToCheck" != "Sunday" ]; then
+    typeDay="weekday"
+else
+    typeDay="weekend"
+fi
+
 ################################################################################################
 
 
@@ -29,25 +43,19 @@ sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
 ####                            Scripts path
 
 LXscripts="$HOME/Nextcloud/Linux/scripts"
+
 PYscripts="$HOME/Nextcloud/Python/scripts"
 
 
-################################################################################################
 
-
-
-
-
-
-
-
-
-################################################################################################
 ####                            Logs path
 
 pathManualUpd="$HOME/Nextcloud/Linux/log/manual_updater.txt" 
+
 pathShutdown="$HOME/Nextcloud/Linux/log/shutdown_log.txt"
+
 pathROOTKIT="$HOME/Nextcloud/Linux/log/rk_scan.txt"
+
 pathCLAMSCAN="$HOME/Nextcloud/Linux/log/clamav_scan.txt"
 
 ufw_log_check="$HOME/Nextcloud/Linux/log/ufw_log_check.txt"
