@@ -7,14 +7,7 @@ fi
 
 ################################################################################################
 
-                            #################################
-                            ####                         ####
-                            ####        FUNCTIONS        ####
-                            ####                         ####
-                            #################################
-
-
-infoUpd(){
+bashUpd(){
 
     cp "$LXscripts"/bashRC.sh "$HOME"/.bashrc 
     source "$HOME"/.bashrc
@@ -28,6 +21,7 @@ infoUpd(){
     cp "$LXscripts"/sysInfoUT/bash_UT.sh "$HOME"/.bash_UT
     source "$HOME"/.bash_UT
 
+    exec bash
 }
 
 ################################################################################################
@@ -71,7 +65,7 @@ alarm(){
     printf "\r%*s\r" "$(tput cols)" ""
 
     #### Launch vlc (cvlc terminal only)
-    cvlc $HOME/Nextcloud/Linux/Stuff/alarm.mp3 --gain=3
+    cvlc $HOME/Nextcloud/Linux/Stuff/alarm.mp3 --gain=1
 }
 
 ################################################################################################
