@@ -5,8 +5,14 @@
 # osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
 osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
 
+
 #### formatted date
 dateSTR=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py)
+
+#### same date format
+#### echo -e "$(date +%a\ %b\ %d\ %Y\ %H:%M:%S)"
+UnixDateComparison=$( date +%a\ %b\ %d ) 
+
 
 #### formatted date for file names
 dateSTR_FILE=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date_filename.py)
