@@ -15,7 +15,6 @@ fi
 
 #### Making files executable
 alias addx='sudo chmod +x'
-alias addExec="echo -e 'Adding x to all .sh files in $LXscripts' && sudo find $HOME/Nextcloud/Linux/scripts -type f -name "*.sh" -exec chmod +x {} +"
 
 
 #### Quality of life
@@ -49,16 +48,9 @@ alias unzip2='7z x'
                             ####                       ####
                             ###############################
 
+
 #### Github newPc_Install script update (from Nextcloud to Github repo)
 alias newPcUPD="$LXscripts/Other/github_newPc.sh"
-
-
-#### Manual updater
-alias updater="$LXscripts/sys_updater.sh  >> "$pathManualUpd" 2>&1 && python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py"
-
-
-#### Rootkit scan
-alias rscan="$LXscripts/Scans/rk_hunter_scan.sh  >> "$pathROOTKIT" 2>&1"
 
 
 ##### auto cursor mover
@@ -72,7 +64,7 @@ alias pswd="python3 $PYscripts/passwd_gen.py"
 
 
 #### weather check
-alias weather="$LXscripts/DE_Addon/weatherFIXED.sh"
+alias weather="$LXscripts/DE_Addon/weather.sh"
 
 
 #### percentage calculator
@@ -116,7 +108,7 @@ alias tableEcho="python3 $PYscripts/Style/tableStyle_ECHO.py"
 alias converterImg="python3 $PYscripts/FileModder/image_converter.py"
 alias converterWav="python3 $PYscripts/FileModder/wav_converter.py"
 alias converterMkv="python3 $PYscripts/FileModder/mkv_converter.py"
-alias converterMetric="python3 $PYscripts/imp_to_metric_conv.py"
+alias converterMetric="python3 $PYscripts/measure_unit_converter.py"
 
 ################################################################################################
 

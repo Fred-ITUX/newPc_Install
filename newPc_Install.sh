@@ -269,6 +269,7 @@ pcUtilitiesPackages=(
         bluez 
         bluez-tools
         font-manager
+        jq                                      #### lightweight, flexible command-line JSON processor
 )
 
 printf '%s\n\n' "${pcUtilitiesPackages[@]}" \
@@ -522,6 +523,7 @@ flatpakAppPackages=(
     com.obsproject.Studio                                       #### OBS
     org.audacityteam.Audacity                                   #### Audacity
     app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
+    io.github.vemonet.EmojiMart                                 #### Emoji keyboard
 )
 
 

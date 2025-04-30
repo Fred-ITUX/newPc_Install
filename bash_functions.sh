@@ -24,6 +24,21 @@ bashUpd(){
     exec bash
 }
 
+
+################################################################################################
+
+#### Manual updater
+updater(){
+
+    #### launch updater & append to the log
+    $LXscripts/sys_updater.sh
+
+    #### launch log cleaner
+    python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py
+
+}   >> "$pathManualUpd" 2>&1 
+
+
 ################################################################################################
 
 vscan(){
@@ -38,6 +53,17 @@ vscan(){
 
     python3 $LXscripts/Startup_Routine/log_checker_Vscan.py  
 } 
+
+
+################################################################################################
+
+#### Rootkit scan
+rscan(){
+
+    $LXscripts/Scans/rk_hunter_scan.sh  
+
+} >> "$pathROOTKIT" 2>&1
+
 
 ################################################################################################
 
@@ -100,3 +126,15 @@ killp9() {
 }
 
 ################################################################################################
+
+addExec(){
+
+    echo -e "Adding executable propriety to all .sh files in: $LXscripts"
+    sudo find "$LXscripts" -type f -name "*.sh" -exec chmod +x {} +
+
+}
+
+
+################################################################################################
+
+

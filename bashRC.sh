@@ -6,29 +6,21 @@ case $- in
       *) return;;
 esac
 
-# History settings
+#### History settings
 HISTCONTROL=ignoreboth
-# HISTSIZE=1000
-# HISTFILESIZE=1000
-HISTSIZE=10
-HISTFILESIZE=10
-shopt -s histappend
-
-# Update terminal size
-shopt -s checkwinsize
-
-
+HISTSIZE=1000
+HISTFILESIZE=1000
 
 
 #### Aliases definition
 if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
+    . ~/.bash_aliases 
 fi
 
 
 #### Functions definition
 if [ -f ~/.bash_functions ]; then
-    . ~/.bash_functions
+    . ~/.bash_functions 
 fi
 
 
@@ -47,11 +39,14 @@ fi
 
 
 
-            ###################  
-            ###             ###  
-            ###    STYLE    ###
-            ###             ###
-            ###################
+
+################################################################################################
+
+                                ###################  
+                                ###             ###  
+                                ###    STYLE    ###
+                                ###             ###
+                                ###################
 
 
 # Prompt components --- ANSI color codes
