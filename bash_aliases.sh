@@ -49,8 +49,10 @@ alias unzip2='7z x'
                             ###############################
 
 
-#### Github newPc_Install script update (from Nextcloud to Github repo)
+#### Github
 alias newPcUPD="$LXscripts/Other/github_newPc.sh"
+alias phoneUPD="$LXscripts/Other/github_phoneScripts.sh"
+
 
 
 ##### auto cursor mover
