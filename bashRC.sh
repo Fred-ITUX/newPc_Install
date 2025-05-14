@@ -6,6 +6,9 @@ case $- in
       *) return;;
 esac
 
+
+
+
 #### History settings
 HISTCONTROL=ignoreboth
 HISTSIZE=1000
@@ -14,7 +17,7 @@ HISTFILESIZE=1000
 
 #### Aliases definition
 if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases 
+    . ~/.bash_aliases
 fi
 
 

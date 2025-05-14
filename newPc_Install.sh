@@ -328,7 +328,7 @@ echo -e "\n\n\n\n\n
 +--------------------------------------------------------------+\n\n\n\n\n"
 
 # kden plugins and addons, melt (backend), mediainfo (media details), handbrake (file converter), nomacs (simple photo editor/viewer)
-sudo apt install ffmpeg melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs -y 
+sudo apt install ffmpeg* melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs -y 
 
 # more media and editing oriented libs
 sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
@@ -375,6 +375,12 @@ appPackages=(
         #### clipboard manager - lib dependencies
         gir1.2-gda-5.0 
         gir1.2-gsound-1.0 
+        #### themes & libs for gtk
+        xdg-utils
+        gir1.2-xapp-1.0
+        libcanberra-gtk-module 
+        libcanberra-gtk3-module
+
 )
 
 

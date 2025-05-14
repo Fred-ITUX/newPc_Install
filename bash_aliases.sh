@@ -25,10 +25,11 @@ alias neo='neofetch'
 alias py='python3'
 
 
-#### Copy,zip and unzip with ETA and progress bar
+#### Copy,zip and unzip with ETA and progress bar -- -mmt=2 limits the cores used
+alias zip2='7z a -tzip -mmt=2'
+alias unzip2='7z x -mmt=2'
+#### already single-threaded
 alias cp2='rsync -ah --progress -r'
-alias zip2='7z a -tzip'
-alias unzip2='7z x'
 
 ################################################################################################
 
