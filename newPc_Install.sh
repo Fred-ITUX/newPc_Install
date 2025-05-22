@@ -253,7 +253,7 @@ pcUtilitiesPackages=(
         neofetch                                #### sys info
         gufw                                    #### firewall
         htop                                    #### task manager
-        redshift                                #### night light
+        redshift                               #### night light X11
         playerctl                               #### media player control
         fzf                                     #### terminal interactive selection
         nemo                                    #### file explorer
@@ -328,7 +328,7 @@ echo -e "\n\n\n\n\n
 +--------------------------------------------------------------+\n\n\n\n\n"
 
 # kden plugins and addons, melt (backend), mediainfo (media details), handbrake (file converter), nomacs (simple photo editor/viewer)
-sudo apt install ffmpeg* melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs -y 
+sudo apt install ffmpeg* melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs libmlt-data -y 
 
 # more media and editing oriented libs
 sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
@@ -380,7 +380,7 @@ appPackages=(
         gir1.2-xapp-1.0
         libcanberra-gtk-module 
         libcanberra-gtk3-module
-
+        
 )
 
 
@@ -515,6 +515,8 @@ flatpakAppPackages=(
     app/com.google.Chrome/x86_64/stable
     com.github.tchx84.Flatseal/x86_64/stable                    #### flatseal - flatpak permissions
     app/com.mattjakeman.ExtensionManager/x86_64/stable          #### GNOME - Extension Manager
+    app/com.vscodium.codium/x86_64/stable                       #### VS Codium
+    com.nextcloud.desktopclient.nextcloud                       #### Nextcloud desktop client
     #### Steam
     com.valvesoftware.Steam 
     com.valvesoftware.Steam.CompatibilityTool.Proton-GE
@@ -549,79 +551,11 @@ echo -e "\n\n\n\n\n
 
             +------------------------------+\n\n\n\n\n"
 
-########################################################################################################
-########################################################################################################
-########################################################################################################
-
-echo -e "\n\n\n\n\n
-            +------------------------------------------+ 
-
-                    PPA APPS INSTALLATIONS BEGIN
-
-            +------------------------------------------+\n\n\n\n\n"
-
-
-
-echo -e "\n\n\n\n\n
-+------------------------------------+ 
-
-        START INSTALL VSCODIUM
-
-+------------------------------------+\n\n\n\n\n"
-
-# vscodium - open source and telemetry-free visual studio code
-wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
-    | gpg --dearmor \
-    | sudo dd of=/usr/share/keyrings/vscodium-archive-keyring.gpg
-    
-    echo 'deb [ signed-by=/usr/share/keyrings/vscodium-archive-keyring.gpg ] https://download.vscodium.com/debs vscodium main' \
-    | sudo tee /etc/apt/sources.list.d/vscodium.list
-    
-    sudo apt update && sudo apt install codium
-echo -e "\n\n\n\n\n
-+------------------------------------+ 
-
-        END   INSTALL VSCODIUM
-
-+------------------------------------+\n\n\n\n\n"
-
-
-
-
-
-echo -e "\n\n\n\n\n
-+-------------------------------------+ 
-
-        START INSTALL NEXTCLOUD
-
-+-------------------------------------+\n\n\n\n\n"
-
-# nextcloud -- webhosting
-sudo add-apt-repository ppa:nextcloud-devs/client -y
-sudo apt update
-sudo apt install nextcloud-client -y
-echo -e "\n\n\n\n\n
-+-------------------------------------+ 
-
-        END   INSTALL NEXTCLOUD
-
-+-------------------------------------+\n\n\n\n\n"
-
-
-
-
-
-echo -e "\n\n\n\n\n
-            +----------------------------------------+ 
-
-                    PPA APPS INSTALLATIONS END
-
-            +----------------------------------------+\n\n\n\n\n"
-
 
 ########################################################################################################
 ########################################################################################################
 ########################################################################################################
+
 
 echo -e "\n\n\n\n\n
             +--------------------------------------------+ 

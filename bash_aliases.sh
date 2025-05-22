@@ -51,9 +51,9 @@ alias cp2='rsync -ah --progress -r'
 
 
 #### Github
-alias newPcUPD="$LXscripts/Other/github_newPc.sh"
-alias phoneUPD="$LXscripts/Other/github_phoneScripts.sh"
-
+alias newPcUPD="$LXscripts/Github/newPc.sh"
+alias phoneUPD="$LXscripts/Github/phoneScripts.sh"
+alias codeUPD="$LXscripts/Github/codium_update.sh"
 
 
 ##### auto cursor mover
