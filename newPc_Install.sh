@@ -531,7 +531,6 @@ flatpakAppPackages=(
     com.obsproject.Studio                                       #### OBS
     org.audacityteam.Audacity                                   #### Audacity
     app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
-    io.github.vemonet.EmojiMart                                 #### Emoji keyboard
 )
 
 
