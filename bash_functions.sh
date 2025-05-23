@@ -129,8 +129,10 @@ killp9() {
 
 addExec(){
 
-    echo -e "Adding executable propriety to all .sh files in: $LXscripts"
-    sudo find "$LXscripts" -type f -name "*.sh" -exec chmod +x {} +
+    path="$1"
+
+    echo -e "Adding executable propriety to all .sh files in: $path"
+    sudo find "$path" -type f -name "*.sh" -exec chmod +x {} +
 
 }
 

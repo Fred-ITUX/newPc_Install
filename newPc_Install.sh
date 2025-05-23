@@ -258,6 +258,7 @@ pcUtilitiesPackages=(
         playerctl                               #### media player control
         fzf                                     #### terminal interactive selection
         nemo                                    #### file explorer
+        moreutils                               #### ts command and other ut
         #### Wine
         wine 
         wine64 
