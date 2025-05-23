@@ -253,7 +253,8 @@ pcUtilitiesPackages=(
         neofetch                                #### sys info
         gufw                                    #### firewall
         htop                                    #### task manager
-        redshift                               #### night light X11
+        redshift                                #### brightness and night light -- X11
+        ddcutil                                 #### only brightness            -- Wayland
         playerctl                               #### media player control
         fzf                                     #### terminal interactive selection
         nemo                                    #### file explorer
@@ -520,6 +521,7 @@ flatpakAppPackages=(
     #### Steam
     com.valvesoftware.Steam 
     com.valvesoftware.Steam.CompatibilityTool.Proton-GE
+    runtime/org.freedesktop.Platform.VulkanLayer.gamescope/x86_64/24.08 #### Gamescope for Wayland
     #### Gimp
     org.gimp.GIMP/x86_64/stable
     ##############

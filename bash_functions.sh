@@ -31,12 +31,12 @@ bashUpd(){
 updater(){
 
     #### launch updater & append to the log
-    $LXscripts/sys_updater.sh
+    $LXscripts/sys_updater.sh >> "$pathManualUpd"
 
     #### launch log cleaner
     python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py
 
-}   >> "$pathManualUpd" 2>&1 
+}    
 
 
 ################################################################################################
