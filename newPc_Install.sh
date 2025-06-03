@@ -519,6 +519,7 @@ flatpakAppPackages=(
     app/com.mattjakeman.ExtensionManager/x86_64/stable          #### GNOME - Extension Manager
     app/com.vscodium.codium/x86_64/stable                       #### VS Codium
     com.nextcloud.desktopclient.nextcloud                       #### Nextcloud desktop client
+    app/com.usebottles.bottles/x86_64/stable                    #### Bottles - WINE client
     #### Steam
     com.valvesoftware.Steam 
     com.valvesoftware.Steam.CompatibilityTool.Proton-GE

@@ -100,7 +100,7 @@ alias kdenUpd="$HOME/Nextcloud/Kden/scripts/kden_bkp_version_update.sh"
 #### editing utilities
 alias sub="python3 $PYscripts/subtitle.py"
 alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
-alias editing="$LXscripts/Session/Session_editing.sh"
+alias editing="$LXscripts/Session/Session_editing.sh && kden"
 
 
 #### Styling
@@ -154,6 +154,8 @@ alias end="read -r -p '' && shutdown"
 alias shutdown="$LXscripts/Other/shutdown_routine.sh && sudo shutdown now"
 
 alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo reboot now"
+
+alias logout="gnome-session-quit"
 
 ################################################################################################
 
