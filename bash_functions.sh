@@ -154,3 +154,59 @@ latexUPD(){
 
 
 ################################################################################################
+
+
+fanSpeed(){
+
+    #### In percentage -- range of rpm 0-255
+    speed=$1
+
+    if [ $speed -eq 0 ]; then
+       rpm=24
+    
+    elif [ $speed -eq 30 ]; then
+       rpm=96
+
+    elif [ $speed -eq 50 ]; then
+       rpm=128
+
+    elif [ $speed -eq 100 ]; then
+        rpm=255
+
+    else
+        rpm="Not valid"
+    fi
+
+    if [ "$rpm" != "Not valid"  ]; then
+        echo 1 | sudo tee /sys/class/drm/card1/device/hwmon/hwmon4/pwm1_enable && echo "$rpm" | sudo tee /sys/class/drm/card1/device/hwmon/hwmon4/pwm1
+    fi
+
+}
+
+################################################################################################
+
+
+prio(){
+
+
+    GAME_NAME="$1"
+
+    #### negative to give priority
+    NEWprio=18
+
+    if [ "$GAME_NAME" = "" ]; then
+       exit 0
+    fi
+
+    PID=$(pgrep "$GAME_NAME")
+    processName=$(ps -p "$PID" -o comm=)
+    
+    if [ -n "$PID" ]; then
+        sudo renice -n -"$NEWprio" -p "$PID"
+        echo -e "\nReniced $processName (PID $PID) to -$NEWprio"
+    else
+        echo "Game not found."
+    fi
+
+
+}

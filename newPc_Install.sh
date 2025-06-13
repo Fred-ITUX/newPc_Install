@@ -363,6 +363,7 @@ appPackages=(
         gnome-text-editor 
         xreader
         piper                                   #### logitech mouse software
+        rocm-smi                                #### AMD GPU smi info
         #### libre office & fonts
         libreoffice 
         fonts-liberation 
@@ -523,7 +524,7 @@ flatpakAppPackages=(
     #### Steam
     com.valvesoftware.Steam 
     com.valvesoftware.Steam.CompatibilityTool.Proton-GE
-    runtime/org.freedesktop.Platform.VulkanLayer.gamescope/x86_64/24.08 #### Gamescope for Wayland
+    #runtime/org.freedesktop.Platform.VulkanLayer.gamescope/x86_64/24.08 #### Gamescope for Wayland
     #### Gimp
     org.gimp.GIMP/x86_64/stable
     ##############
@@ -703,7 +704,7 @@ echo -e "End disk space      :\t$EndDiskSpace \n\n"
 
 #### Bash easy updater
 # bashupd
-sudo cp $HOME/newPc_Install/bashRC.sh $HOME/.bashrc && exec bash
+sudo cp $HOME/newPc_Install/bashRC.sh $HOME/.bashrc
 # aliupd
 sudo cp $HOME/newPc_Install/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases
 
