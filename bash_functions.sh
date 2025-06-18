@@ -96,26 +96,10 @@ alarm(){
 
 ################################################################################################
 
-#### zips all files in current dir individually
-zip_folders() {
-    # Loop through each folder in the current directory
-    for folder in */; do
-        # Remove the trailing slash to get the folder name
-        folder_name="${folder%/}"
-
-        # Create a zip file named after the folder
-        zip -r "${folder_name}.zip" "$folder_name"
-
-        echo -e "\nCompressed $folder_name into ${folder_name}.zip\n"
-    done
-}
-
-################################################################################################
 
 #### Kill all for specific app PID
 killp9() {
     process="$1"
-
     #### Reads each PID into an indexed array, splitting on whitespace/newlines:
     pids=($(pgrep -f "$process"))
 
@@ -125,12 +109,12 @@ killp9() {
     done
 }
 
+
 ################################################################################################
 
 addExec(){
-
     path="$1"
-
+    
     echo -e "Adding executable propriety to all .sh files in: $path"
     sudo find "$path" -type f -name "*.sh" -exec chmod +x {} +
 
@@ -140,73 +124,73 @@ addExec(){
 ################################################################################################
 
 latexUPD(){
-
-    file="$1"
+    latexFile="$1"
     secDelay=3
 
+    filePath=$(dirname "$latexFile")
+
+    echo -e "Moving to file path: $filePath"
+    cd "$filePath"
+
     while true; do   
-        latex "$file"
+        latex "$latexFile"
         sleep "$secDelay"
     done
-
 }
 
 
-
 ################################################################################################
-
-
-fanSpeed(){
-
-    #### In percentage -- range of rpm 0-255
-    speed=$1
-
-    if [ $speed -eq 0 ]; then
-       rpm=24
-    
-    elif [ $speed -eq 30 ]; then
-       rpm=96
-
-    elif [ $speed -eq 50 ]; then
-       rpm=128
-
-    elif [ $speed -eq 100 ]; then
-        rpm=255
-
-    else
-        rpm="Not valid"
-    fi
-
-    if [ "$rpm" != "Not valid"  ]; then
-        echo 1 | sudo tee /sys/class/drm/card1/device/hwmon/hwmon4/pwm1_enable && echo "$rpm" | sudo tee /sys/class/drm/card1/device/hwmon/hwmon4/pwm1
-    fi
-
-}
-
-################################################################################################
-
 
 prio(){
+    pName="$1"
+    #### Negative to give more priority
+    NEWprio=10
 
-
-    GAME_NAME="$1"
-
-    #### negative to give priority
-    NEWprio=18
-
-    if [ "$GAME_NAME" = "" ]; then
+    if [ "$pName" = "" ]; then
        exit 0
     fi
 
-    PID=$(pgrep "$GAME_NAME")
+    PID=$(pgrep -i "$pName")
     processName=$(ps -p "$PID" -o comm=)
     
     if [ -n "$PID" ]; then
         sudo renice -n -"$NEWprio" -p "$PID"
         echo -e "\nReniced $processName (PID $PID) to -$NEWprio"
     else
-        echo "Game not found."
+        echo "Process not found."
     fi
-
-
 }
+
+################################################################################################
+
+sysInfo(){
+    echo -e "\033[1mSystem Info:\033[0m"
+    echo -e "OS: $(lsb_release -ds || cat /etc/*release | grep PRETTY_NAME | cut -d= -f2 | tr -d \")"
+    echo -e "Kernel: $(uname -r)"
+    echo -e "Uptime: $(uptime -p | sed 's/up //')"
+    echo -e "Packages: $(dpkg -l | wc -l)"
+    echo -e "Flatpak pkg: $(flatpak list  | wc -l)"
+    echo -e "Shell: $SHELL"
+    echo -e "DE: $XDG_CURRENT_DESKTOP"
+    echo -e "Session: $sessionType"
+    echo -e "$(neofetch --stdout | grep -E '^ *WM: ') "
+    echo -e "CPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//')"
+    echo -e "GPU: $(lspci | grep VGA | cut -d: -f3 | xargs)"
+    echo -e "RAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}')"
+    echo -e "SWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
+}
+
+################################################################################################
+
+de(){
+    echo -e "Xorg sessions:"
+    ls /usr/share/xsessions/
+    
+    echo -e "\nWayland sessions:"
+    ls /usr/share/wayland-sessions/
+
+    echo -e "\nCurrent session:"
+    echo "$XDG_SESSION_DESKTOP - $sessionType"
+}
+
+################################################################################################

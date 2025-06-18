@@ -21,7 +21,7 @@ alias addx='sudo chmod +x'
 alias c='clear'
 alias e='exit'
 alias kernels='dpkg --list | grep linux-image'
-alias neo='neofetch'
+alias neo='neofetch --off --color_blocks off'
 alias py='python3'
 
 

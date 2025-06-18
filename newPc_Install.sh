@@ -532,7 +532,6 @@ flatpakAppPackages=(
     app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
     app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
     page.codeberg.libre_menu_editor.LibreMenuEditor             #### app info and editor
-    org.cubocore.CoreKeyboard                                   #### virtual keyboard (EOL)
     com.obsproject.Studio                                       #### OBS
     org.audacityteam.Audacity                                   #### Audacity
     app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
