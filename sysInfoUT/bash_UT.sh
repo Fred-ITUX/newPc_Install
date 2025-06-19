@@ -43,10 +43,7 @@ fi
 sessionType="$XDG_SESSION_TYPE"
 
 
-
-
 ################################################################################################
-
 
 
 
@@ -57,22 +54,44 @@ sessionType="$XDG_SESSION_TYPE"
 
 LXscripts="$HOME/Nextcloud/Linux/scripts"
 
+LXlogs="$HOME/Nextcloud/Linux/log"
+
 PYscripts="$HOME/Nextcloud/Python/scripts"
 
 
 
 ####                            Logs path
 
-pathManualUpd="$HOME/Nextcloud/Linux/log/manual_updater.txt" 
+pathManualUpd="$LXlogs/manual_updater.txt" 
 
-pathShutdown="$HOME/Nextcloud/Linux/log/shutdown_log.txt"
+pathShutdown="$LXlogs/shutdown_log.txt"
 
-pathROOTKIT="$HOME/Nextcloud/Linux/log/rk_scan.txt"
+pathROOTKIT="$LXlogs/rk_scan.txt"
 
-pathCLAMSCAN="$HOME/Nextcloud/Linux/log/clamav_scan.txt"
+pathCLAMSCAN="$LXlogs/clamav_scan.txt"
 
-ufw_log_check="$HOME/Nextcloud/Linux/log/ufw_log_check.txt"
+ufw_log_check="$LXlogs/ufw_log_check.txt"
 
 ################################################################################################
 
 
+
+
+
+
+################################################################################################
+####                            Bluetooth devices
+
+#### Sony WH-CH720N
+bluetoothHeadset="00:A4:1C:04:E1:1F"
+
+#### Earbuds / in-ear other bluetooth devices
+bletoothInEar=""
+
+#### Other bluetooth controllers
+bluetoothController=""
+
+#### Only ps5 controller
+ps5Controller="24:A6:FA:8B:8A:B9"
+
+################################################################################################

@@ -15,6 +15,8 @@ HISTSIZE=1000
 HISTFILESIZE=1000
 
 
+
+
 #### Aliases definition
 if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
@@ -30,6 +32,7 @@ fi
 #### SysInfo & path 
 if [ -f ~/.bash_UT ]; then
     . ~/.bash_UT
+    source "$HOME"/.bash_UT
 fi
 
 
