@@ -85,8 +85,8 @@ ufw_log_check="$LXlogs/ufw_log_check.txt"
 #### Sony WH-CH720N
 bluetoothHeadset="00:A4:1C:04:E1:1F"
 
-#### Earbuds / in-ear other bluetooth devices
-bletoothInEar=""
+#### Earbuds / in-ear other bluetooth devices -- TWS
+bletoothInEar="41:42:32:02:B1:95"
 
 #### Other bluetooth controllers
 bluetoothController=""

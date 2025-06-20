@@ -489,11 +489,17 @@ free -h
 sudo cp /etc/fstab /etc/fstab.bak
 echo '/swapspace none swap sw 0 0' | sudo tee -a /etc/fstab
 cat /proc/sys/vm/swappiness
-sudo sysctl vm.swappiness=30
-echo -e "vm.swappiness=30" | sudo tee -a /etc/sysctl.conf    
-cat /proc/sys/vm/vfs_cache_pressure
-sudo sysctl vm.vfs_cache_pressure=40
-echo -e "vm.vfs_cache_pressure=40" | sudo tee -a /etc/sysctl.conf
+
+#### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
+sudo sysctl vm.swappiness=10
+echo -e "vm.swappiness=10" | sudo tee -a /etc/sysctl.conf   
+echo 10 | sudo tee /proc/sys/vm/swappiness
+
+#### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
+sudo sysctl vm.vfs_cache_pressure=20
+echo 20 | sudo tee /proc/sys/vm/vfs_cache_pressure
+echo -e "vm.vfs_cache_pressure=20" | sudo tee -a /etc/sysctl.conf
+
 echo -e "\n\n\n
 +---------------------------------+ 
 
@@ -524,7 +530,7 @@ flatpakAppPackages=(
     #### Steam
     com.valvesoftware.Steam 
     com.valvesoftware.Steam.CompatibilityTool.Proton-GE
-    #runtime/org.freedesktop.Platform.VulkanLayer.gamescope/x86_64/24.08 #### Gamescope for Wayland
+    runtime/org.freedesktop.Platform.VulkanLayer.gamescope/x86_64/24.08 #### Gamescope for Wayland
     #### Gimp
     org.gimp.GIMP/x86_64/stable
     ##############
