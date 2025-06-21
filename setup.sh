@@ -44,5 +44,5 @@ cd $HOME/newPc_Install/
 sudo find $HOME/newPc_Install/ -type f -name "*.sh" -exec chmod +x {} +
 
 
-#### Lunch the script
+#### Launch the script
 $HOME/newPc_Install/newPc_Install.sh
