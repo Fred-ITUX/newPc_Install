@@ -26,7 +26,7 @@ visudo -c
 if [[ $? -eq 0 ]]; then
     echo "Sudo privileges granted successfully for $user."
 else
-    echo "Error: Invalid sudoers syntax! Fixing..."
+    echo "Error: Invalid sudoers syntax! Removing file..."
     rm "$sudoers_file"
     exit 1
 fi

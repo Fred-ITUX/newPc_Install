@@ -6,11 +6,78 @@ StartDiskSpace=$(df -h)
 
 pathFile="$HOME/newPC_$start_time.txt"
 
+
+
+
+
+
+
+###########################################################################################
+####                            Swap allocation and setup
+
+#### Swap quantity (GB)
 SWAP=16
 
 
+#### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
+SWAPPINESS=10
 
-########################################################
+if [ $SWAPPINESS -le 30 ] && [ $SWAPPINESS -ge 0 ] ; then
+   SwapFavor="RAM"
+
+elif [ $SWAPPINESS -gt 30 ] && [ $SWAPPINESS -le 100 ] ; then
+    SwapFavor="SWAP"
+
+elif [ $SWAPPINESS -gt 100 ] || [ $SWAPPINESS -lt 0 ]; then
+    echo -e "Swappiness error: not in range 0 - 100. Current: $SWAPPINESS)"
+    exit 1
+
+else
+    echo -e "Unexpected swappiness error: $SWAPPINESS \nExiting"
+    exit 1
+fi
+
+
+
+#### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
+CACHE_PRESSURE=20
+
+
+if [ $CACHE_PRESSURE -le 30 ] && [ $CACHE_PRESSURE -ge 0 ] ; then
+   cacheFavor="More RAM for cache"
+
+elif [ $CACHE_PRESSURE -gt 30 ] && [ $CACHE_PRESSURE -le 200 ] ; then
+    cacheFavor="Less RAM for cache"
+
+elif [ $CACHE_PRESSURE -gt 200 ] || [ $CACHE_PRESSURE -lt 0 ]; then
+    echo -e "CACHE_PRESSURE error: not in range 0 - 200. Current: $CACHE_PRESSURE)"
+    exit 1
+
+else
+    echo -e "Unexpected CACHE_PRESSURE error: $CACHE_PRESSURE \nExiting"
+    exit 1
+fi
+###########################################################################################
+
+
+
+
+
+
+safetyUpdateCheck(){
+sudo dpkg --configure -a 
+sudo apt --fix-broken install -y  
+sudo apt update
+sudo apt full-upgrade -y 
+sudo apt autoremove -y 
+sudo apt clean
+}
+
+
+
+
+
+####################################################################
 
 
 echo -e "\n\n
@@ -21,8 +88,9 @@ echo -e "\n\n
     +--------------------------+
 
     > ~45GB of apps and utilities (7GB for latex)
-    > ~30min to end
+    > ~35min to end
     > "$SWAP"GB swap memory will be created
+    > "Swap favor:  "$SwapFavor" - "$cacheFavor" "
     > The pc will automatically reboot at the end \n\n\n
 "
 read -r -p "Press Enter to continue..."
@@ -38,12 +106,8 @@ echo -e "\n\n\n\n\n
         START INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-
-# gnome
-sudo apt install gnome gnome-tweaks -y
-
-# REQUIREMENT for ffmpeg media online (twitch and other streaming platforms)
-sudo apt install ubuntu-restricted-extras -y
+#### gnome && ubuntu extras (for DRM streaming)
+sudo apt install gnome gnome-tweaks ubuntu-restricted-extras -y
 echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
@@ -54,26 +118,9 @@ echo -e "\n\n\n\n\n
 
 
 
-
-
-echo -e "\n\n\n\n\n
-+-----------------------------------+ 
-
-        START INSTALL FLATPAK
-
-+-----------------------------------+\n\n\n\n\n"
-
-# flatpak download
-sudo apt install flatpak -y
-flatpak install flathub -y
-echo -e "\n\n\n\n\n
-+-----------------------------------+ 
-
-        END   INSTALL FLATPAK
-
-+-----------------------------------+\n\n\n\n\n"
-
-
+echo -e "Background flatpak (flathub) install \n"
+sudo apt install flatpak -y 
+flatpak install flathub -y &
 
 
 
@@ -123,24 +170,9 @@ echo -e "\n\n\n\n\n
 
 
 
-echo -e "\n\n\n\n\n
-+---------------------------------+ 
-
-        START INSTALL LATEX
-
-+---------------------------------+\n\n\n\n\n"
-
-echo -e "If it freezes spam ENTER:\n"
-# latex 
-sudo apt install texlive-full -y 
-
-echo -e "\n\n\n\n\n
-+---------------------------------+ 
-
-        END   INSTALL LATEX
-
-+---------------------------------+\n\n\n\n\n"
-
+#### latex 
+echo -e "Background LateX (texlive-full) install \n"
+sudo apt install texlive-full -y &
 
 
 
@@ -165,6 +197,8 @@ echo -e "\n\n\n\n\n
         END   INSTALL SCANNERS
 
 +------------------------------------+\n\n\n\n\n"
+
+
 
 ########################################################################################################
 ########################################################################################################
@@ -202,14 +236,7 @@ echo -e "\n\n\n
         START UPDATE, FULL UPGRADE AND CHECK INSTALLS
 
 +-----------------------------------------------------------+\n\n\n"
-
-# check broken pkg and updater
-sudo dpkg --configure -a 
-sudo apt --fix-broken install -y  
-sudo apt update
-sudo apt full-upgrade -y 
-sudo apt autoremove -y 
-sudo apt clean
+safetyUpdateCheck
 echo -e "\n\n\n
 +---------------------------------------------------------+ 
 
@@ -254,11 +281,12 @@ pcUtilitiesPackages=(
         gufw                                    #### firewall
         htop                                    #### task manager
         redshift                                #### brightness and night light -- X11
-        ddcutil                                 #### only brightness            -- Wayland
+        ddcutil                                 #### change monitors brightness
         playerctl                               #### media player control
         fzf                                     #### terminal interactive selection
         nemo                                    #### file explorer
         moreutils                               #### ts command and other ut
+        jq                                      #### lightweight, flexible command-line JSON processor
         #### Wine
         wine 
         wine64 
@@ -271,7 +299,6 @@ pcUtilitiesPackages=(
         bluez 
         bluez-tools
         font-manager
-        jq                                      #### lightweight, flexible command-line JSON processor
 )
 
 printf '%s\n\n' "${pcUtilitiesPackages[@]}" \
@@ -300,11 +327,8 @@ echo -e "\n\n\n\n\n
 +----------------------------------------------------+\n\n\n\n\n"
 
 
-# apps, utilities, checkers, AMD GPU info
-sudo apt install gamemode zram-tools cpufrequtils radeontop -y 
-
-# additional libraries for compatibility
-sudo apt install lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386  libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y
+# apps, utilities, checkers, AMD GPU info & additional libraries for compatibility
+sudo apt install gamemode zram-tools cpufrequtils radeontop lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386  libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y
 
 echo -e "\n\n\n\n\n
 +----------------------------------------------------+ 
@@ -329,11 +353,8 @@ echo -e "\n\n\n\n\n
 
 +--------------------------------------------------------------+\n\n\n\n\n"
 
-# kden plugins and addons, melt (backend), mediainfo (media details), handbrake (file converter), nomacs (simple photo editor/viewer)
-sudo apt install ffmpeg* melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs libmlt-data -y 
-
-# more media and editing oriented libs
-sudo apt install liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
+# kden plugins and addons, melt (backend), mediainfo (media details), handbrake (file converter), nomacs (simple photo editor/viewer) & editing oriented libs
+sudo apt install ffmpeg* melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs libmlt-data liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
 
 # gimp 
 sudo apt install libjpeg-turbo8 libgegl-dev libheif1 libjpeg-turbo8 libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 -y 
@@ -490,15 +511,20 @@ sudo cp /etc/fstab /etc/fstab.bak
 echo '/swapspace none swap sw 0 0' | sudo tee -a /etc/fstab
 cat /proc/sys/vm/swappiness
 
-#### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
-sudo sysctl vm.swappiness=10
-echo -e "vm.swappiness=10" | sudo tee -a /etc/sysctl.conf   
-echo 10 | sudo tee /proc/sys/vm/swappiness
 
-#### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
-sudo sysctl vm.vfs_cache_pressure=20
-echo 20 | sudo tee /proc/sys/vm/vfs_cache_pressure
-echo -e "vm.vfs_cache_pressure=20" | sudo tee -a /etc/sysctl.conf
+sudo sysctl vm.swappiness="$SWAPPINESS"
+echo -e "vm.swappiness=$SWAPPINESS" | sudo tee -a /etc/sysctl.conf   
+echo "$"$SWAPPINESS"" | sudo tee /proc/sys/vm/swappiness
+
+
+sudo sysctl vm.vfs_cache_pressure="$CACHE_PRESSURE"
+echo "$CACHE_PRESSURE" | sudo tee /proc/sys/vm/vfs_cache_pressure
+echo -e "vm.vfs_cache_pressure=$CACHE_PRESSURE" | sudo tee -a /etc/sysctl.conf
+
+
+
+swapCheck=$(sudo swapon --show)
+echo -e "Swap check: $swapCheck"
 
 echo -e "\n\n\n
 +---------------------------------+ 
@@ -627,6 +653,9 @@ printf '%s\n' "${appToPurge[@]}" \
 sudo apt purge cinnamon* -y
 sudo apt purge mintwelcome -y
 
+#### Re-install nemo (it gets removed from the DE remover)
+sudo apt install nemo -y
+
 
 echo -e "\n\n\n\n\n
             +------------------------------------------+ 
@@ -651,15 +680,7 @@ echo -e "\n\n\n\n\n
         START FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
 
 +------------------------------------------------------------+\n\n\n\n\n"
-
-# check broken pkg and updater
-sudo dpkg --configure -a 
-sudo apt --fix-broken install -y  
-sudo apt update
-sudo apt full-upgrade -y 
-sudo apt autoremove -y 
-sudo apt clean
-
+safetyUpdateCheck
 echo -e "\n\n\n\n\n
 +----------------------------------------------------------+ 
 
@@ -710,11 +731,14 @@ echo -e "End disk space      :\t$EndDiskSpace \n\n"
 #### Bash easy updater
 # bashupd
 sudo cp $HOME/newPc_Install/bashRC.sh $HOME/.bashrc
-# aliupd
+
+#### bash aliases update
 sudo cp $HOME/newPc_Install/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases
 
-echo -e "Rebooting now..."
-sleep 3s
+#### bash functions update
+sudo cp $HOME/newPc_Install/bash_functions.sh $HOME/.bash_bash_functions.sh && source $HOME/.bash_functions.sh
+
+echo -e "\n\nScript terminated: $end_time \nRebooting now...\n"
 reboot 
 
 
