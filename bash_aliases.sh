@@ -21,7 +21,6 @@ alias addx='sudo chmod +x'
 alias c='clear'
 alias e='exit'
 alias kernels='dpkg --list | grep linux-image'
-alias neo='neofetch --off --color_blocks off'
 alias py='python3'
 
 
@@ -51,9 +50,12 @@ alias cp2='rsync -ah --progress -r'
 
 
 #### Github
-alias newPcUPD="$LXscripts/Github/newPc.sh"
-alias phoneUPD="$LXscripts/Github/phoneScripts.sh"
-alias codeUPD="$LXscripts/Github/codium_update.sh"
+alias repo_newPcUPD="$LXscripts/Github/newPc.sh"
+alias repo_phoneUPD="$LXscripts/Github/phoneScripts.sh"
+alias repo_codeUPD="$LXscripts/Github/codium_update.sh"
+
+#### System info
+alias sysInfo="$LXscripts/Hardware_Info/system_info.sh"
 
 
 ##### auto cursor mover

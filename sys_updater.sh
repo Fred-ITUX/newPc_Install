@@ -54,5 +54,4 @@ sudo apt --fix-broken install -y
 
 
 #### log standard setup end part (end date)
-sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
-echo -e "$sysInfo_END"
+get_sysInfo_END

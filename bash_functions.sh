@@ -189,34 +189,3 @@ prio(){
 
 ################################################################################################
 
-sysInfo(){
-    echo -e "\033[1mSystem Info:\033[0m"
-    echo -e "OS: $(lsb_release -ds || cat /etc/*release | grep PRETTY_NAME | cut -d= -f2 | tr -d \")"
-    echo -e "Kernel: $(uname -r)"
-    echo -e "Uptime: $(uptime -p | sed 's/up //')"
-    echo -e "Packages: $(dpkg -l | wc -l)"
-    echo -e "Flatpak pkg: $(flatpak list  | wc -l)"
-    echo -e "Shell: $SHELL"
-    echo -e "DE: $XDG_CURRENT_DESKTOP"
-    echo -e "Session: $sessionType"
-    echo -e "$(neofetch --stdout | grep -E '^ *WM: ') "
-    echo -e "CPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//')"
-    echo -e "GPU: $(lspci | grep VGA | cut -d: -f3 | xargs)"
-    echo -e "RAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}')"
-    echo -e "SWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
-}
-
-################################################################################################
-
-de(){
-    echo -e "Xorg sessions:"
-    ls /usr/share/xsessions/
-    
-    echo -e "\nWayland sessions:"
-    ls /usr/share/wayland-sessions/
-
-    echo -e "\nCurrent session:"
-    echo "$XDG_SESSION_DESKTOP - $sessionType"
-}
-
-################################################################################################

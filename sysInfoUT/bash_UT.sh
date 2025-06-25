@@ -6,22 +6,40 @@
 osname=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/OSname.sh)
 
 
+
 #### formatted date
-dateSTR=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py)
+get_formatted_date(){
+    #python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date.py
+    date +%a\ %b\ %d\ %Y\ %H:%M:%S
+}
+dateSTR=$(get_formatted_date)
 
 #### same date format
-#### echo -e "$(date +%a\ %b\ %d\ %Y\ %H:%M:%S)"
-UnixDateComparison=$(date +%a\ %b\ %d) 
-
+get_date_comparison(){
+    date +%a\ %b\ %d 
+}
+UnixDateComparison=$(get_date_comparison)
 
 #### formatted date for file names
-dateSTR_FILE=$(python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date_filename.py)
+get_file_date(){
+    python3 $HOME/Nextcloud/Linux/scripts/sysInfoUT/date_filename.py
+}
+dateSTR_FILE=$(get_file_date)
+
+
 
 #### log standard setup (Start -- date , Running for: ...)
 sysInfo=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo.sh)
 
 #### log standard setup end part (end date)
-sysInfo_END=$($HOME/Nextcloud/Linux/scripts/sysInfoUT/sysInfo_END.sh)
+get_sysInfo_END(){
+    echo -e "\t
+    End time   :  $(get_formatted_date)\n
+    \t"
+}
+sysInfo_END=$(get_sysInfo_END)
+
+
 
 
 #### Pc checks
@@ -54,13 +72,13 @@ sessionType="$XDG_SESSION_TYPE"
 
 LXscripts="$HOME/Nextcloud/Linux/scripts"
 
-LXlogs="$HOME/Nextcloud/Linux/log"
-
 PYscripts="$HOME/Nextcloud/Python/scripts"
 
 
 
 ####                            Logs path
+
+LXlogs="$HOME/Nextcloud/Linux/log"
 
 pathManualUpd="$LXlogs/manual_updater.txt" 
 
