@@ -404,6 +404,7 @@ appPackages=(
         gir1.2-xapp-1.0
         libcanberra-gtk-module 
         libcanberra-gtk3-module
+        adwaita-*                               ##### adwaita icons
         
 )
 

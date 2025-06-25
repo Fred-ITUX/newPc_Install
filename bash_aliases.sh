@@ -55,7 +55,7 @@ alias repo_phoneUPD="$LXscripts/Github/phoneScripts.sh"
 alias repo_codeUPD="$LXscripts/Github/codium_update.sh"
 
 #### System info
-alias sysInfo="$LXscripts/Hardware_Info/system_info.sh"
+alias systemInfo="$LXscripts/Hardware_Info/system_info.sh"
 
 
 ##### auto cursor mover
