@@ -47,6 +47,7 @@ extract(){
 
     case "$file" in 
 
+        #### mmt=2 limits the cores used
         *.zip) 7z x -mmt=2 "$file"
         ;;
         *.7z) 7z x -mmt=2 "$file"

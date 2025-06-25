@@ -13,26 +13,19 @@ fi
                         ####                               ####
                         #######################################
 
-#### Making files executable
-alias addx='sudo chmod +x'
-
-
 #### Quality of life
 alias c='clear'
 alias e='exit'
 alias kernels='dpkg --list | grep linux-image'
 alias py='python3'
 
+#### Making files executable
+alias addx='sudo chmod +x'
 
-#### Copy,zip and unzip with ETA and progress bar -- -mmt=2 limits the cores used
-alias zip2='7z a -tzip -mmt=2'
-alias unzip2='7z x -mmt=2'
-#### already single-threaded
+#### Single-threaded copy with ETA
 alias cp2='rsync -ah --progress -r'
 
 ################################################################################################
-
-
 
 
 
@@ -47,7 +40,6 @@ alias cp2='rsync -ah --progress -r'
                             ####        SCRIPTS        ####
                             ####                       ####
                             ###############################
-
 
 #### Github
 alias repo_newPcUPD="$LXscripts/Github/newPc.sh"
