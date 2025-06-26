@@ -10,7 +10,7 @@ fi
 
 
 #### log setup - START
-echo -e "$sysInfo"
+get_sys_Info
 
 
 echo -e "\n\t
