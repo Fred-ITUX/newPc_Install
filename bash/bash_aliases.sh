@@ -16,7 +16,6 @@ fi
 #### Quality of life
 alias c='clear'
 alias e='exit'
-alias kernels='dpkg --list | grep linux-image'
 alias py='python3'
 
 #### Making files executable
