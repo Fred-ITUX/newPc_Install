@@ -36,8 +36,6 @@ if [ -f ~/.bash_UT ]; then
 fi
 
 
-
-
 #### Enable bash completion if available
 if [ -f /usr/share/bash-completion/bash_completion ]; then
     . /usr/share/bash-completion/bash_completion

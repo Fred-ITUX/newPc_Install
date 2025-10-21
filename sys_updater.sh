@@ -9,7 +9,6 @@ if [ -f ~/.bash_UT ]; then
 fi
 
 
-#### log setup - START
 get_sys_Info
 
 
@@ -53,5 +52,4 @@ sudo dpkg --configure -a
 sudo apt --fix-broken install -y 
 
 
-#### log standard setup end part (end date)
 get_sysInfo_END

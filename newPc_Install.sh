@@ -16,11 +16,16 @@ pathFile="$HOME/newPC_$start_time.txt"
 ####                            Swap allocation and setup
 
 #### Swap quantity (GB)
-SWAP=16
-
+SWAP=6
 
 #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
 SWAPPINESS=10
+
+#### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
+CACHE_PRESSURE=20
+
+
+
 
 if [ $SWAPPINESS -le 30 ] && [ $SWAPPINESS -ge 0 ] ; then
    SwapFavor="RAM"
@@ -36,11 +41,6 @@ else
     echo -e "Unexpected swappiness error: $SWAPPINESS \nExiting"
     exit 1
 fi
-
-
-
-#### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
-CACHE_PRESSURE=20
 
 
 if [ $CACHE_PRESSURE -le 30 ] && [ $CACHE_PRESSURE -ge 0 ] ; then
@@ -87,8 +87,6 @@ echo -e "\n\n
 
     +--------------------------+
 
-    > ~45GB of apps and utilities (7GB for latex)
-    > ~35min to end
     > "$SWAP"GB swap memory will be created
     > "Swap favor:  "$SwapFavor" - "$cacheFavor" "
     > The pc will automatically reboot at the end \n\n\n
@@ -287,6 +285,7 @@ pcUtilitiesPackages=(
         nemo                                    #### file explorer
         moreutils                               #### ts command and other ut
         jq                                      #### lightweight, flexible command-line JSON processor
+        rar
         #### Wine
         wine 
         wine64 
@@ -327,8 +326,12 @@ echo -e "\n\n\n\n\n
 +----------------------------------------------------+\n\n\n\n\n"
 
 
-# apps, utilities, checkers, AMD GPU info & additional libraries for compatibility
+#### apps, utilities, checkers, AMD GPU info & additional libraries for compatibility
 sudo apt install gamemode zram-tools cpufrequtils radeontop lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386  libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y
+
+#### Extra utilities
+sudo apt install mesa* -y
+
 
 echo -e "\n\n\n\n\n
 +----------------------------------------------------+ 
@@ -489,7 +492,6 @@ vte-terminal {
 
 
 
-#### swap allocation 
 echo -e "\n\n\n\n\n
 +-----------------------------------+ 
 
@@ -549,18 +551,19 @@ echo -e "\n\n\n\n\n
 flatpakAppPackages=(
     com.brave.Browser
     app/com.google.Chrome/x86_64/stable
-    com.github.tchx84.Flatseal/x86_64/stable                    #### flatseal - flatpak permissions
+    org.torproject.torbrowser-launcher
+    # com.github.tchx84.Flatseal/x86_64/stable                    #### flatseal - flatpak permissions
     app/com.mattjakeman.ExtensionManager/x86_64/stable          #### GNOME - Extension Manager
     app/com.vscodium.codium/x86_64/stable                       #### VS Codium
     com.nextcloud.desktopclient.nextcloud                       #### Nextcloud desktop client
     app/com.usebottles.bottles/x86_64/stable                    #### Bottles - WINE client
+    io.github.ilya_zlobintsev.LACT                              #### GPU / CPU control
+    app/org.kde.okular/x86_64/stable                            #### Pdf reader / highlight
     #### Steam
     com.valvesoftware.Steam 
     com.valvesoftware.Steam.CompatibilityTool.Proton-GE
     runtime/org.freedesktop.Platform.VulkanLayer.gamescope/x86_64/24.08 #### Gamescope for Wayland
-    #### Gimp
-    org.gimp.GIMP/x86_64/stable
-    ##############
+    org.gimp.GIMP/x86_64/stable                                 #### Gimp
     app/com.discordapp.Discord/x86_64/stable
     app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
     app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
@@ -568,6 +571,11 @@ flatpakAppPackages=(
     com.obsproject.Studio                                       #### OBS
     org.audacityteam.Audacity                                   #### Audacity
     app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
+    #### Emulators
+    net.kuribo64.melonDS/x86_64/stable                          #### Ds
+    app/io.mgba.mGBA/x86_64/stable                              #### Gba
+    net.pcsx2.PCSX2                                             #### Ps2
+    org.ppsspp.PPSSPP                                           #### PsP
 )
 
 
@@ -627,6 +635,8 @@ appToPurge=(
         evince 
         iagno 
         warpinator
+        mintchat
+        baobab
         #### Gnome apps
         gnome-mahjongg 
         gnome-mines 
@@ -729,17 +739,6 @@ echo -e "End disk space      :\t$EndDiskSpace \n\n"
 } >> "$pathFile" 2>&1 
 
 
-#### Bash easy updater
-# bashupd
-sudo cp $HOME/newPc_Install/bashRC.sh $HOME/.bashrc
-
-#### bash aliases update
-sudo cp $HOME/newPc_Install/bash_aliases.sh $HOME/.bash_aliases && source $HOME/.bash_aliases
-
-#### bash functions update
-sudo cp $HOME/newPc_Install/bash_functions.sh $HOME/.bash_bash_functions.sh && source $HOME/.bash_functions.sh
-
-echo -e "\n\nScript terminated: $end_time \nRebooting now...\n"
 reboot 
 
 

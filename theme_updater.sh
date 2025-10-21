@@ -47,7 +47,7 @@ gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
 mkdir $HOME/.fonts
 unzip $themesFolder/Fonts/Kanit.zip -d $HOME/.fonts/Kanit
 unzip $themesFolder/Fonts/Comic_Neue.zip -d $HOME/.fonts/Comic_Neue
-
+unzip $themesFolder/Fonts/Dejavu.zip -d $HOME/.fonts/Dejavu.zip
 
 
 

@@ -1,22 +1,15 @@
 
 
 ################################################################################################
-####                            Sys Info Variables
 
 osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
 
 
-#### Session type
+
 sessionType="$XDG_SESSION_TYPE"
 
 
 
-
-
-####                            Sys Info Functions
-
-
-#### Formatted date
 get_formatted_date(){
     date +%a\ %b\ %d\ %Y\ %H:%M:%S  #### python %a %b %d %Y %H:%M:%S
 }
@@ -35,7 +28,6 @@ get_file_date(){
 
 
 
-#### Log info
 get_sys_Info(){
 echo -e "
 ________________________________________________________ 
@@ -53,11 +45,8 @@ get_sysInfo_END(){
 
 
 
-
-
 check_day_type(){
 
-    #### day to check
     dayToCheck=$(date +"%A") #### "%a" --- 3 letter day
 
     if [ "$dayToCheck" != "Saturday" ] && [ "$dayToCheck" != "Sunday" ]; then
@@ -68,10 +57,7 @@ check_day_type(){
 }
 
 
-
-#### Pc checks
 userCheck(){
-
     host=$(hostname)
     main="federico"
     laptop="federico-HP"
@@ -84,17 +70,9 @@ userCheck(){
     elif [ "$host" != "$main" ]; then
         pc="$laptop"
     fi
-
 }
 
-
-
 ################################################################################################
-
-
-
-
-
 
 
 
@@ -106,7 +84,6 @@ userCheck(){
 LXscripts="$HOME/Nextcloud/Linux/scripts"
 
 PYscripts="$HOME/Nextcloud/Python/scripts"
-
 
 
 ####                            Logs path
@@ -125,11 +102,12 @@ pathCLAMSCAN="$LXlogs/clamav_scan.txt"
 
 ufw_log_check="$LXlogs/ufw_log_check.txt"
 
+
+
+logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
+
+
 ################################################################################################
-
-
-
-
 
 
 
