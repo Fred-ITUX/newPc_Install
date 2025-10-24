@@ -275,3 +275,18 @@ minecraft(){
 }
 
 ################################################################################################
+
+ej(){
+    disk="$1"
+    if [ -z  "$disk" ]; then
+       echo -e "Insert disk"
+    else
+        echo -e "Unmounting..."
+        udisksctl unmount -b "$disk"
+        echo -e "Turning off..."
+        udisksctl power-off -b "$disk"
+        echo -e "Done"
+    fi
+}
+
+################################################################################################

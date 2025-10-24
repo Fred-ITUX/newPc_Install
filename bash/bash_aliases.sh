@@ -27,11 +27,7 @@ alias addx='sudo chmod +x'
 
 ################################################################################################
 
-alias systemInfo="$LXscripts/Hardware_Info/system_info.sh"
-
 alias pswd="python3 $PYscripts/passwd_gen.py"
-
-alias weather="$LXscripts/DE_Addon/weather.sh"
 
 alias percentage="python3 $PYscripts/perc_calc.py"
 
