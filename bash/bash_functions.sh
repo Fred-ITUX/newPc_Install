@@ -279,7 +279,7 @@ minecraft(){
 ej(){
     disk="$1"
     if [ -z  "$disk" ]; then
-       echo -e "Insert disk"
+       echo -e "Usage: ej </disk>"
     else
         echo -e "Unmounting..."
         udisksctl unmount -b "$disk"
