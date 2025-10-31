@@ -240,15 +240,6 @@ videoLen(){
 
 ################################################################################################
 
-gitUPD(){
-    git add .
-    git commit -m "manual update"
-    git pull origin main
-    git push
-}
-
-################################################################################################
-
 fan(){
     speed="$1"
     shortcuts="$LXscripts/Shortcuts/GPU_fan_speed/gpu_fan_speed"

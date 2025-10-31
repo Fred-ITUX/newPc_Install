@@ -319,54 +319,42 @@ echo -e "\n\n\n\n\n
 
 
 echo -e "\n\n\n\n\n
-+----------------------------------------------------+ 
++---------------------------------------------+ 
 
-        START INSTALL GAMING LIBS && UTILITIES
+        START INSTALL LIBS && UTILITIES
 
-+----------------------------------------------------+\n\n\n\n\n"
++---------------------------------------------+\n\n\n\n\n"
 
+#### || true --- any package that fails will be skipped
 
-#### apps, utilities, checkers, AMD GPU info & additional libraries for compatibility
-sudo apt install gamemode zram-tools cpufrequtils radeontop lib32gcc-s1 lib32stdc++6 libvulkan1 libvulkan1:i386 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libz1:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 vainfo libva-glx2 libva-glx2:i386 libva2 libva2:i386  libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 -y
+#### 1. Development / Build Tools
+sudo apt install -y build-essential cmake git pkg-config wget curl libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev libxcb-xfixes0-dev libdrm-dev libopengl-dev libfontconfig1-dev libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 || true
 
-#### Extra utilities
-sudo apt install mesa* -y
+#### 2. Video / Kdenlive / MLT / FFmpeg
+sudo apt install -y ffmpeg ffmpegthumbs melt libmlt7 libmlt++7 libmlt-data libmlt-dev libmlt++-dev frei0r-plugins libvpx-dev libx264-dev libx265-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavfilter-dev libavdevice-dev libpostproc-dev libbluray-dev libchromaprint-dev libmp3lame0 libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 liba52-0.7.4 libfaac-dev libfaad2 libdvdread8 libdvdread-dev libdvdnav4 libdvdnav-dev libv4l-0 v4l-utils mediainfo gpac kdenlive-data || true
 
+#### 3. Audio / Sound / Plugins
+sudo apt install -y ladspa-sdk sox libpulse-dev libjack-jackd2-dev libsoxr-dev || true
 
-echo -e "\n\n\n\n\n
-+----------------------------------------------------+ 
+#### 4. Graphics / Photo / Imaging
+sudo apt install -y libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libjpeg-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 nomacs gmic || true
 
-        END   INSTALL GAMING LIBS && UTILITIES
+#### 5. Hardware Acceleration / GPU / Video Output
+sudo apt install -y libva-dev vainfo mesa-va-drivers libvdpau-dev libva-glx2 libva2 libva2:i386 mesa-utils mesa-vulkan-drivers libvulkan1 libvulkan1:i386 || true
 
-+----------------------------------------------------+\n\n\n\n\n"
-
-
-
-
-
-
-
-
+#### 6. 32-bit / Gaming / Extra Libraries
+sudo apt install -y lib32gcc-s1 lib32stdc++6 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 gamemode zram-tools cpufrequtils radeontop || true
 
 
 echo -e "\n\n\n\n\n
-+--------------------------------------------------------------+ 
++---------------------------------------------+ 
 
-        START INSTALL EDITING DEPENDENCIES && MEDIA LIBS
+        END   INSTALL LIBS && UTILITIES
 
-+--------------------------------------------------------------+\n\n\n\n\n"
++---------------------------------------------+\n\n\n\n\n"
 
-# kden plugins and addons, melt (backend), mediainfo (media details), handbrake (file converter), nomacs (simple photo editor/viewer) & editing oriented libs
-sudo apt install ffmpeg* melt frei0r-plugins ladspa-sdk sox gstreamer1.0-libav libx264-dev libx265-dev libvpx-dev libmp3lame0 handbrake mediainfo nomacs libmlt-data liba52-0.7.4 libfaac-dev libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 libswscale-dev libpostproc-dev libavfilter-dev libbluray-dev libdvdread8 libdvdnav4 libopenexr-dev libpng-dev libjpeg-dev kdenlive-data gpac v4l-utils libx264-dev libx265-dev gmic libdvdnav-dev libdvdread-dev libv4l-0 libx11-6 libxext6 libpulse0 libomxil-bellagio0 libjack-jackd2-0 libsdl2-2.0-0 libfaad2 libglib2.0-0 libxrender1 -y 
 
-# gimp 
-sudo apt install libjpeg-turbo8 libgegl-dev libheif1 libjpeg-turbo8 libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 -y 
-echo -e "\n\n\n\n\n
-+--------------------------------------------------------------+ 
 
-        END   INSTALL EDITING DEPENDENCIES && MEDIA LIBS
-
-+--------------------------------------------------------------+\n\n\n\n\n"
 
 
 

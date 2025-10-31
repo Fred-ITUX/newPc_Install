@@ -44,11 +44,6 @@ alias kdenUpd="$HOME/Nextcloud/Kden/scripts/kden_bkp_version_update.sh"
 alias sub="python3 $PYscripts/subtitle.py"
 alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
 alias editing="$LXscripts/Sessions/Session_editing.sh && kden"
-alias fileRename="python3 $PYscripts/FileModder/file_renamer.py"
-
-#### Styling
-alias table="python3 $PYscripts/Style/tableStyle.py"
-alias tableEcho="python3 $PYscripts/Style/tableStyle_ECHO.py"
 
 #### Converters
 alias convImg="python3 $PYscripts/FileModder/image_converter.py"
