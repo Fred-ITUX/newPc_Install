@@ -156,7 +156,7 @@ pipx ensurepath
 # speech to text -- system-wide install
 pip3 install vosk --break-system-packages
 # yt downloader
-pipx install "yt-dlp[default]"
+pipx install yt-dlp #### pipx install "yt-dlp[default]"
 
 echo -e "\n\n\n\n\n
 +----------------------------------+ 
