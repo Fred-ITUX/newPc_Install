@@ -61,7 +61,7 @@ gpuAcc com.valvesoftware.Steam
 gpuAcc com.discordapp.Discord
 gpuAcc org.gimp.GIMP
 gpuAcc org.audacityteam.Audacity
-
+gpuAcc com.obsproject.Studio
 #### Steam SSD whitelist (for external storing)
 ssdPerm(){
     flatpak override --user --filesystem=/media/federico/SSD450GB

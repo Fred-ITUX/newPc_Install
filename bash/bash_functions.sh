@@ -296,3 +296,11 @@ allReposUPD(){
 }
 
 ################################################################################################
+
+ds1(){
+    gedit "$HOME/Nextcloud/Notes/Games/Ds1 randomizer.txt" &
+    nemo --tabs "/media/federico/SSD450GB/steam/steamapps/common/DARK SOULS REMASTERED" &
+    exit 
+}
+
+################################################################################################
