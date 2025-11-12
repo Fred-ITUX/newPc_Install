@@ -303,4 +303,11 @@ ds1(){
     exit 
 }
 
+ds2(){
+    gamePath="/media/federico/SSD450GB/steam/steamapps/common/Dark Souls II Scholar of the First Sin/Game"
+    savePath=$(find /media/federico/SSD450GB/steam/steamapps/compatdata -type d -name 'DarkSoulsII')
+    nemo --tabs "$savePath" "$gamePath" "$HOME/Nextcloud/Games/DarkSouls/DarkSouls2" &
+    exit 
+}
+
 ################################################################################################

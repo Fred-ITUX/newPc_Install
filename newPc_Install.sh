@@ -286,6 +286,8 @@ pcUtilitiesPackages=(
         moreutils                               #### ts command and other ut
         jq                                      #### lightweight, flexible command-line JSON processor
         rar
+        p7zip-full 
+        p7zip-rar
         #### Wine
         wine 
         wine64 
