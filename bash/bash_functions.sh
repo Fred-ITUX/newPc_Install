@@ -303,6 +303,17 @@ ds1(){
     exit 
 }
 
+bingo(){
+    run="flatpak run com.google.Chrome"
+
+    $run "https://drive.google.com/drive/u/2/folders/1Fpl4ppHSvLWLoazwRboyzmAUbZWMkhFr" &
+    $run "https://docs.google.com/spreadsheets/d/1vOsCN9w__lKMQmVdqJt9-cJfl7PiQnyn6T8l1kEhmfM/edit?gid=390915158#gid=390915158" &
+    $run "https://colab.research.google.com/drive/1BCqChs2yAGFJMQzpeUQPnvERJLrodd4-?authuser=2#scrollTo=62d8526c" &
+
+    nemo --tabs "$HOME/Nextcloud/Python/scripts/Games/DarkSouls_Minigames" &
+    exit
+}
+
 ds2(){
     gamePath="/media/federico/SSD450GB/steam/steamapps/common/Dark Souls II Scholar of the First Sin/Game"
     savePath=$(find /media/federico/SSD450GB/steam/steamapps/compatdata -type d -name 'DarkSoulsII')
