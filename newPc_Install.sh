@@ -398,7 +398,7 @@ appPackages=(
         libcanberra-gtk-module 
         libcanberra-gtk3-module
         adwaita-*                               ##### adwaita icons
-        
+        xdotool                                 #### X11        - window / keyboard utilities
 )
 
 
