@@ -310,7 +310,7 @@ bingo(){
     $run "https://docs.google.com/spreadsheets/d/1vOsCN9w__lKMQmVdqJt9-cJfl7PiQnyn6T8l1kEhmfM/edit?gid=390915158#gid=390915158" &
     $run "https://colab.research.google.com/drive/1BCqChs2yAGFJMQzpeUQPnvERJLrodd4-?authuser=2#scrollTo=62d8526c" &
 
-    nemo --tabs "$HOME/Nextcloud/Python/scripts/Games/DarkSouls_Minigames" &
+    nemo --tabs "$HOME/Nextcloud/Python/scripts/Games/DarkSouls/DS1_Bingo" &
     exit
 }
 
