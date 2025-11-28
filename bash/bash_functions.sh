@@ -306,9 +306,15 @@ ds1(){
 bingo(){
     run="flatpak run com.google.Chrome"
 
-    $run "https://drive.google.com/drive/u/2/folders/1Fpl4ppHSvLWLoazwRboyzmAUbZWMkhFr" &
-    $run "https://docs.google.com/spreadsheets/d/1vOsCN9w__lKMQmVdqJt9-cJfl7PiQnyn6T8l1kEhmfM/edit?gid=390915158#gid=390915158" &
-    $run "https://colab.research.google.com/drive/1BCqChs2yAGFJMQzpeUQPnvERJLrodd4-?authuser=2#scrollTo=62d8526c" &
+    $run --new-window "https://drive.google.com/drive/u/2/folders/1Fpl4ppHSvLWLoazwRboyzmAUbZWMkhFr" &
+    sleep 0.5s
+    $run "https://colab.research.google.com/drive/1BCqChs2yAGFJMQzpeUQPnvERJLrodd4-?authuser=2" &
+    
+    sleep 0.5s
+    $run "https://docs.google.com/spreadsheets/d/1vOsCN9w__lKMQmVdqJt9-cJfl7PiQnyn6T8l1kEhmfM/edit?gid=487508033#gid=487508033" &
+    
+    sleep 0.5s
+    $run "https://www.google.com/search?q=ds1+wiki&oq=ds1+wiki&gs_lcrp=EgZjaHJvbWUqBggAEEUYOzIGCAAQRRg7MgYIARBFGDsyBggCEEUYO9IBCDIxMjhqMGo3qAIAsAIA&sourceid=chrome&ie=UTF-8" &
 
     nemo --tabs "$HOME/Nextcloud/Python/scripts/Games/DarkSouls/DS1_Bingo" &
     exit
