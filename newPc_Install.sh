@@ -294,7 +294,7 @@ pcUtilitiesPackages=(
         wine32 
         winetricks
         #### Pulseaudio
-        pulseaudio
+        pulse*
         pavucontrol 
         pulseaudio-module-bluetooth 
         bluez 
