@@ -288,6 +288,7 @@ pcUtilitiesPackages=(
         rar
         p7zip-full 
         p7zip-rar
+        tree                                    #### ls tree
         #### Wine
         wine 
         wine64 
