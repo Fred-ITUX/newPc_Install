@@ -187,17 +187,14 @@ latexUPD(){
 ################################################################################################
 
 dummyFile(){
-
     source_path="$1"
     dest_path="$HOME/Downloads/dummy" 
 
     fileExt="mkv"
-
     mkdir -p "$dest_path"
 
     if [ "$source_path" == "" ]; then
         echo -e "Path error"
-    
     else 
         #### Find all .mkv files in the directory and create dummy to keep filenames
         find "$source_path" -maxdepth 1 -type f -name "*.$fileExt" -print0 | while IFS= read -r -d '' file; do
@@ -269,14 +266,32 @@ minecraft(){
 
 ej(){
     disk="$1"
+
+    externalDisk=$(lsblk -rno NAME,MOUNTPOINT | grep EXT | awk '{print $1}' )
+
+    if [ "$externalDisk" != '' ]; then
+    
+    diskNamePrompt=$(lsblk -rno NAME,MOUNTPOINT,SIZE | grep sdd2 | tr '└─' ' ')
+    echo -e $"External storage detected: $diskNamePrompt \n "
+    read -p "Do you want to eject it? y/n " choiche
+        if [ "$choiche" == "y" ]; then
+            disk="$externalDisk" 
+        fi
+    fi
+
+    diskCheck=$(lsblk | grep "$disk")
+
     if [ -z  "$disk" ]; then
-       echo -e "Usage: ej </disk>"
+        echo -e "Usage: ej </disk>"
+
+    elif [ -z "$diskCheck" ]; then
+        echo -e "Invalid disk: $disk"
     else
         echo -e "Unmounting..."
-        udisksctl unmount -b "$disk"
+        udisksctl unmount -b "/dev/$disk" #### example: udisksctl unmount -b /dev/sdd2 
         echo -e "Turning off..."
-        udisksctl power-off -b "$disk"
-        echo -e "Done"
+        udisksctl power-off -b "/dev/$disk"
+        echo -e "Done. The drive can now be safely removed."
     fi
 }
 
