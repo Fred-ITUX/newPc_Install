@@ -65,7 +65,7 @@ extract(){
             *.7z)      7z x -mmt="$mmt" "$file" ;;
             *.tar)     tar -xvf "$file" ;;
             *.tar.gz)  tar -xvzf "$file" ;;
-            *.rar)     7z x -mmt="$mmt" "$file" ;;
+            *.rar)     7z x -mmt="$mmt" "$file" ;; #### -mmt... -p"" file for password archives
             *)         echo "❌ Unsupported file type: $file" ;;
         esac
     done
