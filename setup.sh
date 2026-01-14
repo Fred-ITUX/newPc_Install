@@ -3,24 +3,22 @@
 
 user=${SUDO_USER:-$(whoami)}
 
-
-
-# Ensure the script is being run with sudo to have permission
+#### Ensure sudo run
 if [[ $EUID -ne 0 ]]; then
     echo "Please run this script with sudo."
     exit 1
 fi
 
-# Define the sudoers file path
+
 sudoers_file="/etc/sudoers.d/$user"
 
-# Add user to sudoers safely
+#### Add user to sudoers
 echo "$user ALL=(ALL) NOPASSWD:ALL" | tee "$sudoers_file"
 
-# Set correct permissions
+#### Set correct permissions
 chmod 440 "$sudoers_file"
 
-# Validate sudoers syntax
+#### Validate sudoers syntax
 visudo -c
 
 if [[ $? -eq 0 ]]; then

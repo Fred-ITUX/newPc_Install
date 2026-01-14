@@ -316,7 +316,6 @@ pizza(){
     echo -e "$date" >> $HOME/Nextcloud/Python/scripts/PizzaPlot/pizza_data.csv
     python3 $HOME/Nextcloud/Python/scripts/PizzaPlot/pizza.py
     echo -e "🍕 Pizza 🍕"
-    nomacs /home/federico/Nextcloud/Python/scripts/PizzaPlot/PizzaPlot.png
 }
 
 ################################################################################################

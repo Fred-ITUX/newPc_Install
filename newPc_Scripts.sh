@@ -46,6 +46,21 @@ CLUTTER_PAINT=disable-clipped-redraws:disable-culling" | sudo tee  ~/.config/env
 
 
 
+######################################################################################
+#### Nemo / Nautilus use Samba’s net usershare to manage user shares
+sudo mkdir -p /var/lib/samba/usershares
+sudo chown root:sambashare /var/lib/samba/usershares
+sudo chmod 1770 /var/lib/samba/usershares
+
+#### HDD & SSDs mount directories
+sudo mkdir /media/federico/SSD1TB/
+sudo mkdir /media/federico/SSD450GB/
+sudo mkdir /media/federico/HDD2TB/
+######################################################################################
+
+
+
+
 
 
 ######################################################################################
@@ -58,10 +73,11 @@ gpuAcc(){
 gpuAcc com.google.Chrome
 gpuAcc com.brave.Browser
 gpuAcc com.valvesoftware.Steam
-# gpuAcc com.discordapp.Discord #### possible bug - wayland crash on webcam
+# gpuAcc com.discordapp.Discord 
 gpuAcc org.gimp.GIMP
 gpuAcc org.audacityteam.Audacity
 gpuAcc com.obsproject.Studio
+
 #### Steam SSD whitelist (for external storing)
 ssdPerm(){
     flatpak override --user --filesystem=/media/federico/SSD450GB
@@ -69,23 +85,6 @@ ssdPerm(){
 ssdPerm com.valvesoftware.Steam
 ssdPerm com.usebottles.bottles
 
-######################################################################################
-
-
-
-
-
-
-######################################################################################
-#### Nemo / Nautilus use Samba’s net usershare to manage user shares
-sudo mkdir -p /var/lib/samba/usershares
-sudo chown root:sambashare /var/lib/samba/usershares
-sudo chmod 1770 /var/lib/samba/usershares
-
-#### HDD & SSDs mount directories
-sudo mkdir /media/federico/SSD1TB/
-sudo mkdir /media/federico/SSD450GB/
-sudo mkdir /media/federico/HDD2TB/
 ######################################################################################
 
 
