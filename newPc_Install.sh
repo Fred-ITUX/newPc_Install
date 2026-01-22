@@ -10,15 +10,13 @@ pathFile="$HOME/newPC_$start_time.txt"
 ###########################################################################################
 ####                            Swap allocation and setup
 
-#### Swap quantity (GB)
-SWAP=6
+SWAP=6 #### GB
 
 #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
 SWAPPINESS=10
 
 #### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
 CACHE_PRESSURE=20
-
 
 
 
@@ -67,7 +65,6 @@ sudo apt clean
 ###########################################################################################
 
 
-
 echo -e "\n\n
     +--------------------------+ 
 
@@ -92,7 +89,7 @@ echo -e "\n\n\n\n\n
         START INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-sudo apt install gnome gnome-tweaks ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
+sudo apt install gnome-shell gnome-terminal gnome-tweaks ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
 echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
@@ -111,19 +108,19 @@ echo -e "\n\n\n\n\n
 +----------------------------------+\n\n\n\n\n"
 
 pythonPackages=(
-  python3-full
-  python3-pip
-  python3-ipykernel
-  python3-pandas
-  python3-xlsxwriter
-  python3-seaborn
-  python3-notify2
-  python3-mutagen
-  python3-fuzzywuzzy
-  python3-pil
-  python3-srt
-  pipx
+    python3-pip
+    python3-ipykernel
+    python3-pandas
+    python3-xlsxwriter
+    python3-seaborn
+    python3-mutagen
+    python3-fuzzywuzzy
+    python3-pil
+    python3-srt
+    pipx
 )
+
+# python3-full
 
 printf '%s\n\n' "${pythonPackages[@]}" \
   | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
@@ -141,14 +138,9 @@ echo -e "\n\n\n\n\n
 
 +----------------------------------+\n\n\n\n\n"
 
-
-
-
 #### latex 
 echo -e "LateX (texlive-full) install.\n Spam ENTER if it freezes.\n"
 sudo apt install texlive-full -y 
-
-
 
 echo -e "\n\n\n\n\n
 +------------------------------------+ 
@@ -156,7 +148,6 @@ echo -e "\n\n\n\n\n
         START INSTALL SCANNERS
 
 +------------------------------------+\n\n\n\n\n"
-
 echo -e "\n\n\n\n  Clamav:"
 sudo apt install clamav clamav-daemon clamav-freshclam -y
 clamconf
@@ -221,15 +212,16 @@ echo -e "\n\n\n\n\n
         +------------------------------------------+\n\n\n\n\n"
 
 
+
 echo -e "\n\n\n\n\n
-+----------------------------------------+ 
++---------------------------------------+ 
 
-        START INSTALL PC UTILITIES
+        START INSTALL COMMON APPS
 
-+----------------------------------------+\n\n\n\n\n"
++---------------------------------------+\n\n\n\n\n"
 
-
-pcUtilitiesPackages=(
+appPackages=(
+        flatpak
         wget 
         curl 
         git 
@@ -239,6 +231,7 @@ pcUtilitiesPackages=(
         gufw                                    #### firewall
         htop                                    #### task manager
         redshift                                #### brightness and night light -- X11
+        xdotool                                 #### X11 -- window / keyboard utilities
         ddcutil                                 #### change monitors brightness
         playerctl                               #### media player control
         fzf                                     #### terminal interactive selection
@@ -259,19 +252,33 @@ pcUtilitiesPackages=(
         bluez 
         bluez-tools
         font-manager
-        flatpak
+        vlc
+        gedit 
+        piper                                   #### logitech mouse software
+        #### clipboard manager - lib dependencies
+        gir1.2-gda-5.0 
+        gir1.2-gsound-1.0 
+        #### themes & libs for gtk
+        xdg-utils
+        gir1.2-xapp-1.0
+        libcanberra-gtk-module 
+        libcanberra-gtk3-module
+        adwaita-*                               ##### adwaita icons
 )
 
-printf '%s\n\n' "${pcUtilitiesPackages[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing: {}" && sudo apt install -y "{}"' \
+
+printf '%s\n\n' "${appPackages[@]}" \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
 >> "$pathFile" 2>&1
 
+
 echo -e "\n\n\n\n\n
-+----------------------------------------+ 
++---------------------------------------+ 
 
-        END   INSTALL PC UTILITIES
+        END   INSTALL COMMON APPS
 
-+----------------------------------------+\n\n\n\n\n"
++---------------------------------------+\n\n\n\n\n"
+
 
 
 
@@ -312,65 +319,6 @@ echo -e "\n\n\n\n\n
 
 
 
-
-
-
-
-echo -e "\n\n\n\n\n
-+---------------------------------------+ 
-
-        START INSTALL COMMON APPS
-
-+---------------------------------------+\n\n\n\n\n"
-
-
-appPackages=(
-        vlc
-        gedit 
-        gnome-text-editor 
-        xreader
-        piper                                   #### logitech mouse software
-        rocm-smi                                #### AMD GPU smi info
-        #### libre office & fonts
-        libreoffice 
-        fonts-liberation 
-        fonts-dejavu 
-        fonts-cantarell 
-        fonts-noto 
-        fonts-stix 
-        pdftk 
-        tesseract-ocr 
-        poppler-utils 
-        libreoffice-gtk3
-        #### clipboard manager - lib dependencies
-        gir1.2-gda-5.0 
-        gir1.2-gsound-1.0 
-        #### themes & libs for gtk
-        xdg-utils
-        gir1.2-xapp-1.0
-        libcanberra-gtk-module 
-        libcanberra-gtk3-module
-        adwaita-*                               ##### adwaita icons
-        xdotool                                 #### X11        - window / keyboard utilities
-)
-
-
-printf '%s\n\n' "${appPackages[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
->> "$pathFile" 2>&1
-
-echo -e "\n\n\n\n\n
-+---------------------------------------+ 
-
-        END   INSTALL COMMON APPS
-
-+---------------------------------------+\n\n\n\n\n"
-
-
-
-
-
-
 echo -e "\n\n\n\n\n
         +----------------------------------------+ 
 
@@ -397,6 +345,8 @@ TerminalScreen,
 vte-terminal {
     padding: 20px 20px 20px 20px;
     -VteTerminal-inner-border: 20px 20px 20px 20px;}"
+
+echo -e "$terminalPadding" | sudo tee -a ~/.config/gtk-2.0/gtk.css
 
 echo -e "$terminalPadding" | sudo tee -a ~/.config/gtk-3.0/gtk.css
 
@@ -469,24 +419,24 @@ flatpakAppPackages=(
     app/com.vscodium.codium/x86_64/stable                       #### VS Codium
     com.nextcloud.desktopclient.nextcloud                       #### Nextcloud desktop client
     app/com.usebottles.bottles/x86_64/stable                    #### Bottles - WINE client
-    io.github.ilya_zlobintsev.LACT                              #### GPU / CPU control
     app/org.kde.okular/x86_64/stable                            #### Pdf reader / highlight
-    org.nomacs.ImageLounge                                      #### Photo viewer / light editor
     com.valvesoftware.Steam 
     com.valvesoftware.Steam.CompatibilityTool.Proton-GE
-    runtime/org.freedesktop.Platform.VulkanLayer.gamescope/x86_64/24.08 #### Gamescope for Wayland
+    org.nomacs.ImageLounge                                      #### Photo viewer / light editor
     org.gimp.GIMP/x86_64/stable                                 #### Gimp
     app/com.discordapp.Discord/x86_64/stable
-    app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
+    # app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
     app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
     page.codeberg.libre_menu_editor.LibreMenuEditor             #### app info and editor
     com.obsproject.Studio                                       #### OBS
     org.audacityteam.Audacity                                   #### Audacity
     app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
+    org.libreoffice.LibreOffice 
+    org.gnome.TextEditor
+    # net.pcsx2.PCSX2                                             #### Ps2
+    # org.ppsspp.PPSSPP                                           #### PsP
     net.kuribo64.melonDS/x86_64/stable                          #### Ds
     app/io.mgba.mGBA/x86_64/stable                              #### Gba
-    #net.pcsx2.PCSX2                                             #### Ps2
-    #org.ppsspp.PPSSPP                                           #### PsP
 )
 
 
@@ -544,6 +494,14 @@ appToPurge=(
         warpinator
         mintchat
         baobab
+        totem
+        oeg
+        mintistall
+        mintwelcome
+        transmission-gtk 
+        webapp-manager
+        gnome-software
+        gnome-calendar
         gnome-mahjongg 
         gnome-mines 
         gnome-sudoku 
@@ -568,7 +526,6 @@ printf '%s\n' "${appToPurge[@]}" \
 
 #### Remove Cinammon DE and re-install nemo
 sudo apt purge cinnamon* -y
-sudo apt purge mintwelcome -y
 sudo apt install nemo -y
 
 
