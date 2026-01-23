@@ -33,7 +33,7 @@ updater(){
 
     #### launch log cleaner
     python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py
-    gedit "$pathManualUpd"
+    gedit "$pathManualUpd" &
 }    
 
 ################################################################################################

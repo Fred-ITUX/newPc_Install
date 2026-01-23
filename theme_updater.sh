@@ -1,9 +1,6 @@
 #!/bin/bash
 
 
-read -r -p "Run only after Nextcloud setup..." key
-
-
 #### Remove other themes
 sudo rm -rf /usr/share/icons/*
 sudo rm -rf /usr/share/themes/*

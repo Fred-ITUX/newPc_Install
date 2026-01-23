@@ -19,6 +19,21 @@ echo "N" | sudo tee /sys/module/zswap/parameters/enabled
 #### Increase files processes - allows more open handles if needed, doesn't use more RAM (standard 1024)
 echo -e "* soft nofile 1048576\n* hard nofile 1048576" | sudo tee /etc/security/limits.d/99-nofile.conf
 
+#### Reduce GNOME stalls
+mkdir -p ~/.config/systemd/user.conf.d
+cat << 'EOF' > ~/.config/systemd/user.conf.d/limits.conf
+[Manager]
+DefaultLimitNOFILE=1048576
+DefaultTasksMax=infinity
+EOF
+
+#### Disable CUPS (printer deamon)
+sudo systemctl disable cups.service cups.socket
+sudo systemctl stop cups.service cups.socket
+
+
+
+
 #### firewall setup check
 sudo ufw default reject incoming 
 sudo ufw default allow outgoing 
