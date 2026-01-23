@@ -1,7 +1,12 @@
 #!/bin/bash
 
-
-read -r -p "Run only after Nextcloud setup..." 
+if [ -d $HOME/Nextcloud ]; then
+    echo -e "Nextcloud path found $HOME/Nextcloud\n"
+    read -r -p "Press enter to continue" 
+else    
+    echo -e "Run only after Nextcloud setup..."
+    exit 0
+fi
 
 
 #### executable scripts --- except bashrc && bash_aliases
@@ -10,6 +15,9 @@ sudo find $HOME/Nextcloud/ -type f -name "*.sh" -exec chmod +x {} +
 
 #### Disable zswap (compresses SWAP into RAM)
 echo "N" | sudo tee /sys/module/zswap/parameters/enabled
+
+#### Increase files processes - allows more open handles if needed, doesn't use more RAM (standard 1024)
+echo -e "* soft nofile 1048576\n* hard nofile 1048576" | sudo tee /etc/security/limits.d/99-nofile.conf
 
 #### firewall setup check
 sudo ufw default reject incoming 
@@ -27,6 +35,13 @@ gsettings set org.gnome.desktop.interface enable-animations false
 
 #### Disable app not responding pop-up (default 5000)
 gsettings set org.gnome.mutter check-alive-timeout 0
+
+
+#### Disable gnome tracker (home folder indexing)
+systemctl --user mask tracker-miner-fs-3.service
+systemctl --user mask tracker-extract-3.service
+systemctl --user mask tracker-writeback-3.service
+tracker3 reset -s -r
 
 
 #### Remove useless Ubuntu sessions options from login

@@ -425,7 +425,6 @@ flatpakAppPackages=(
     org.nomacs.ImageLounge                                      #### Photo viewer / light editor
     org.gimp.GIMP/x86_64/stable                                 #### Gimp
     app/com.discordapp.Discord/x86_64/stable
-    # app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
     app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
     page.codeberg.libre_menu_editor.LibreMenuEditor             #### app info and editor
     com.obsproject.Studio                                       #### OBS
@@ -433,10 +432,11 @@ flatpakAppPackages=(
     app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
     org.libreoffice.LibreOffice 
     org.gnome.TextEditor
+    # app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
     # net.pcsx2.PCSX2                                             #### Ps2
     # org.ppsspp.PPSSPP                                           #### PsP
-    net.kuribo64.melonDS/x86_64/stable                          #### Ds
-    app/io.mgba.mGBA/x86_64/stable                              #### Gba
+    # net.kuribo64.melonDS/x86_64/stable                          #### Ds
+    # app/io.mgba.mGBA/x86_64/stable                              #### Gba
 )
 
 
