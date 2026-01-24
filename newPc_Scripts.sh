@@ -103,7 +103,7 @@ gpuAcc(){
 gpuAcc com.google.Chrome
 gpuAcc com.brave.Browser
 gpuAcc com.valvesoftware.Steam
-# gpuAcc com.discordapp.Discord 
+gpuAcc com.discordapp.Discord 
 gpuAcc org.gimp.GIMP
 gpuAcc org.audacityteam.Audacity
 gpuAcc com.obsproject.Studio

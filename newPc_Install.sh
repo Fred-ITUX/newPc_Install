@@ -89,7 +89,7 @@ echo -e "\n\n\n\n\n
         START INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-sudo apt install gnome-shell gnome-terminal gnome-tweaks ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
+sudo apt install -y gnome-shell gnome-terminal # ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
 echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
@@ -138,7 +138,6 @@ echo -e "\n\n\n\n\n
 
 +----------------------------------+\n\n\n\n\n"
 
-#### latex 
 echo -e "LateX (texlive-full) install.\n Spam ENTER if it freezes.\n"
 sudo apt install texlive-full -y 
 
@@ -227,13 +226,11 @@ appPackages=(
         git 
         gh                                      #### github session login
         smartmontools                           #### temp check
-        neofetch                                #### sys info
         gufw                                    #### firewall
         htop                                    #### task manager
         redshift                                #### brightness and night light -- X11
         xdotool                                 #### X11 -- window / keyboard utilities
         ddcutil                                 #### change monitors brightness
-        playerctl                               #### media player control
         fzf                                     #### terminal interactive selection
         nemo                                    #### file explorer
         moreutils                               #### ts command and other ut
@@ -242,11 +239,8 @@ appPackages=(
         p7zip-full 
         p7zip-rar
         tree                                    #### ls tree
-        wine 
-        wine64 
-        wine32 
-        winetricks
-        pulse*
+        wine64*
+        pulseaudio
         pavucontrol 
         pulseaudio-module-bluetooth 
         bluez 
@@ -255,15 +249,6 @@ appPackages=(
         vlc
         gedit 
         piper                                   #### logitech mouse software
-        #### clipboard manager - lib dependencies
-        gir1.2-gda-5.0 
-        gir1.2-gsound-1.0 
-        #### themes & libs for gtk
-        xdg-utils
-        gir1.2-xapp-1.0
-        libcanberra-gtk-module 
-        libcanberra-gtk3-module
-        adwaita-*                               ##### adwaita icons
 )
 
 
@@ -331,7 +316,6 @@ echo -e "\n\n\n\n\n
 ##################################################################
 
 
-
 echo -e "\n\n\n
 +----------------------------------+ 
 
@@ -346,10 +330,7 @@ vte-terminal {
     padding: 20px 20px 20px 20px;
     -VteTerminal-inner-border: 20px 20px 20px 20px;}"
 
-echo -e "$terminalPadding" | sudo tee -a ~/.config/gtk-2.0/gtk.css
-
 echo -e "$terminalPadding" | sudo tee -a ~/.config/gtk-3.0/gtk.css
-
 echo -e "$terminalPadding" | sudo tee -a ~/.config/gtk-4.0/gtk.css
 
 
@@ -384,7 +365,6 @@ echo "$"$SWAPPINESS"" | sudo tee /proc/sys/vm/swappiness
 sudo sysctl vm.vfs_cache_pressure="$CACHE_PRESSURE"
 echo "$CACHE_PRESSURE" | sudo tee /proc/sys/vm/vfs_cache_pressure
 echo -e "vm.vfs_cache_pressure=$CACHE_PRESSURE" | sudo tee -a /etc/sysctl.conf
-
 
 
 swapCheck=$(sudo swapon --show)
@@ -466,6 +446,9 @@ echo -e "\n\n\n\n\n
 
             +--------------------------------------------+\n\n\n\n\n"
 
+
+sudo apt purge cinnamon* -y 
+
 appToPurge=(
         thunderbird* 
         cheese 
@@ -500,6 +483,8 @@ appToPurge=(
         mintwelcome
         transmission-gtk 
         webapp-manager
+        simple-scan
+        system-config-printer
         gnome-software
         gnome-calendar
         gnome-mahjongg 
@@ -524,10 +509,7 @@ printf '%s\n' "${appToPurge[@]}" \
   | xargs -I{} bash -c 'echo -e "\n\n\n\t• Uninstalling {}..." && sudo apt purge -y "{}"' \
 >> "$pathFile" 2>&1
 
-#### Remove Cinammon DE and re-install nemo
-sudo apt purge cinnamon* -y
-sudo apt install nemo -y
-
+sudo apt install nemo -y #### It gets removed from the cinnamon purge
 
 echo -e "\n\n\n\n\n
             +------------------------------------------+ 
@@ -535,7 +517,6 @@ echo -e "\n\n\n\n\n
                     END PRE-INSTALLED APPS PURGE
 
             +------------------------------------------+\n\n\n\n\n"
-
 
 
 ###############################################################
@@ -561,7 +542,7 @@ echo -e "\n\n\n\n\n
 
 
 
-echo -e "\n\n\n\n\n\n\n\n\n\n\n\n\n
+echo -e "\n\n\n\n\n\n\n\n\n\n
             +----------------------+ 
 
                     END CODE

@@ -23,7 +23,7 @@ sudo cp $themesFolder/Icons/Gnome-icons/* /usr/share/icons
 unzip $themesFolder/Themes/Adwaita.zip -d $HOME/.themes
 unzip $themesFolder/Themes/Adwaita-dark.zip -d $HOME/.themes
 
-sudo apt install --reinstall adwaita-icon-theme gnome-themes-extra gnome-icon-theme hicolor-icon-theme humanity-icon-theme -y
+sudo apt install adwaita* gnome-themes-extra gnome-icon-theme hicolor-icon-theme humanity-icon-theme -y
 
 sudo gtk-update-icon-cache /usr/share/icons/hicolor
 sudo gtk-update-icon-cache /usr/share/icons/Adwaita
