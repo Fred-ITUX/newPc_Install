@@ -237,24 +237,6 @@ videoLen(){
 
 ################################################################################################
 
-fan(){
-    speed="$1"
-    shortcuts="$LXscripts/Shortcuts/GPU_fan_speed/gpu_fan_speed"
-    case "$speed" in 
-        "35") "$shortcuts"_35.sh
-        ;;
-        "50") "$shortcuts"_50.sh
-        ;;
-        "75") "$shortcuts"_75.sh
-        ;;
-        "100") "$shortcuts"_100.sh
-        ;;
-        *) echo -e "Speed error: $speed (35 - 40 - 50 - 75 - 100)"
-    esac
-}
-
-################################################################################################
-
 minecraft(){
     gamemoderun java -jar /media/federico/SSD450GB/minecraft/launcher/TLauncher.jar
 
@@ -348,11 +330,6 @@ ds2(){
     savePath=$(find /media/federico/SSD450GB/steam/steamapps/compatdata -type d -name 'DarkSoulsII')
     nemo --tabs "$savePath" "$gamePath" "$HOME/Nextcloud/Games/DarkSouls/DarkSouls2" &
     exit 
-}
-
-elden(){
-    gedit $HOME/Nextcloud/Notes/Games/elden.txt &
-    exit
 }
 
 ################################################################################################
