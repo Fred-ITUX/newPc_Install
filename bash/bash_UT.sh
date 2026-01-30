@@ -116,16 +116,25 @@ logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
 ################################################################################################
 ####                            Bluetooth devices
 
-#### Set the active device on demand
 getActiveDevice(){
 
     for device in "$@"; do
 
-        notActive=$(bluetoothctl info "$device" | grep -i "Connected: no")
+        deviceInfo=$(bluetoothctl info "$device")
 
-        if [ "$notActive" == ""  ]; then
-            activeDevice="$device"
+        isAvailable=$(echo -e "$deviceInfo" | grep -i "not available")
+        isConnected=$(echo -e "$deviceInfo" | grep -i "Connected: yes")
+
+
+        if [ ! -z "$isAvailable" ]; then
+            device="" #### device unavailable
+            break
         fi
+
+        if [ -n "$isConnected" ]; then
+           activeDevice="$device"
+        fi
+        
     done
 }
 
@@ -133,7 +142,7 @@ getActiveDevice(){
 bluetoothHeadset="00:A4:1C:04:E1:1F"
 
 #### Earbuds / in-ear other bluetooth devices -- TWS
-# bletoothInEar="41:42:32:02:B1:95"
+bletoothInEar="41:42:32:02:B1:95"
 
 #### Other bluetooth controllers
 bluetoothController=""
