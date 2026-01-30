@@ -164,7 +164,7 @@ addExec(){
     
     echo -e "Adding executable propriety to all .sh files in: $path"
     sudo find "$path" -type f -name "*.sh" -exec chmod +x {} +
-
+    # sudo find $HOME/Nextcloud -type f -name "*.sh" -exec chmod +x {} +
 }
 
 ################################################################################################

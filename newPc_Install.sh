@@ -10,7 +10,7 @@ pathFile="$HOME/newPC_$start_time.txt"
 ###########################################################################################
 ####                            Swap allocation and setup
 
-SWAP=6 #### GB
+SWAP=6 #### GB -- 2GB default 
 
 #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
 SWAPPINESS=10
@@ -89,7 +89,7 @@ echo -e "\n\n\n\n\n
         START INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-sudo apt install -y gnome-shell gnome-terminal # ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
+sudo apt install -y gnome ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
 echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
@@ -228,8 +228,8 @@ appPackages=(
         smartmontools                           #### temp check
         gufw                                    #### firewall
         htop                                    #### task manager
-        # redshift                                #### brightness and night light -- X11
-        # xdotool                                 #### X11 -- window / keyboard utilities
+        redshift                                #### brightness and night light -- X11
+        xdotool                                 #### X11 -- window / keyboard utilities
         ddcutil                                 #### change monitors brightness
         fzf                                     #### terminal interactive selection
         nemo                                    #### file explorer
@@ -242,15 +242,14 @@ appPackages=(
         wine64*
         pulseaudio
         pavucontrol 
+        pulseeffects
         pulseaudio-module-bluetooth 
         bluez 
         bluez-tools
         font-manager
         vlc
         gedit 
-        build-essential 
-        cmake 
-        # piper                                   #### logitech mouse software
+        piper                                   #### logitech mouse software
 )
 
 
@@ -278,7 +277,7 @@ echo -e "\n\n\n\n\n
 +---------------------------------------------+\n\n\n\n\n"
 
 echo -e "\n\n\n • Development / Build Tools"
-sudo apt install -y  pkg-config libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev libxcb-xfixes0-dev libdrm-dev libopengl-dev libfontconfig1-dev libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 || true
+sudo apt install -y build-essential cmake git pkg-config wget curl libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev libxcb-xfixes0-dev libdrm-dev libopengl-dev libfontconfig1-dev libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 || true
 
 echo -e "\n\n\n • Video / Kdenlive / MLT / FFmpeg"
 sudo apt install -y ffmpeg ffmpegthumbs melt libmlt7 libmlt++7 libmlt-data libmlt-dev libmlt++-dev frei0r-plugins libvpx-dev libx264-dev libx265-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavfilter-dev libavdevice-dev libpostproc-dev libbluray-dev libchromaprint-dev libmp3lame0 libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 liba52-0.7.4 libfaac-dev libfaad2 libdvdread8 libdvdread-dev libdvdnav4 libdvdnav-dev libv4l-0 v4l-utils mediainfo kdenlive-data mkvtoolnix mpv || true
@@ -317,23 +316,6 @@ echo -e "\n\n\n\n\n
 ##################################################################
 ##################################################################
 
-
-echo -e "\n\n\n
-+----------------------------------+ 
-
-        GTK TERMINAL PADDING
-
-+----------------------------------+\n\n\n"
-
-#### padding for older and newer gtk compatibility
-terminalPadding="VteTerminal,
-TerminalScreen,
-vte-terminal {
-    padding: 20px 20px 20px 20px;
-    -VteTerminal-inner-border: 20px 20px 20px 20px;}"
-
-echo -e "$terminalPadding" | sudo tee -a ~/.config/gtk-3.0/gtk.css
-echo -e "$terminalPadding" | sudo tee -a ~/.config/gtk-4.0/gtk.css
 
 
 echo -e "\n\n\n\n\n
@@ -481,14 +463,19 @@ appToPurge=(
         baobab
         xreader
         totem
-        oeg
-        mintistall
+        eog
+        mintinstall
         mintwelcome
+        mintupdate* 
+        mintmenu 
+        mintreport
+        blueman
         transmission-gtk 
         webapp-manager
         simple-scan
         system-config-printer
         gnome-software
+        gnome-system-monitor
         gnome-calendar
         gnome-mahjongg 
         gnome-mines 

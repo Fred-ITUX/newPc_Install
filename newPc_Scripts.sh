@@ -94,26 +94,20 @@ sudo mkdir /media/federico/HDD2TB/
 
 
 ######################################################################################
-#### Flatpacks override settings 
+#### Flatpacks override settings -- flatpak override --user --reset
 
 #### GPU acceleration
-gpuAcc(){
-    flatpak override --user --device=dri
-}
-gpuAcc com.google.Chrome
-gpuAcc com.brave.Browser
-gpuAcc com.valvesoftware.Steam
-gpuAcc com.discordapp.Discord 
-gpuAcc org.gimp.GIMP
-gpuAcc org.audacityteam.Audacity
-gpuAcc com.obsproject.Studio
+flatpak override --user --device=dri com.google.Chrome
+flatpak override --user --device=dri com.brave.Browser
+flatpak override --user --device=dri com.valvesoftware.Steam
+flatpak override --user --device=dri com.discordapp.Discord 
+flatpak override --user --device=dri org.gimp.GIMP
+flatpak override --user --device=dri org.audacityteam.Audacity
+flatpak override --user --device=dri com.obsproject.Studio
 
 #### Steam SSD whitelist (for external storing)
-ssdPerm(){
-    flatpak override --user --filesystem=/media/federico/SSD450GB
-}
-ssdPerm com.valvesoftware.Steam
-ssdPerm com.usebottles.bottles
+flatpak override --user --filesystem=/media/federico/SSD450GB com.valvesoftware.Steam
+flatpak override --user --filesystem=/media/federico/SSD450GB com.usebottles.bottles
 
 ######################################################################################
 
@@ -123,7 +117,7 @@ ssdPerm com.usebottles.bottles
 ######################################################################################
 #### Launch scripts
 $HOME/Nextcloud/Linux/scripts/New_Pc/theme_updater.sh &
-$HOME/Nextcloud/Kden/scripts/kden_appimage_extract.sh &
+$HOME/Nextcloud/Kden/scripts/editing_setup.sh &
 $HOME/Nextcloud/Linux/scripts/Github/cloning.sh &
 ######################################################################################
 
