@@ -2,8 +2,8 @@
 
 
 #### Remove other themes
-sudo rm -rf /usr/share/icons/*
-sudo rm -rf /usr/share/themes/*
+# sudo rm -rf /usr/share/icons/*
+# sudo rm -rf /usr/share/themes/*
 
 
 themesFolder="$HOME/Nextcloud/Linux/SysThemes"

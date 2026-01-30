@@ -228,8 +228,8 @@ appPackages=(
         smartmontools                           #### temp check
         gufw                                    #### firewall
         htop                                    #### task manager
-        redshift                                #### brightness and night light -- X11
-        xdotool                                 #### X11 -- window / keyboard utilities
+        # redshift                                #### brightness and night light -- X11
+        # xdotool                                 #### X11 -- window / keyboard utilities
         ddcutil                                 #### change monitors brightness
         fzf                                     #### terminal interactive selection
         nemo                                    #### file explorer
@@ -248,6 +248,8 @@ appPackages=(
         font-manager
         vlc
         gedit 
+        build-essential 
+        cmake 
         # piper                                   #### logitech mouse software
 )
 
@@ -276,7 +278,7 @@ echo -e "\n\n\n\n\n
 +---------------------------------------------+\n\n\n\n\n"
 
 echo -e "\n\n\n • Development / Build Tools"
-sudo apt install -y build-essential cmake git pkg-config wget curl libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev libxcb-xfixes0-dev libdrm-dev libopengl-dev libfontconfig1-dev libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 || true
+sudo apt install -y  pkg-config libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev libxcb-xfixes0-dev libdrm-dev libopengl-dev libfontconfig1-dev libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 || true
 
 echo -e "\n\n\n • Video / Kdenlive / MLT / FFmpeg"
 sudo apt install -y ffmpeg ffmpegthumbs melt libmlt7 libmlt++7 libmlt-data libmlt-dev libmlt++-dev frei0r-plugins libvpx-dev libx264-dev libx265-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavfilter-dev libavdevice-dev libpostproc-dev libbluray-dev libchromaprint-dev libmp3lame0 libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 liba52-0.7.4 libfaac-dev libfaad2 libdvdread8 libdvdread-dev libdvdnav4 libdvdnav-dev libv4l-0 v4l-utils mediainfo kdenlive-data mkvtoolnix mpv || true
