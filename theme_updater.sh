@@ -9,10 +9,10 @@ sudo rm -rf /usr/share/themes/*
 themesFolder="$HOME/Nextcloud/Linux/SysThemes"
 
 #### Unzip the cursor and icons into /usr/share/icons (-d = destination folder)
-sudo unzip $themesFolder/Icons/Breeze-Cursors.zip -d /usr/share/icons
-sudo unzip $themesFolder/Icons/Papirus.zip -d /usr/share/icons
-sudo unzip $themesFolder/Icons/Papirus-Light.zip -d /usr/share/icons
-sudo unzip $themesFolder/Icons/Papirus-Dark.zip -d /usr/share/icons
+sudo unzip -o $themesFolder/Icons/Breeze-Cursors.zip -d /usr/share/icons
+sudo unzip -o $themesFolder/Icons/Papirus.zip -d /usr/share/icons
+sudo unzip -o $themesFolder/Icons/Papirus-Light.zip -d /usr/share/icons
+sudo unzip -o $themesFolder/Icons/Papirus-Dark.zip -d /usr/share/icons
 sudo cp $themesFolder/Icons/Gnome-icons/* /usr/share/icons
 
 
@@ -20,8 +20,8 @@ sudo cp $themesFolder/Icons/Gnome-icons/* /usr/share/icons
 # sudo unzip $themesFolder/Themes/Adwaita.zip -d /usr/share/themes
 # sudo unzip $themesFolder/Themes/Adwaita-dark.zip -d /usr/share/themes
 
-unzip $themesFolder/Themes/Adwaita.zip -d $HOME/.themes
-unzip $themesFolder/Themes/Adwaita-dark.zip -d $HOME/.themes
+unzip -o $themesFolder/Themes/Adwaita.zip -d $HOME/.themes
+unzip -o $themesFolder/Themes/Adwaita-dark.zip -d $HOME/.themes
 
 sudo apt install adwaita* gnome-themes-extra gnome-icon-theme hicolor-icon-theme humanity-icon-theme -y
 
@@ -42,9 +42,9 @@ gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
 
 #### Fonts
 mkdir $HOME/.fonts
-unzip $themesFolder/Fonts/Kanit.zip -d $HOME/.fonts/Kanit
-unzip $themesFolder/Fonts/Comic_Neue.zip -d $HOME/.fonts/Comic_Neue
-unzip $themesFolder/Fonts/Dejavu.zip -d $HOME/.fonts/Dejavu.zip
+unzip -o $themesFolder/Fonts/Kanit.zip -d $HOME/.fonts/Kanit
+unzip -o $themesFolder/Fonts/Comic_Neue.zip -d $HOME/.fonts/Comic_Neue
+unzip -o $themesFolder/Fonts/Dejavu.zip -d $HOME/.fonts/Dejavu.zip
 
 
 

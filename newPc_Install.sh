@@ -248,7 +248,7 @@ appPackages=(
         font-manager
         vlc
         gedit 
-        piper                                   #### logitech mouse software
+        # piper                                   #### logitech mouse software
 )
 
 
@@ -477,6 +477,7 @@ appToPurge=(
         warpinator
         mintchat
         baobab
+        xreader
         totem
         oeg
         mintistall
