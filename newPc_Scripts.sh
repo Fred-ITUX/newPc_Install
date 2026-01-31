@@ -27,16 +27,21 @@ DefaultLimitNOFILE=1048576
 DefaultTasksMax=infinity
 EOF
 
-#### Disable CUPS (printer deamon)
-sudo systemctl disable cups.service cups.socket
-sudo systemctl stop cups.service cups.socket
 
+#### UFW Firewall setup
+set -e
 
-
-
-#### firewall setup check
 sudo ufw default reject incoming 
 sudo ufw default allow outgoing 
+
+UFW_CONF="/etc/default/ufw"
+
+#### Disable ipv6
+if grep -q '^IPV6=yes' "$UFW_CONF"; then
+    sed -i 's/^IPV6=yes/IPV6=no/' "$UFW_CONF"
+fi
+
+ufw reload
 
 
 ######################################################################################
@@ -51,6 +56,21 @@ gsettings set org.gnome.desktop.interface enable-animations false
 #### Disable app not responding pop-up (default 5000)
 gsettings set org.gnome.mutter check-alive-timeout 0
 
+#### Disable automatic suspend / blank
+gsettings set org.gnome.desktop.session idle-delay 0
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type 'nothing'
+
+#### Multitasking / workspaces setup
+gsettings set org.gnome.mutter dynamic-workspaces false
+gsettings set org.gnome.desktop.wm.preferences num-workspaces 4
+gsettings set org.gnome.mutter workspaces-only-on-primary false
+
+# #### Disable edge tiling --- keep true for fullscreen shortcut
+# gsettings set org.gnome.mutter edge-tiling false
+
+#### Keep Super Key for overview / search
+gsettings set org.gnome.mutter overlay-key 'Super_L'
 
 #### Disable gnome tracker (home folder indexing)
 systemctl --user mask tracker-miner-fs-3.service
@@ -109,8 +129,37 @@ flatpak override --user --device=dri com.obsproject.Studio
 flatpak override --user --filesystem=/media/federico/SSD450GB com.valvesoftware.Steam
 flatpak override --user --filesystem=/media/federico/SSD450GB com.usebottles.bottles
 
+#### Allow all flatpak to see and use fonts and themes
+flatpak override --user --filesystem=/home/federico/.themes 
+flatpak override --user --filesystem=/home/federico/.fonts 
 ######################################################################################
 
+
+
+
+######################################################################################
+#### Deamons disable
+
+#### Wait for network
+sudo systemctl disable NetworkManager-wait-online.service
+#### Local network discovery
+sudo systemctl disable avahi-daemon.service
+
+#### Keep clamav disabled by default (on-demand activation)
+sudo systemctl disable clamav-daemon.service
+
+#### Disable CUPS (printer deamon)
+sudo systemctl disable cups.service cups.socket
+sudo systemctl stop cups.service cups.socket
+
+
+######################################################################################
+
+
+#### Save newPc log fir history
+logFile=$(sudo ls /root/ | grep .txt)
+sudo cp /root/$logFile $HOME/Nextcloud/Linux/log/newPc_history/
+sudo chown $USER $HOME/Nextcloud/Linux/log/newPc_history/*
 
 
 
@@ -119,6 +168,7 @@ flatpak override --user --filesystem=/media/federico/SSD450GB com.usebottles.bot
 $HOME/Nextcloud/Linux/scripts/New_Pc/theme_updater.sh &
 $HOME/Nextcloud/Kden/scripts/editing_setup.sh &
 $HOME/Nextcloud/Linux/scripts/Github/cloning.sh &
+$HOME/Nextcloud/Linux/scripts/New_Pc/gnome_shortcut_dump/load-shortcuts.sh &
 ######################################################################################
 
 

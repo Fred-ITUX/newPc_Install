@@ -100,44 +100,6 @@ echo -e "\n\n\n\n\n
 
 
 
-echo -e "\n\n\n\n\n
-+----------------------------------+ 
-
-        START INSTALL PYTON3
-
-+----------------------------------+\n\n\n\n\n"
-
-pythonPackages=(
-    python3-pip
-    python3-ipykernel
-    python3-pandas
-    python3-xlsxwriter
-    python3-seaborn
-    python3-mutagen
-    python3-fuzzywuzzy
-    python3-pil
-    python3-srt
-    pipx
-)
-
-# python3-full
-
-printf '%s\n\n' "${pythonPackages[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
->> "$pathFile" 2>&1
-
-
-pipx ensurepath #### pipx path fix
-pip3 install vosk --break-system-packages #### speech to text -- system-wide install
-pipx install yt-dlp #### pipx install "yt-dlp[default]"
-
-echo -e "\n\n\n\n\n
-+----------------------------------+ 
-
-        END   INSTALL PYTON3
-
-+----------------------------------+\n\n\n\n\n"
-
 echo -e "LateX (texlive-full) install.\n Spam ENTER if it freezes.\n"
 sudo apt install texlive-full -y 
 
@@ -202,6 +164,48 @@ echo -e "\n\n\n
 
 ##################################################################
 ##################################################################
+
+
+echo -e "\n\n\n\n\n
++----------------------------------+ 
+
+        START INSTALL PYTON3
+
++----------------------------------+\n\n\n\n\n"
+
+pythonPackages=(
+    python3-pip
+    python3-ipykernel
+    python3-pandas
+    python3-xlsxwriter
+    python3-seaborn
+    python3-mutagen
+    python3-fuzzywuzzy
+    python3-pil
+    python3-srt
+    pipx
+)
+
+# python3-full
+
+printf '%s\n\n' "${pythonPackages[@]}" \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
+>> "$pathFile" 2>&1
+
+
+pipx ensurepath #### pipx path fix
+pip3 install vosk --break-system-packages #### speech to text -- system-wide install
+pipx install yt-dlp #### pipx install "yt-dlp[default]"
+
+echo -e "\n\n\n\n\n
++----------------------------------+ 
+
+        END   INSTALL PYTON3
+
++----------------------------------+\n\n\n\n\n"
+
+
+
 
 echo -e "\n\n\n\n\n
         +------------------------------------------+ 
@@ -343,7 +347,7 @@ cat /proc/sys/vm/swappiness
 
 sudo sysctl vm.swappiness="$SWAPPINESS"
 echo -e "vm.swappiness=$SWAPPINESS" | sudo tee -a /etc/sysctl.conf   
-echo "$"$SWAPPINESS"" | sudo tee /proc/sys/vm/swappiness
+echo "$SWAPPINESS" | sudo tee /proc/sys/vm/swappiness
 
 
 sudo sysctl vm.vfs_cache_pressure="$CACHE_PRESSURE"
@@ -453,7 +457,8 @@ appToPurge=(
         hitori 
         quadrapassel 
         shotwell 
-        swell-foop 
+        swell-foop
+        avahi-daemon 
         tali 
         evolution 
         evince 
@@ -464,6 +469,8 @@ appToPurge=(
         xreader
         totem
         eog
+        postfixr
+        timeshift*
         mintinstall
         mintwelcome
         mintupdate* 

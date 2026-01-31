@@ -74,7 +74,7 @@ extract(){
 ################################################################################################
 
 vscan(){
-
+    sudo systemctl start clamav-daemon.service
     cd "$1"
     files=$(ls -A) #### -A removes the dots
 
@@ -88,7 +88,7 @@ vscan(){
         vlc "$logCheckerAlarm"  #### --gain=3
         gedit "$pathCLAMSCAN" &
     fi
-
+    sudo systemctl disable clamav-daemon.service
 } 
 
 ################################################################################################
@@ -208,35 +208,6 @@ dummyFile(){
 
 ################################################################################################
 
-videoLen(){
-    source_path="$1"
-    totalMilliseconds=0
-    fileExt="mkv"
-
-    if [ "$source_path" == "" ]; then
-        echo -e "Path error"
-
-    else 
-        while IFS= read -r -d '' file; do
-
-            videoLengthRaw=$(mediainfo --Inform="Video;%Duration%" "$file")
-            
-            #### LC_NUMERIC=C tells printf to use the C (POSIX) locale where decimal separator is .
-            videoLength=$(LC_NUMERIC=C printf "%.0f" "$videoLengthRaw")
-
-            totalMilliseconds=$((totalMilliseconds + videoLength ))
-
-        done < <(find "$source_path" -maxdepth 1 -type f -name "*.$fileExt" -print0)
-    fi
-    totalSeconds=$((totalMilliseconds / 1000))
-    hours=$((totalSeconds / 3600))
-    minutes=$(((totalSeconds % 3600) / 60))
-    seconds=$((totalSeconds % 60))
-    echo -e "\nTotal Duration: $(printf "%02d:%02d:%02d" $hours $minutes $seconds)"
-}
-
-################################################################################################
-
 minecraft(){
     gamemoderun java -jar /media/federico/SSD450GB/minecraft/launcher/TLauncher.jar
 
@@ -298,38 +269,21 @@ pizza(){
     echo -e "$date" >> $HOME/Nextcloud/Python/scripts/PizzaPlot/pizza_data.csv
     python3 $HOME/Nextcloud/Python/scripts/PizzaPlot/pizza.py
     echo -e "🍕 Pizza 🍕"
+    flatpak run org.nomacs.ImageLounge $HOME/Nextcloud/Python/scripts/PizzaPlot/PizzaPlot.png &
 }
 
 ################################################################################################
 
-ds1(){
-    gedit "$HOME/Nextcloud/Notes/Games/Ds1 randomizer.txt" &
-    nemo --tabs "/media/federico/SSD450GB/steam/steamapps/common/DARK SOULS REMASTERED" &
-    exit 
+orion-install(){
+    flatpak install app/com.ktechpit.orion/x86_64/stable -y
+    flatpak run com.ktechpit.orion/x86_64/stable &
 }
 
-bingo(){
-    run="flatpak run com.google.Chrome"
+orion-uninstall(){
+    flatpak uninstall app/com.ktechpit.orion/x86_64/stable -y
+    rm -rf $HOME/.var/app/com.ktechpit.orion
+    rm $HOME/Downloads/.Orion.id
+    rm -rf $HOME/Downloads/Orion
 
-    $run --new-window "https://drive.google.com/drive/u/2/folders/1Fpl4ppHSvLWLoazwRboyzmAUbZWMkhFr" &
-    sleep 0.5s
-    $run "https://colab.research.google.com/drive/1BCqChs2yAGFJMQzpeUQPnvERJLrodd4-?authuser=2" &
-    
-    sleep 0.5s
-    $run "https://docs.google.com/spreadsheets/d/1vOsCN9w__lKMQmVdqJt9-cJfl7PiQnyn6T8l1kEhmfM/edit?gid=487508033#gid=487508033" &
-    
-    sleep 0.5s
-    $run "https://www.google.com/search?q=ds1+wiki&oq=ds1+wiki&gs_lcrp=EgZjaHJvbWUqBggAEEUYOzIGCAAQRRg7MgYIARBFGDsyBggCEEUYO9IBCDIxMjhqMGo3qAIAsAIA&sourceid=chrome&ie=UTF-8" &
-
-    nemo --tabs "$HOME/Nextcloud/Python/scripts/Games/DarkSouls/DS1_Bingo" &
-    exit
 }
-
-ds2(){
-    gamePath="/media/federico/SSD450GB/steam/steamapps/common/Dark Souls II Scholar of the First Sin/Game"
-    savePath=$(find /media/federico/SSD450GB/steam/steamapps/compatdata -type d -name 'DarkSoulsII')
-    nemo --tabs "$savePath" "$gamePath" "$HOME/Nextcloud/Games/DarkSouls/DarkSouls2" &
-    exit 
-}
-
 ################################################################################################

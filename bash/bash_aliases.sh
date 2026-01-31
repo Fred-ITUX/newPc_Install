@@ -15,7 +15,7 @@ alias e='exit'
 alias cp2="rsync -ah --progress -r"
 
 #### Compress with limited cores
-alias zip2="7z a -mmt=2"
+alias zip2="7z a -mmt=3"
 
 #### Making files executable
 alias addx='sudo chmod +x'
