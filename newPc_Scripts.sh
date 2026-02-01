@@ -101,11 +101,6 @@ CLUTTER_PAINT=disable-clipped-redraws:disable-culling" | sudo tee  ~/.config/env
 sudo mkdir -p /var/lib/samba/usershares
 sudo chown root:sambashare /var/lib/samba/usershares
 sudo chmod 1770 /var/lib/samba/usershares
-
-#### HDD & SSDs mount directories
-sudo mkdir /media/federico/SSD1TB/
-sudo mkdir /media/federico/SSD450GB/
-sudo mkdir /media/federico/HDD2TB/
 ######################################################################################
 
 
