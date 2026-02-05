@@ -28,6 +28,11 @@ DefaultTasksMax=infinity
 EOF
 
 
+
+
+
+
+######################################################################################
 #### UFW Firewall setup
 set -e
 
@@ -42,6 +47,26 @@ if grep -q '^IPV6=yes' "$UFW_CONF"; then
 fi
 
 ufw reload
+######################################################################################
+
+
+
+
+
+######################################################################################
+#### GRUB USB not working after waking up (sleep / hybernation / suspend)
+grub_line_path="/etc/default/grub"
+grub_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
+mod_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.autosuspend=-1"'
+
+if grep -q "$grub_line" "$grub_line_path"; then
+    sudo sed -i "s/^$grub_line/$mod_line/" "$grub_line_path"
+fi
+sudo update-grub
+######################################################################################
+
+
+
 
 
 ######################################################################################
@@ -71,6 +96,12 @@ gsettings set org.gnome.mutter workspaces-only-on-primary false
 
 #### Keep Super Key for overview / search
 gsettings set org.gnome.mutter overlay-key 'Super_L'
+
+#### Night light setup
+gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic false
+gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 1
+gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
+gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 2500 #### 1000~10000
 
 #### Disable gnome tracker (home folder indexing)
 systemctl --user mask tracker-miner-fs-3.service
