@@ -90,6 +90,7 @@ gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-typ
 gsettings set org.gnome.mutter dynamic-workspaces false
 gsettings set org.gnome.desktop.wm.preferences num-workspaces 4
 gsettings set org.gnome.mutter workspaces-only-on-primary false
+gsettings set org.gnome.shell.app-switcher current-workspace-only false
 
 # #### Disable edge tiling --- keep true for fullscreen shortcut
 # gsettings set org.gnome.mutter edge-tiling false
