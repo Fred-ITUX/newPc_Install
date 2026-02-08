@@ -102,7 +102,7 @@ gsettings set org.gnome.mutter overlay-key 'Super_L'
 gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic false
 gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 1
 gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
-gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 2500 #### 1000~10000
+# gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 2500 #### 1000~10000
 
 #### Disable gnome tracker (home folder indexing)
 systemctl --user mask tracker-miner-fs-3.service
