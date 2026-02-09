@@ -43,10 +43,10 @@ UFW_CONF="/etc/default/ufw"
 
 #### Disable ipv6
 if grep -q '^IPV6=yes' "$UFW_CONF"; then
-    sed -i 's/^IPV6=yes/IPV6=no/' "$UFW_CONF"
+    sudo sed -i 's/^IPV6=yes/IPV6=no/' "$UFW_CONF"
 fi
 
-ufw reload
+sudo ufw reload
 ######################################################################################
 
 
