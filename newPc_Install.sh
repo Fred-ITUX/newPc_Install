@@ -439,6 +439,7 @@ sudo apt purge cinnamon* -y
 
 appToPurge=(
         thunderbird* 
+        libreoffice*
         cheese 
         hypnotix 
         rhythmbox 
