@@ -250,20 +250,6 @@ ej(){
 
 ################################################################################################
 
-allReposUPD(){
-    scripts=$(find $HOME/Nextcloud/Linux/scripts/Github -maxdepth 1 -type f -name  "*_update.sh" )
-    
-    for script in $scripts; do
-        echo "Running $script..."
-        bash "$script"
-        
-        if [ $? -ne 0 ]; then
-            echo "⚠️ Script $script failed!"
-        fi
-    done
-}
-################################################################################################
-
 pizza(){
     date=$(date +"%Y-%m-%d")
     echo -e "$date" >> $HOME/Nextcloud/Python/scripts/PizzaPlot/pizza_data.csv
