@@ -9,6 +9,7 @@ fi
 
 bashUpd(){
 
+    LXscripts="$HOME/Nextcloud/Linux/scripts"
     cp "$LXscripts"/bash/bash_RC.sh "$HOME"/.bashrc 
     source "$HOME"/.bashrc
     
@@ -27,11 +28,7 @@ bashUpd(){
 ################################################################################################
 
 updater(){
-
-    #### launch updater & append to the log
-    $LXscripts/sys_updater.sh >> "$pathManualUpd"
-
-    #### launch log cleaner
+    $LXscripts/sys_updater.sh >> "$pathManualUpd" 
     python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py
     gedit "$pathManualUpd" &
 }    
@@ -121,11 +118,9 @@ alarm(){
         (( total_seconds-- ))
     done
 
-    #### Clear line + newline before playing sound
-    printf "\r%*s\r" "$(tput cols)" ""
+    printf "\r%*s\r" "$(tput cols)" "" #### Clear line + newline before playing sound
 
-    #### Launch vlc (cvlc terminal only)
-    cvlc $HOME/Nextcloud/Linux/Stuff/alarm.mp3 #--gain=1
+    cvlc $HOME/Nextcloud/Linux/Stuff/alarm.mp3 #--gain=1 #### Launch vlc (cvlc terminal only)
 }
 
 ################################################################################################
@@ -182,28 +177,6 @@ latexUPD(){
         pdflatex "$latexFile"
         sleep "$secDelay"
     done
-}
-
-################################################################################################
-
-dummyFile(){
-    source_path="$1"
-    dest_path="$HOME/Downloads/dummy" 
-
-    fileExt="mkv"
-    mkdir -p "$dest_path"
-
-    if [ "$source_path" == "" ]; then
-        echo -e "Path error"
-    else 
-        #### Find all .mkv files in the directory and create dummy to keep filenames
-        find "$source_path" -maxdepth 1 -type f -name "*.$fileExt" -print0 | while IFS= read -r -d '' file; do
-            filename=$(basename "$file")
-            dummy="$dest_path/$filename"
-            touch "$dummy"
-        done
-        echo "Created dummys into: $dest_path"
-    fi
 }
 
 ################################################################################################
