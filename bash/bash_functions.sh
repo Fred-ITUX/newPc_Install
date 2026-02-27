@@ -166,16 +166,18 @@ addExec(){
 
 latexUPD(){
     latexFile="$1"
-    secDelay=3
-
-    filePath=$(dirname "$latexFile")
-
-    echo -e "Moving to file path: $filePath"
-    cd "$filePath"
-
-    while true; do   
-        pdflatex "$latexFile"
-        sleep "$secDelay"
+    cd $(dirname "$latexFile")       ####  LaTeX dumps the files to the current working directory
+    check(){
+        stat -c "%Y" "$latexFile"    #### check file update
+    }
+    ver1=$(check)
+    while true; do
+        sleep 1s
+        ver2=$(check)
+        if [ "$ver1" != "$ver2" ]; then
+            ver1=$(check)
+            pdflatex "$latexFile"
+        fi
     done
 }
 
