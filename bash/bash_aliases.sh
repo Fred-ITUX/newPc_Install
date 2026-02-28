@@ -33,6 +33,10 @@ alias percentage="python3 $PYscripts/perc_calc.py"
 
 alias math="python3 $PYscripts/Games/math_calc.py"
 
+alias test-py="python3 $HOME/Nextcloud/Linux/scripts/Other/test.py"
+alias test-sh="$HOME/Nextcloud/Linux/scripts/Other/test.sh"
+
+
 
 #### kden
 alias kden="$HOME/Nextcloud/Kden/scripts/kden_custom_launch.sh"
