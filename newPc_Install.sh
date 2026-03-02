@@ -376,7 +376,7 @@ echo -e "\n\n\n\n\n
 
         +--------------------------------+\n\n\n\n\n"
 
-flatpak install flathub -y 
+flatpak install app/org.flathub.electron-sample-app/x86_64/stable -y 
 
 flatpakAppPackages=(
     com.brave.Browser

@@ -63,6 +63,9 @@ echo -e "[Settings]\ngtk-application-prefer-dark-theme = true" > ~/.config/gtk-3
 echo -e "[Settings]\ngtk-application-prefer-dark-theme = true" > ~/.config/gtk-4.0/settings.ini
 
 
+#### Background set
+gsettings set org.gnome.desktop.background picture-uri-dark "$HOME/Nextcloud/Linux/SysThemes/Themes/black_Bg.png"
+   
 
 #### Automate setup  
 interface="DejaVu Sans Condensed"
