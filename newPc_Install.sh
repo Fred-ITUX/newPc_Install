@@ -183,6 +183,7 @@ pythonPackages=(
     python3-fuzzywuzzy
     python3-pil
     python3-srt
+    python3-pygments
     pipx
 )
 

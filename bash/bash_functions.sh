@@ -178,7 +178,7 @@ latexUPD(){
         ver2=$(check)
         if [ "$ver1" != "$ver2" ]; then
             ver1=$(check)
-            pdflatex "$latexFile"
+            pdflatex -shell-escape "$latexFile"
         fi
     done
 }
