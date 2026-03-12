@@ -75,12 +75,12 @@ editors="DejaVu Sans Mono"
 
 fc-cache -fv > /dev/null
 #### Main font GNOME Shell uses
-gsettings set org.gnome.desktop.interface font-name "$interface 11.5"
+gsettings set org.gnome.desktop.interface font-name "$interface 11"
 
 #### Gedit , LibreOffice (if they respect GTK rules)
-gsettings set org.gnome.desktop.interface document-font-name "$mono 14"
+gsettings set org.gnome.desktop.interface document-font-name "$mono 12"
 
 #### Anything requiring a mono-spaced font (GNOME Terminal, code editors...)
-gsettings set org.gnome.desktop.interface monospace-font-name "$editors  14"
+gsettings set org.gnome.desktop.interface monospace-font-name "$editors  12"
 
 
