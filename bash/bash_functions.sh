@@ -27,11 +27,97 @@ bashUpd(){
 
 ################################################################################################
 
+shutdown_routine(){
+    $LXscripts/Shortcuts/night_light_off.sh
+
+    echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
+
+    sudo rm $HOME/.bash_history 
+    sudo rm -rf $HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup #### remove kdenlive backups to avoid stacking
+}
+
+shutdown(){
+    shutdown_routine
+    sudo shutdown now
+}
+
+reboot(){
+    read -r -p '' #### double check press
+    shutdown_routine
+    sudo reboot now
+}
+
+end(){
+    read -r -p '' #### double check press
+    shutdown_routine
+    shutdown
+}
+
+################################################################################################
+
+sysUPD(){
+    export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
+    get_sys_Info
+
+
+    echo -e "\n\t
+        • Fix broken pkg:
+        \t"
+    sudo dpkg --configure -a 
+    sudo apt --fix-broken install -y 
+
+
+    echo -e "\n\t
+        • Update:
+        \t"
+    sudo apt --fix-missing -q update
+        
+
+    echo -e "\n\t
+        • Upgrade:
+        \t"
+    sudo apt full-upgrade -y
+
+
+    echo -e "\n\t
+        • Flatpak update:
+        \t" 
+    sudo flatpak update -y 
+
+
+    echo -e "\n\t
+        • Autoremove:
+        \t"
+    sudo apt autoremove -y
+    sudo apt clean
+
+
+    echo -e "\n\t
+        • 2nd Fix broken pkg:
+        \t"
+    sudo dpkg --configure -a 
+    sudo apt --fix-broken install -y 
+
+
+    get_sysInfo_END
+
+    python3 $LXscripts/Startup_Routine/log_cleaner.py
+} 
+
 updater(){
-    $LXscripts/sys_updater.sh >> "$pathManualUpd" 
-    python3 $LXscripts/Startup_Routine/log_cleaner_MANUAL.py
+    sysUPD >> "$pathManualUpd" 
     gedit "$pathManualUpd" &
 }    
+
+################################################################################################
+
+homeBKP(){
+    zipName=$HOME/homebkp_$(date +%Y\-%m-\%d).zip
+
+    7z a -mmt=3 "$zipName" $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
+
+    # $HOME/.var/app/com.brave.Browser $HOME/.var/app/com.google.Chrome $HOME/.var/app/com.mattjakeman.ExtensionManager
+}
 
 ################################################################################################
 

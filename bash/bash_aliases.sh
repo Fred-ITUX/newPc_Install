@@ -57,20 +57,3 @@ alias convMetric="python3 $PYscripts/measure_unit_converter.py"
 
 ################################################################################################
 
-
-
-
-################################################################################################
-####                            Shutdown aliases
-
-alias end="read -r -p '' && shutdown"
-
-alias shutdown="$LXscripts/Other/shutdown_routine.sh && sudo shutdown now"
-
-alias reboot="read -r -p '' && $LXscripts/Other/shutdown_routine.sh && sudo reboot now"
-
-alias logout="gnome-session-quit"
-
-alias suspend="systemctl suspend"
-
-################################################################################################
