@@ -178,7 +178,7 @@ latexUPD(){
         ver2=$(check)
         if [ "$ver1" != "$ver2" ]; then
             ver1=$(check)
-            pdflatex -shell-escape "$latexFile"
+            pdflatex -shell-escape "$latexFile" #### Shell escape is required for minted package
         fi
     done
 }
