@@ -13,6 +13,25 @@ fi
 sudo find $HOME/Nextcloud/ -type f -name "*.sh" -exec chmod +x {} +
 
 
+
+######################################################################################
+#### Setup startup routine start at boot
+mkdir -p ~/.config/autostart
+
+fileEntry="[Desktop Entry]
+Type=Application
+Exec=/home/federico/Nextcloud/Linux/scripts/Startup_Routine/startup_routine.sh
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Startup Routine
+Comment=Run my startup script"
+
+echo "$fileEntry" > ~/.config/autostart/startup_routine.desktop
+######################################################################################
+
+
+
 #### Disable zswap (compresses SWAP into RAM)
 echo "N" | sudo tee /sys/module/zswap/parameters/enabled
 
