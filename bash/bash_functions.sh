@@ -111,6 +111,73 @@ updater(){
 
 ################################################################################################
 
+systemInfo(){
+    get_wm(){
+    if [ "$XDG_CURRENT_DESKTOP" == "GNOME" ]; then
+        echo "Mutter"
+    elif [ "$XDG_CURRENT_DESKTOP" == "KDE" ]; then
+        echo "KWin"
+    else
+        wm=$(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null | awk -F'#' '/^_NET_SUPPORTING_WM_CHECK/ {print $2}' | xargs -I{} xprop -id {} _NET_WM_NAME 2>/dev/null | cut -d '"' -f2)
+        echo "${wm:-Unknown}" 
+    fi 
+    }
+    get_compositor(){
+        if pgrep -x picom > /dev/null; then
+            echo "picom"
+        elif pgrep -x compton > /dev/null; then
+            echo "compton"
+        elif [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
+            echo "KWin (built-in)"
+        elif [ "$XDG_CURRENT_DESKTOP" = "GNOME" ]; then
+            echo "Mutter (built-in)"
+        else
+            echo "Unknown"
+        fi
+    }
+
+
+    get_gtk_theme() {
+        gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null | tr -d "'"
+    }
+    get_icon_theme() {
+        gsettings get org.gnome.desktop.interface icon-theme 2>/dev/null | tr -d "'"
+    }
+    get_font_name() {
+        gsettings get org.gnome.desktop.interface font-name 2>/dev/null | tr -d "'"
+    }
+
+
+    get_shell_version() {
+        case "$SHELL" in
+            */bash) bash --version | head -n1 ;;
+            */zsh) zsh --version ;;
+            */fish) fish --version ;;
+            *) echo "$SHELL" ;;
+        esac
+    }
+
+
+
+    get_gnome_version(){
+        isGnome=$(echo "$XDG_CURRENT_DESKTOP")
+
+        if [ "$isGnome" == "GNOME" ]; then
+            printOut=$(echo -e "$(gnome-shell --version 2>/dev/null | cut -d' ' -f3)")
+
+        else
+            printOut=""    
+        fi
+
+        echo "$printOut"
+    }
+
+    #### Bold title ---- New lines inserted to fold the function
+    echo -e "\033[1mSystem Info:\033[0m $(get_formatted_date) \nOS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \") \nKernel: $(uname -r) \nUptime: $(uptime -p | sed 's/up //') \nPackages: $(dpkg -l | wc -l) \nFlatpak pkg: $(flatpak list  | wc -l) \nShell: $(get_shell_version) \nDE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_gnome_version) \nSession: ${XDG_SESSION_TYPE:-unknown} \nWM: $(get_wm) \nCompositor: $(get_compositor) \nTheme: $(get_gtk_theme) \nIcons: $(get_icon_theme) \nFont: $(get_font_name) \nCPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//') \nGPU: $(lspci | grep VGA | cut -d: -f3 | xargs) \nRAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}') \nSWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
+}
+
+################################################################################################
+
 homeBKP(){
     zipName=$HOME/homebkp_$(date +%Y\-%m-\%d).zip
 
