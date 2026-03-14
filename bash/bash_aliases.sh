@@ -5,27 +5,16 @@ if [ -f ~/.bash_UT ]; then
 fi
 
 
-################################################################################################
-
 #### Quality of life
 alias c='clear'
 alias e='exit'
-
-#### Single-threaded copy with ETA
-alias cp2="rsync -ah --progress -r"
-
-#### Compress with limited cores
-alias zip2="7z a -mmt=3"
-
-#### Making files executable
 alias addx='sudo chmod +x'
 
-################################################################################################
+
+alias cp2="rsync -ah --progress -r"     #### Single-threaded copy with ETA
+alias zip2="7z a -mmt=3"                #### Compress with limited cores
 
 
-
-
-################################################################################################
 
 alias pswd="python3 $PYscripts/passwd_gen.py"
 
@@ -47,13 +36,10 @@ alias kdenUpd="$HOME/Nextcloud/Kden/scripts/kden_bkp_version_update.sh"
 #### editing utilities
 alias sub="python3 $PYscripts/subtitle.py"
 alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
-alias editing="$LXscripts/Sessions/Session_editing.sh && kden"
+alias editing="$LXscripts/Startup_Routine/Sessions.sh editing && kden"
 
 #### Converters
 alias convImg="python3 $PYscripts/FileModder/image_converter.py"
 alias convWav="python3 $PYscripts/FileModder/wav_converter.py"
 alias convMkv="python3 $PYscripts/FileModder/mkv_converter.py"
 alias convMetric="python3 $PYscripts/measure_unit_converter.py"
-
-################################################################################################
-

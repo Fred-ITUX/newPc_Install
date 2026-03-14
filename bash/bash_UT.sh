@@ -33,8 +33,7 @@ echo -e "
 ________________________________________________________ 
 \t
     Start time :  "$(get_formatted_date)"
-    Running for:  $(whoami)@$osname [$(hostname)]
-    "
+    Running for:  $(whoami)@$osname [$(hostname)]"
 }
 
 get_sysInfo_END(){
