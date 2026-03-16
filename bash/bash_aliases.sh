@@ -1,9 +1,6 @@
+#!/bin/bash
 
-#### SysInfo & path 
-if [ -f ~/.bash_UT ]; then
-    . ~/.bash_UT
-fi
-
+if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi               
 
 #### Quality of life
 alias c='clear'

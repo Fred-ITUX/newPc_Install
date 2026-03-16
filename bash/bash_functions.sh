@@ -1,5 +1,6 @@
+#!/bin/bash
 
-if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi #### SysInfo & path 
+if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi 
 
 ################################################################################################
 
@@ -24,7 +25,7 @@ bashUpd(){
 ################################################################################################
 
 shutdown_routine(){
-    $LXscripts/Shortcuts/night_light_off.sh
+    "$LXscripts/Shortcuts/night_light.sh" off
 
     echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
 
