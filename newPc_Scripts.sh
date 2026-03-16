@@ -152,6 +152,8 @@ CLUTTER_PAINT=disable-clipped-redraws:disable-culling" | sudo tee  ~/.config/env
 sudo mkdir -p /var/lib/samba/usershares
 sudo chown root:sambashare /var/lib/samba/usershares
 sudo chmod 1770 /var/lib/samba/usershares
+
+cp $HOME/Nextcloud/Linux/scripts/Other/NEMO_mediainfo.sh $HOME/.local/share/nemo/scripts
 ######################################################################################
 
 

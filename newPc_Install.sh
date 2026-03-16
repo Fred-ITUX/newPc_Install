@@ -244,7 +244,7 @@ appPackages=(
         p7zip-full 
         p7zip-rar
         tree                                    #### ls tree
-        wine64*
+        wine
         pulseaudio
         pavucontrol 
         pulseeffects

@@ -1,9 +1,5 @@
 
-#### SysInfo & path 
-if [ -f ~/.bash_UT ]; then
-    . ~/.bash_UT
-fi
-
+if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi #### SysInfo & path 
 
 ################################################################################################
 
@@ -178,12 +174,19 @@ systemInfo(){
 
 ################################################################################################
 
-homeBKP(){
-    zipName=$HOME/homebkp_$(date +%Y\-%m-\%d).zip
+BKP_nxt(){
+    if [ -n "$1" ] && [ -d "$1" ]; then
+        7z a -mmt=4 "$1/bkp_nextcloud_$(get_file_date).zip" "$HOME/Nextcloud"
+        echo -e "Created $1/bkp_nextcloud_$(get_file_date).zip"
+    else echo -e "Not a valid path: $1"; fi
+}
 
-    7z a -mmt=3 "$zipName" $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
 
-    # $HOME/.var/app/com.brave.Browser $HOME/.var/app/com.google.Chrome $HOME/.var/app/com.mattjakeman.ExtensionManager
+BKP_home(){
+    if [ -n "$1" ] && [ -d "$1" ]; then
+        7z a -mmt=4 "$1/homebkp_$(get_file_date).zip"  $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
+        echo -e "Created $zipName"
+    else echo -e "Not a valid path: $1"; fi
 }
 
 ################################################################################################
@@ -232,7 +235,7 @@ vscan(){
     
     $LXscripts/Scans/clamav_scan.sh >> "$pathCLAMSCAN" 2>&1
 
-    pathCLAMSCAN_check=$(cat "$pathCLAMSCAN" | grep -i "infected files: " | sort --unique )
+    pathCLAMSCAN_check=$(grep -i "infected files:" "$pathCLAMSCAN" | sort -u)
 
     if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then
         vlc "$logCheckerAlarm"  #### --gain=3
@@ -402,4 +405,21 @@ orion-uninstall(){
     rm -rf $HOME/Downloads/Orion
 
 }
+
 ################################################################################################
+
+allRepoPush(){
+    scripts=$(find $HOME/Nextcloud/Linux/scripts/Github -maxdepth 1 -type f -name  "*_update.sh" )
+    
+    for script in $scripts; do
+        echo -e "\n >>> Running -- $(basename "$script")"
+        bash "$script"
+        
+        if [ $? -ne 0 ]; then
+            echo "⚠️ [ERROR] $(basename "$script") failed!"
+        fi
+    done
+}
+
+################################################################################################
+
