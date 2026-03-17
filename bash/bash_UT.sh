@@ -4,11 +4,7 @@
 
 osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
 
-
-
 sessionType="$XDG_SESSION_TYPE"
-
-
 
 get_formatted_date(){
     date +%a\ %b\ %d\ %Y\ %H:%M:%S  #### python %a %b %d %Y %H:%M:%S
@@ -104,7 +100,6 @@ ufw_log_check="$LXlogs/ufw_log_check.txt"
 
 
 logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
-
 
 ################################################################################################
 

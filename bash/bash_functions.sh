@@ -234,23 +234,38 @@ vscan(){
 
     echo -e "🦠 Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
     
-    $LXscripts/Scans/clamav_scan.sh >> "$pathCLAMSCAN" 2>&1
+    clamScanning(){
+        dir="${1:-$(pwd)}"
+        max_size="5M" 
+
+        echo -e "$(get_sys_Info)
+            • Scanning dir: $dir - Max "$max_size"B
+            • Clamav signatures DB update..."
+
+        sudo freshclam --q #### freshclam update DB (--q suppress output)
+
+        echo -e "    • Signatures DB updated, starting scan"
+
+        sudo clamscan --remove --recursive --infected --max-filesize="$max_size"  "$dir" 
+
+        get_sysInfo_END
+    }  >> "$pathCLAMSCAN" 2>&1
+
+    clamScanning
 
     pathCLAMSCAN_check=$(grep -i "infected files:" "$pathCLAMSCAN" | sort -u)
 
-    if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then
-        vlc "$logCheckerAlarm"  #### --gain=3
-        gedit "$pathCLAMSCAN" &
-    fi
+    if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then vlc "$logCheckerAlarm"; fi
+
+    gedit "$pathCLAMSCAN" &
     sudo systemctl disable clamav-daemon.service
 } 
 
-################################################################################################
-
 rscan(){
-
-    $LXscripts/Scans/rk_hunter_scan.sh  
-
+    export DEBIAN_FRONTEND=noninteractive
+    get_sys_Info
+    sudo rkhunter --check --propupd --skip-keypress --no-color -x --report-warnings-only
+    get_sysInfo_END 
 } >> "$pathROOTKIT" 2>&1
 
 ################################################################################################
