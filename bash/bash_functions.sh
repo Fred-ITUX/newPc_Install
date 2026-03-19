@@ -29,8 +29,9 @@ shutdown_routine(){
 
     echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
 
-    sudo rm $HOME/.bash_history 
-    sudo rm -rf $HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup #### remove kdenlive backups to avoid stacking
+    sudo rm "$HOME/.bash_history"
+
+    if [ -d "$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" ]; then sudo rm -rf "$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup"; fi #### remove kdenlive backups to avoid stacking
 }
 
 shutdown(){
