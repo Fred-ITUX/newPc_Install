@@ -31,7 +31,8 @@ shutdown_routine(){
 
     sudo rm "$HOME/.bash_history"
 
-    if [ -d "$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" ]; then sudo rm -rf "$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup"; fi #### remove kdenlive backups to avoid stacking
+    kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup"
+    if [ -d "$kdenBkpDir" ]; then sudo rm -rf "$kdenBkpDir"; fi #### rm kden bkp to avoid stacking
 }
 
 shutdown(){
@@ -56,7 +57,6 @@ end(){
 sysUPD(){
     export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
     get_sys_Info
-
 
     echo -e "\n\t
         • Fix broken pkg:
@@ -96,10 +96,8 @@ sysUPD(){
     sudo dpkg --configure -a 
     sudo apt --fix-broken install -y 
 
-
     get_sysInfo_END
-
-    python3 $LXscripts/Startup_Routine/log_cleaner.py
+    python3 "$LXscripts/Startup_Routine/log_cleaner.py"
 } 
 
 updater(){
@@ -111,10 +109,7 @@ updater(){
 
 systemInfo(){
     get_wm(){
-    if [ "$XDG_CURRENT_DESKTOP" == "GNOME" ]; then
-        echo "Mutter"
-    elif [ "$XDG_CURRENT_DESKTOP" == "KDE" ]; then
-        echo "KWin"
+    if [ "$XDG_CURRENT_DESKTOP" == "GNOME" ]; then echo "Mutter"; elif [ "$XDG_CURRENT_DESKTOP" == "KDE" ]; then echo "KWin"
     else
         wm=$(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null | awk -F'#' '/^_NET_SUPPORTING_WM_CHECK/ {print $2}' | xargs -I{} xprop -id {} _NET_WM_NAME 2>/dev/null | cut -d '"' -f2)
         echo "${wm:-Unknown}" 
@@ -134,7 +129,6 @@ systemInfo(){
         fi
     }
 
-
     get_gtk_theme() {
         gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null | tr -d "'"
     }
@@ -145,7 +139,6 @@ systemInfo(){
         gsettings get org.gnome.desktop.interface font-name 2>/dev/null | tr -d "'"
     }
 
-
     get_shell_version() {
         case "$SHELL" in
             */bash) bash --version | head -n1 ;;
@@ -155,18 +148,9 @@ systemInfo(){
         esac
     }
 
-
-
     get_gnome_version(){
         isGnome=$(echo "$XDG_CURRENT_DESKTOP")
-
-        if [ "$isGnome" == "GNOME" ]; then
-            printOut=$(echo -e "$(gnome-shell --version 2>/dev/null | cut -d' ' -f3)")
-
-        else
-            printOut=""    
-        fi
-
+        if [ "$isGnome" == "GNOME" ]; then printOut=$(echo -e "$(gnome-shell --version 2>/dev/null | cut -d' ' -f3)"); else printOut=""; fi
         echo "$printOut"
     }
 
@@ -177,7 +161,8 @@ systemInfo(){
 ################################################################################################
 
 BKP_nxt(){
-    if [ -n "$1" ] && [ -d "$1" ]; then
+    if [ -z "$1" ]; then echo -e "Enter bkp destination path."
+    elif [ -n "$1" ] && [ -d "$1" ]; then
         7z a -mmt=4 "$1/bkp_nextcloud_$(get_file_date).zip" "$HOME/Nextcloud"
         echo -e "Created $1/bkp_nextcloud_$(get_file_date).zip"
     else echo -e "Not a valid path: $1"; fi
@@ -185,7 +170,8 @@ BKP_nxt(){
 
 
 BKP_home(){
-    if [ -n "$1" ] && [ -d "$1" ]; then
+    if [ -z "$1" ]; then echo -e "Enter bkp destination path."
+    elif [ -n "$1" ] && [ -d "$1" ]; then
         7z a -mmt=4 "$1/homebkp_$(get_file_date).zip"  $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
         echo -e "Created $zipName"
     else echo -e "Not a valid path: $1"; fi
@@ -194,22 +180,12 @@ BKP_home(){
 ################################################################################################
 
 extract(){
-
     file="$1"
     mmt=3   #### mmt = limits the cores used
 
-    if [[ "$file" == "a" ]]; then
-        files=(*.zip *.7z *.tar *.tar.gz *.rar)
+    if [[ "$file" == "a" ]]; then files=(*.zip *.7z *.tar *.tar.gz *.rar); elif [[ -n "$file" ]]; then files=("$file"); fi
 
-    elif [[ -n "$file" ]]; then
-        files=("$file")
-    fi
-
-    if [ -z "$file" ]; then
-        echo -e "Usage: extract <filename> or extract <a>"
-        files=("")
-    fi
-
+    if [ -z "$file" ]; then echo -e "Usage: extract <filename> or extract <a>" && files=(""); fi
 
     for file in "${files[@]}"; do
         [[ -e "$file" ]] || continue
@@ -272,10 +248,8 @@ rscan(){
 ################################################################################################
 
 alarm(){
-
-    #### alarm in minutes
     timeAmount="$1"
-    total_seconds=$((timeAmount * 60))
+    total_seconds=$((timeAmount * 60))  #### alarm in minutes
 
     echo -e "⏰ Starting timer: ${timeAmount} minute(s)"
     sleep 1s
@@ -292,8 +266,7 @@ alarm(){
     done
 
     printf "\r%*s\r" "$(tput cols)" "" #### Clear line + newline before playing sound
-
-    cvlc $HOME/Nextcloud/Linux/Stuff/alarm.mp3 #--gain=1 #### Launch vlc (cvlc terminal only)
+    cvlc "$HOME/Nextcloud/Linux/Stuff/alarm.mp3" #--gain=1 #### Launch vlc (cvlc terminal only)
 }
 
 ################################################################################################
@@ -314,7 +287,7 @@ stopwatch(){
 
 ################################################################################################
 
-killp9() {
+killp9(){
     process="$1"
     #### Reads each PID into an indexed array, splitting on whitespace/newlines:
     pids=($(pgrep -f "$process"))
@@ -328,11 +301,7 @@ killp9() {
 ################################################################################################
 
 addExec(){
-    path="$1"
-    
-    echo -e "Adding executable propriety to all .sh files in: $path"
-    sudo find "$path" -type f -name "*.sh" -exec chmod +x {} +
-    # sudo find $HOME/Nextcloud -type f -name "*.sh" -exec chmod +x {} +
+    if [ -n "$1" ]; then echo -e "Adding executable propriety to all .sh files in: $1" && sudo find "$1" -type f -name "*.sh" -exec chmod +x {} +; fi
 }
 
 ################################################################################################
@@ -426,16 +395,11 @@ orion-uninstall(){
 ################################################################################################
 
 allRepoPush(){
-    scripts=$(find $HOME/Nextcloud/Linux/scripts/Github -maxdepth 1 -type f -name  "*_update.sh" )
+    scripts=$(find "$LXscripts/Github" -maxdepth 1 -type f -name  "*_update.sh" )
     
     for script in $scripts; do
-        echo -e "\n >>> Running -- $(basename "$script")"
-        bash "$script"
-        
-        if [ $? -ne 0 ]; then
-            echo "⚠️ [ERROR] $(basename "$script") failed!"
-        fi
-    done
+        echo -e "\n >>> Running -- $(basename "$script")" && bash "$script"
+        if [ $? -ne 0 ]; then echo -e "⚠️ [ERROR] $(basename "$script") failed!"; fi done
 }
 
 ################################################################################################

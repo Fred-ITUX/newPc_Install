@@ -12,21 +12,9 @@ HISTCONTROL=ignoreboth
 HISTSIZE=1000
 HISTFILESIZE=1000
 
-#### Aliases definition
-if [ -f ~/.bash_aliases ]; then
-    . ~/.bash_aliases
-fi
-
-#### Functions definition
-if [ -f ~/.bash_functions ]; then
-    . ~/.bash_functions 
-fi
-
-#### SysInfo & path 
-if [ -f ~/.bash_UT ]; then
-    . ~/.bash_UT
-    source "$HOME"/.bash_UT
-fi
+if [ -f ~/.bash_aliases ]; then . ~/.bash_aliases; fi    
+if [ -f ~/.bash_functions ]; then . ~/.bash_functions; fi 
+if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi               
 
 #### Enable bash completion if available
 if [ -f /usr/share/bash-completion/bash_completion ]; then
