@@ -1,8 +1,6 @@
 #!/bin/bash
-
 if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi 
-
-################################################################################################
+##################################################
 
 bashUpd(){
 
@@ -22,14 +20,17 @@ bashUpd(){
     exec bash
 }
 
-################################################################################################
+##################################################
 
 shutdown_routine(){
     "$LXscripts/Shortcuts/night_light.sh" off
 
     echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
 
-    sudo rm "$HOME/.bash_history"
+    killp15 "brave"
+    killp15 "chrome"
+
+    if [ -f "$HOME/.bash_history" ]; then sudo rm "$HOME/.bash_history"; fi
 
     kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup"
     if [ -d "$kdenBkpDir" ]; then sudo rm -rf "$kdenBkpDir"; fi #### rm kden bkp to avoid stacking
@@ -52,7 +53,7 @@ end(){
     shutdown
 }
 
-################################################################################################
+##################################################
 
 sysUPD(){
     export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
@@ -105,7 +106,7 @@ updater(){
     gedit "$pathManualUpd" &
 }    
 
-################################################################################################
+##################################################
 
 systemInfo(){
     get_wm(){
@@ -158,7 +159,7 @@ systemInfo(){
     echo -e "\033[1mSystem Info:\033[0m $(get_formatted_date) \nOS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \") \nKernel: $(uname -r) \nUptime: $(uptime -p | sed 's/up //') \nPackages: $(dpkg -l | wc -l) \nFlatpak pkg: $(flatpak list  | wc -l) \nShell: $(get_shell_version) \nDE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_gnome_version) \nSession: ${XDG_SESSION_TYPE:-unknown} \nWM: $(get_wm) \nCompositor: $(get_compositor) \nTheme: $(get_gtk_theme) \nIcons: $(get_icon_theme) \nFont: $(get_font_name) \nCPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//') \nGPU: $(lspci | grep VGA | cut -d: -f3 | xargs) \nRAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}') \nSWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
 }
 
-################################################################################################
+##################################################
 
 BKP_nxt(){
     if [ -z "$1" ]; then echo -e "Enter bkp destination path."
@@ -177,7 +178,7 @@ BKP_home(){
     else echo -e "Not a valid path: $1"; fi
 }
 
-################################################################################################
+##################################################
 
 extract(){
     file="$1"
@@ -202,7 +203,7 @@ extract(){
     done
 }
 
-################################################################################################
+##################################################
 
 vscan(){
     sudo systemctl start clamav-daemon.service
@@ -245,7 +246,7 @@ rscan(){
     get_sysInfo_END 
 } >> "$pathROOTKIT" 2>&1
 
-################################################################################################
+##################################################
 
 alarm(){
     timeAmount="$1"
@@ -269,7 +270,7 @@ alarm(){
     cvlc "$HOME/Nextcloud/Linux/Stuff/alarm.mp3" #--gain=1 #### Launch vlc (cvlc terminal only)
 }
 
-################################################################################################
+##################################################
 
 stopwatch(){
     time=0
@@ -285,26 +286,35 @@ stopwatch(){
     done
 }
 
-################################################################################################
+##################################################
 
 killp9(){
     process="$1"
-    #### Reads each PID into an indexed array, splitting on whitespace/newlines:
-    pids=($(pgrep -f "$process"))
+    pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
 
     for pid in "${pids[@]}"; do
         echo -e "Killing process - $process: $pid"
-        sudo kill -9 $pid
+        sudo kill -9 "$pid"
     done
 }
 
-################################################################################################
+killp15(){
+    process="$1"
+    pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
+
+    for pid in "${pids[@]}"; do
+        echo -e "Killing process - $process: $pid"
+        sudo kill -15 "$pid"
+    done
+}
+
+##################################################
 
 addExec(){
     if [ -n "$1" ]; then echo -e "Adding executable propriety to all .sh files in: $1" && sudo find "$1" -type f -name "*.sh" -exec chmod +x {} +; fi
 }
 
-################################################################################################
+##################################################
 
 latexUPD(){
     latexFile="$1"
@@ -325,7 +335,7 @@ latexUPD(){
     done
 }
 
-################################################################################################
+##################################################
 
 minecraft(){
     gamemoderun java -jar /media/federico/SSD450GB/minecraft/launcher/TLauncher.jar
@@ -334,40 +344,7 @@ minecraft(){
     exit
 }
 
-################################################################################################
-
-ej(){
-    disk="$1"
-
-    externalDisk=$(lsblk -rno NAME,MOUNTPOINT | grep EXT | awk '{print $1}' )
-
-    if [ "$externalDisk" != '' ]; then
-    
-    diskNamePrompt=$(lsblk -rno NAME,MOUNTPOINT,SIZE | grep sdd2 | tr '└─' ' ')
-    echo -e $"External storage detected: $diskNamePrompt \n "
-    read -p "Do you want to eject it? y/n " choiche
-        if [ "$choiche" == "y" ]; then
-            disk="$externalDisk" 
-        fi
-    fi
-
-    diskCheck=$(lsblk | grep "$disk")
-
-    if [ -z  "$disk" ]; then
-        echo -e "Usage: ej </disk>"
-
-    elif [ -z "$diskCheck" ]; then
-        echo -e "Invalid disk: $disk"
-    else
-        echo -e "Unmounting..."
-        udisksctl unmount -b "/dev/$disk" #### example: udisksctl unmount -b /dev/sdd2 
-        echo -e "Turning off..."
-        udisksctl power-off -b "/dev/$disk"
-        echo -e "Done. The drive can now be safely removed."
-    fi
-}
-
-################################################################################################
+##################################################
 
 pizza(){
     date=$(date +"%Y-%m-%d")
@@ -377,7 +354,7 @@ pizza(){
     flatpak run org.nomacs.ImageLounge $HOME/Nextcloud/Python/scripts/PizzaPlot/PizzaPlot.png &
 }
 
-################################################################################################
+##################################################
 
 orion-install(){
     flatpak install app/com.ktechpit.orion/x86_64/stable -y
@@ -392,7 +369,7 @@ orion-uninstall(){
 
 }
 
-################################################################################################
+##################################################
 
 allRepoPush(){
     scripts=$(find "$LXscripts/Github" -maxdepth 1 -type f -name  "*_update.sh" )
@@ -402,5 +379,5 @@ allRepoPush(){
         if [ $? -ne 0 ]; then echo -e "⚠️ [ERROR] $(basename "$script") failed!"; fi done
 }
 
-################################################################################################
+##################################################
 
