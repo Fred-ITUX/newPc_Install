@@ -98,11 +98,11 @@ sysUPD(){
     sudo apt --fix-broken install -y 
 
     get_sysInfo_END
-    python3 "$LXscripts/Startup_Routine/log_cleaner.py"
 } 
 
 updater(){
     sysUPD >> "$pathManualUpd" 
+    python3 "$LXscripts/Startup_Routine/log_cleaner.py"
     gedit "$pathManualUpd" &
 }    
 
@@ -182,7 +182,7 @@ BKP_home(){
 
 extract(){
     file="$1"
-    mmt=3   #### mmt = limits the cores used
+    mmt=4
 
     if [[ "$file" == "a" ]]; then files=(*.zip *.7z *.tar *.tar.gz *.rar); elif [[ -n "$file" ]]; then files=("$file"); fi
 
@@ -347,11 +347,10 @@ minecraft(){
 ##################################################
 
 pizza(){
-    date=$(date +"%Y-%m-%d")
-    echo -e "$date" >> $HOME/Nextcloud/Python/scripts/PizzaPlot/pizza_data.csv
-    python3 $HOME/Nextcloud/Python/scripts/PizzaPlot/pizza.py
+    echo -e "$(date +"%Y-%m-%d")" >> "$PYscripts/PizzaPlot/pizza_data.csv"
+    python3 "$PYscripts/PizzaPlot/pizza.py"
     echo -e "🍕 Pizza 🍕"
-    flatpak run org.nomacs.ImageLounge $HOME/Nextcloud/Python/scripts/PizzaPlot/PizzaPlot.png &
+    flatpak run org.nomacs.ImageLounge "$PYscripts/PizzaPlot/PizzaPlot.png" &
 }
 
 ##################################################
@@ -363,10 +362,9 @@ orion-install(){
 
 orion-uninstall(){
     flatpak uninstall app/com.ktechpit.orion/x86_64/stable -y
-    rm -rf $HOME/.var/app/com.ktechpit.orion
-    rm $HOME/Downloads/.Orion.id
-    rm -rf $HOME/Downloads/Orion
-
+    rm -rf "$HOME/.var/app/com.ktechpit.orion"
+    rm "$HOME/Downloads/.Orion.id"
+    rm -rf "$HOME/Downloads/Orion"
 }
 
 ##################################################
