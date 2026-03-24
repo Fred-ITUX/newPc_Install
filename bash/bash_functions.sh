@@ -209,9 +209,14 @@ vscan(){
     sudo systemctl start clamav-daemon.service
     cd "$1"
     files=$(ls -A) #### -A removes the dots
+    clamTempLog="/tmp/clamTempLog.log"
+    clamLockFile="/tmp/clam_lock.lock"
+
+    exec 200>"$clamLockFile"
+    flock -n 200 || { echo -e "⚠️  Scansion already running, skipping: $(get_formatted_date)"; return; } 
 
     echo -e "🦠 Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
-    
+
     clamScanning(){
         dir="${1:-$(pwd)}"
         max_size="5M" 
@@ -219,23 +224,21 @@ vscan(){
         echo -e "$(get_sys_Info)
             • Scanning dir: $dir - Max "$max_size"B
             • Clamav signatures DB update..."
-
         sudo freshclam --q #### freshclam update DB (--q suppress output)
-
         echo -e "    • Signatures DB updated, starting scan"
-
         sudo clamscan --remove --recursive --infected --max-filesize="$max_size"  "$dir" 
 
         get_sysInfo_END
-    }  >> "$pathCLAMSCAN" 2>&1
+    }  > "$clamTempLog" 2>&1
 
     clamScanning
+    cat "$clamTempLog" >> "$pathCLAMSCAN"
 
     pathCLAMSCAN_check=$(grep -i "infected files:" "$pathCLAMSCAN" | sort -u)
-
-    if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then vlc "$logCheckerAlarm"; fi
-
-    gedit "$pathCLAMSCAN" &
+    if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then 
+        vlc "$logCheckerAlarm" & 
+        gedit "$pathCLAMSCAN" &
+    fi
     sudo systemctl disable clamav-daemon.service
 } 
 
