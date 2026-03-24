@@ -1,5 +1,6 @@
 #!/bin/bash
 if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi 
+userCheck
 ##################################################
 
 bashUpd(){
@@ -24,17 +25,17 @@ bashUpd(){
 
 shutdown_routine(){
     "$LXscripts/Shortcuts/night_light.sh" off
-
-    echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
-
-    killp15 "brave"
-    killp15 "chrome"
-
     if [ -f "$HOME/.bash_history" ]; then sudo rm "$HOME/.bash_history"; fi
+    killp15 "brave" &
+    killp15 "chrome" &
+    sleep 1s
+    if [ "$pc" == "$main" ]; then
+        echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
 
-    kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup"
-    if [ -d "$kdenBkpDir" ]; then sudo rm -rf "$kdenBkpDir"; fi #### rm kden bkp to avoid stacking
+        kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" #### rm kden bkp to avoid stacking
+        if [ -d "$kdenBkpDir" ]; then sudo rm -rf "$kdenBkpDir"; fi; fi
 }
+
 
 shutdown(){
     shutdown_routine
