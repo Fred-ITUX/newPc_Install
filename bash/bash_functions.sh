@@ -31,7 +31,6 @@ shutdown_routine(){
     sleep 1s
     if [ "$pc" == "$main" ]; then
         echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
-
         kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" #### rm kden bkp to avoid stacking
         if [ -d "$kdenBkpDir" ]; then sudo rm -rf "$kdenBkpDir"; fi; fi
 }
@@ -43,13 +42,13 @@ shutdown(){
 }
 
 reboot(){
-    read -r -p '' #### double check press
+    read -r -p ''
     shutdown_routine
     sudo reboot now
 }
 
 end(){
-    read -r -p '' #### double check press
+    read -r -p ''
     shutdown_routine
     shutdown
 }

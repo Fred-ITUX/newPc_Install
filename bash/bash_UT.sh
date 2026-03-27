@@ -67,6 +67,16 @@ userCheck(){
     fi
 }
 
+sysLogger(){
+    local logType="${1:-}"
+    local logBody="${2:-}"
+    local caller="${FUNCNAME[1]:-MAIN}"
+    logType="${logType^^}"
+    declare -a options=('W' 'I' 'E')
+    if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1 ; fi 
+    if [ "$logType" == "W" ]; then logType="WARNING"; elif [ "$logType" == "I" ]; then logType="INFO"; elif [ "$logType" == "E" ]; then logType="ERROR"; fi
+    echo -e "\n[$logType] {$caller} $(get_formatted_date) -> $logBody"
+}
 ################################################################################################
 
 
