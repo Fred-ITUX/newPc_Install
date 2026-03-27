@@ -64,19 +64,19 @@ sysUPD(){
         • Fix broken pkg:
         \t"
     sudo dpkg --configure -a 
-    sudo apt --fix-broken install -y 
+    sudo apt-get --fix-broken install -y 
 
 
     echo -e "\n\t
         • Update:
         \t"
-    sudo apt --fix-missing -q update
+    sudo apt-get --fix-missing -q update
         
 
     echo -e "\n\t
         • Upgrade:
         \t"
-    sudo apt full-upgrade -y
+    sudo apt-get dist-upgrade -y #### full-upgrade
 
 
     echo -e "\n\t
@@ -88,15 +88,15 @@ sysUPD(){
     echo -e "\n\t
         • Autoremove:
         \t"
-    sudo apt autoremove -y
-    sudo apt clean
+    sudo apt-get autoremove -y
+    sudo apt-get clean
 
 
     echo -e "\n\t
         • 2nd Fix broken pkg:
         \t"
     sudo dpkg --configure -a 
-    sudo apt --fix-broken install -y 
+    sudo apt-get --fix-broken install -y 
 
     get_sysInfo_END
 } 
