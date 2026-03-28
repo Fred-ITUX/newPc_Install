@@ -213,9 +213,9 @@ vscan(){
     clamLockFile="/tmp/clam_lock.lock"
 
     exec 200>"$clamLockFile"
-    flock -n 200 || { echo -e "⚠️  Scansion already running, skipping: $(get_formatted_date)"; return; } 
+    flock -n 200 || { sysLogger w "Scansion already running, skipping."; return; } 
 
-    echo -e "🦠 Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
+    sysLogger i "Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
 
     clamScanning(){
         dir="${1:-$(pwd)}"
@@ -236,8 +236,8 @@ vscan(){
 
     pathCLAMSCAN_check=$(grep -i "infected files:" "$pathCLAMSCAN" | sort -u)
     if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then 
-        vlc "$logCheckerAlarm" & 
-        gedit "$pathCLAMSCAN" &
+        vlc "$logCheckerAlarm" > /dev/null 2>&1 & 
+        gedit "$pathCLAMSCAN" > /dev/null 2>&1 &
     fi
     sudo systemctl disable clamav-daemon.service
 } 
