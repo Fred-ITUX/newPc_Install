@@ -23,6 +23,9 @@ get_file_date(){
 }
 
 
+get_logger_date(){
+    date +%Y\-%m-\%d\ %H:\%M:\%S
+}
 
 get_sys_Info(){
 echo -e "
@@ -75,7 +78,7 @@ sysLogger(){
     declare -a options=('W' 'I' 'E' 'DEBUG')
     if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1 ; fi 
     if [ "$logType" == "W" ]; then logType="WARNING"; elif [ "$logType" == "I" ]; then logType="INFO"; elif [ "$logType" == "E" ]; then logType="ERROR"; elif [ "$logType" == "DEBUG" ]; then logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}" ;fi
-    echo -e "[$logType] {$caller} $(get_formatted_date) -> $logBody"
+    echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody"
 }
 
 debugLogger(){
