@@ -162,20 +162,20 @@ systemInfo(){
 ##################################################
 
 BKP_nxt(){
-    if [ -z "$1" ]; then echo -e "Enter bkp destination path."
+    if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
     elif [ -n "$1" ] && [ -d "$1" ]; then
         7z a -mmt=4 "$1/bkp_nextcloud_$(get_file_date).zip" "$HOME/Nextcloud"
-        echo -e "Created $1/bkp_nextcloud_$(get_file_date).zip"
-    else echo -e "Not a valid path: $1"; fi
+        sysLogger i "Created $1/bkp_nextcloud_$(get_file_date).zip"
+    else sysLogger e "Not a valid path: $1"; fi
 }
 
 
 BKP_home(){
-    if [ -z "$1" ]; then echo -e "Enter bkp destination path."
+    if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
     elif [ -n "$1" ] && [ -d "$1" ]; then
         7z a -mmt=4 "$1/homebkp_$(get_file_date).zip"  $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
-        echo -e "Created $zipName"
-    else echo -e "Not a valid path: $1"; fi
+        sysLogger i "Created $zipName"
+    else sysLogger e "Not a valid path: $1"; fi
 }
 
 ##################################################
@@ -191,14 +191,14 @@ extract(){
     for file in "${files[@]}"; do
         [[ -e "$file" ]] || continue
 
-        echo -e "\n📦 Extracting: $file"
+        sysLogger i "Extracting: $file"
         case "$file" in 
             *.zip)     7z x -mmt="$mmt" "$file" ;; 
             *.7z)      7z x -mmt="$mmt" "$file" ;;
             *.tar)     tar -xvf "$file" ;;
             *.tar.gz)  tar -xvzf "$file" ;;
             *.rar)     7z x -mmt="$mmt" "$file" ;; #### -mmt... -p"" file for password archives
-            *)         echo "❌ Unsupported file type: $file" ;;
+            *)         sysLogger e "Unsupported file type: $file" ;;
         esac
     done
 }
@@ -225,7 +225,7 @@ vscan(){
             • Scanning dir: $dir - Max "$max_size"B
             • Clamav signatures DB update..."
         sudo freshclam --q #### freshclam update DB (--q suppress output)
-        echo -e "    • Signatures DB updated, starting scan"
+        sysLogger i "Signatures DB updated, starting scan"
         sudo clamscan --remove --recursive --infected --max-filesize="$max_size"  "$dir" 
 
         get_sysInfo_END
@@ -270,7 +270,7 @@ alarm(){
     done
 
     printf "\r%*s\r" "$(tput cols)" "" #### Clear line + newline before playing sound
-    cvlc "$HOME/Nextcloud/Linux/Stuff/alarm.mp3" #--gain=1 #### Launch vlc (cvlc terminal only)
+    cvlc "$HOME/Nextcloud/Linux/Stuff/alarm.mp3" #--gain=1
 }
 
 ##################################################
@@ -296,7 +296,7 @@ killp9(){
     pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
 
     for pid in "${pids[@]}"; do
-        echo -e "Killing process - $process: $pid"
+        sysLogger i "Killing process - $process: $pid"
         sudo kill -9 "$pid"
     done
 }
@@ -306,7 +306,7 @@ killp15(){
     pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
 
     for pid in "${pids[@]}"; do
-        echo -e "Killing process - $process: $pid"
+        sysLogger i "Killing process - $process: $pid"
         sudo kill -15 "$pid"
     done
 }
@@ -314,7 +314,7 @@ killp15(){
 ##################################################
 
 addExec(){
-    if [ -n "$1" ]; then echo -e "Adding executable propriety to all .sh files in: $1" && sudo find "$1" -type f -name "*.sh" -exec chmod +x {} +; fi
+    if [ -n "$1" ]; then sysLogger i "Adding executable propriety to all .sh files in: $1" && sudo find "$1" -type f -name "*.sh" -exec chmod +x {} +; fi
 }
 
 ##################################################
@@ -341,9 +341,9 @@ latexUPD(){
 ##################################################
 
 minecraft(){
-    gamemoderun java -jar /media/federico/SSD450GB/minecraft/launcher/TLauncher.jar
+    gamemoderun java -jar "/media/federico/SSD450GB/minecraft/launcher/TLauncher.jar"
 
-    nemo --tabs /media/federico/SSD450GB/minecraft/curseforge /media/federico/SSD450GB/minecraft/curseforge/curse_minecraft/Instances /media/federico/SSD450GB/minecraft/versions /home/federico/Nextcloud/Games/Minecraft &
+    nemo --tabs "/media/federico/SSD450GB/minecraft/curseforge /media/federico/SSD450GB/minecraft/curseforge/curse_minecraft/Instances" "/media/federico/SSD450GB/minecraft/versions /home/federico/Nextcloud/Games/Minecraft" &
     exit
 }
 
@@ -376,8 +376,8 @@ allRepoPush(){
     scripts=$(find "$LXscripts/Github" -maxdepth 1 -type f -name  "*_update.sh" )
     
     for script in $scripts; do
-        echo -e "\n >>> Running -- $(basename "$script")" && bash "$script"
-        if [ $? -ne 0 ]; then echo -e "⚠️ [ERROR] $(basename "$script") failed!"; fi done
+        sysLogger i "\n >>> Running -- $(basename "$script")" && bash "$script"
+        if [ $? -ne 0 ]; then sysLogger e "$(basename "$script") failed!"; fi done
 }
 
 ##################################################
