@@ -72,11 +72,18 @@ sysLogger(){
     local logBody="${2:-}"
     local caller="${FUNCNAME[1]:-MAIN}"
     logType="${logType^^}"
-    declare -a options=('W' 'I' 'E')
+    declare -a options=('W' 'I' 'E' 'DEBUG')
     if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1 ; fi 
-    if [ "$logType" == "W" ]; then logType="WARNING"; elif [ "$logType" == "I" ]; then logType="INFO"; elif [ "$logType" == "E" ]; then logType="ERROR"; fi
+    if [ "$logType" == "W" ]; then logType="WARNING"; elif [ "$logType" == "I" ]; then logType="INFO"; elif [ "$logType" == "E" ]; then logType="ERROR"; elif [ "$logType" == "DEBUG" ]; then logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}" ;fi
     echo -e "[$logType] {$caller} $(get_formatted_date) -> $logBody"
 }
+
+debugLogger(){
+
+    if $DEBUG; then sysLogger DEBUG "$1"; fi
+
+}
+
 ################################################################################################
 
 
@@ -107,7 +114,7 @@ pathCLAMSCAN="$LXlogs/clamav_scan.txt"
 
 ufw_log_check="$LXlogs/ufw_log_check.txt"
 
-
+repoPushLog="$LXlogs/startup_repo_push.txt"
 
 logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
 
