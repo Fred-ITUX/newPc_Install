@@ -378,6 +378,7 @@ allRepoPush(){
     for script in $scripts; do
         sysLogger i "\n >>> Running -- $(basename "$script")" && bash "$script"
         if [ $? -ne 0 ]; then sysLogger e "$(basename "$script") failed!"; fi done
+    sysLogger i "Repo update done."
 }
 
 ##################################################
