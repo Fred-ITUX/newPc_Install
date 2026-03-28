@@ -239,6 +239,7 @@ vscan(){
         vlc "$logCheckerAlarm" > /dev/null 2>&1 & 
         gedit "$pathCLAMSCAN" > /dev/null 2>&1 &
     fi
+    rm "$clamLockFile"
     sudo systemctl disable clamav-daemon.service
 } 
 
