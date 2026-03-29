@@ -63,10 +63,12 @@ userCheck(){
     #### PC
     if [ "$host" == "$main" ]; then
         pc="$main"
+        pid_log_file="$LXscripts/Startup_Routine/pids.txt"
     
     #### Laptop
     elif [ "$host" != "$main" ]; then
         pc="$laptop"
+        pid_log_file="$LXscripts/Startup_Routine/pids_laptop.txt"
     fi
 }
 
@@ -89,8 +91,30 @@ sysLogger(){
     echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody"
 }
 
+PID_sysLogger(){
+    local logType="${1:-}"
+    local logBody="${2:-}"
+    local caller="${FUNCNAME[1]:-MAIN}"
+    logType="${logType^^}"
+    declare -a options=('W' 'I' 'E' 'DEBUG')
+    if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1; fi
+
+    case "$logType" in
+        W) logType="WARNING" ;;
+        I) logType="INFO" ;;
+        E) logType="ERROR" ;;
+        DEBUG) logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}" ;;
+    esac
+
+    echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody" >> "$pid_log_file" 
+}
+
 debugLogger(){
     if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1"; fi
+}
+
+PID_debugLogger(){
+    if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1"; fi  >> "$pid_log_file" 
 }
 
 ################################################################################################
