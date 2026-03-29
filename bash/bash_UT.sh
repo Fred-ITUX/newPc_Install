@@ -83,7 +83,7 @@ sysLogger(){
 
 debugLogger(){
 
-    if $DEBUG; then sysLogger DEBUG "$1"; fi
+    if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1"; fi
 
 }
 
