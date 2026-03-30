@@ -48,13 +48,11 @@ Type=oneshot
 RemainAfterExit=yes
 
 ExecStart=/bin/bash -c '
-    # HARD gate: only run if GUI env is valid
-    [ -n "$DISPLAY" ] && [ -n "$DBUS_SESSION_BUS_ADDRESS" ] || exit 0
-
+    [ -n \"\$DISPLAY\" ] && [ -n \"\$DBUS_SESSION_BUS_ADDRESS\" ] || exit 0
     exec /home/federico/Nextcloud/Linux/scripts/Startup_Routine/startup_routine.sh
 '
-KillMode=process
 
+KillMode=process
 Restart=no
 
 [Install]
