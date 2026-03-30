@@ -114,7 +114,11 @@ debugLogger(){
 }
 
 PID_debugLogger(){
-    if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1"; fi  >> "$pid_log_file" 
+    if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1"  >> "$pid_log_file"; fi  
+}
+
+EX_PID_debugLogger(){
+    if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1" >> "/tmp/exclusive_beforePID.log"; fi   
 }
 
 ################################################################################################
