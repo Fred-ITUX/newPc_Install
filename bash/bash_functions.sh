@@ -377,7 +377,7 @@ allRepoPush(){
     scripts=$(find "$LXscripts/Github" -maxdepth 1 -type f -name  "*_update.sh" )
     
     for script in $scripts; do
-        sysLogger i "\n >>> Running -- $(basename "$script")" && bash "$script"
+        sysLogger i "Running -- $(basename "$script")" && bash "$script"
         if [ $? -ne 0 ]; then sysLogger e "$(basename "$script") failed!"; fi done
     sysLogger i "Repo update done."
 }
