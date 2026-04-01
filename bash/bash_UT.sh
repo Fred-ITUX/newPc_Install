@@ -6,26 +6,14 @@ osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/l
 
 sessionType="$XDG_SESSION_TYPE"
 
-get_formatted_date(){
-    date +%a\ %b\ %d\ %Y\ %H:%M:%S  #### python %a %b %d %Y %H:%M:%S
-}
+get_formatted_date(){ date +%a\ %b\ %d\ %Y\ %H:%M:%S ; } #### python %a %b %d %Y %H:%M:%S
+
+get_date_comparison(){ date +%a\ %b\ %d ; }
+
+get_file_date(){ date +%Y\-%m-\%d\_%H-\%M-\%S ; }    #### python %Y-%m-%d_%H-%M-%S
 
 
-#### Date to grep logs
-get_date_comparison(){
-    date +%a\ %b\ %d 
-}
-
-
-#### Formatted date for file names
-get_file_date(){
-    date +%Y\-%m-\%d\_%H-\%M-\%S    #### python %Y-%m-%d_%H-%M-%S
-}
-
-
-get_logger_date(){
-    date +%Y\-%m-\%d\ %H:\%M:\%S
-}
+get_logger_date(){ date +%Y\-%m-\%d\ %H:\%M:\%S ; }
 
 get_sys_Info(){
 echo -e "
@@ -44,15 +32,8 @@ get_sysInfo_END(){
 
 
 check_day_type(){
-
     dayToCheck=$(date +"%A") #### "%a" --- 3 letter day
-
-    if [ "$dayToCheck" != "Saturday" ] && [ "$dayToCheck" != "Sunday" ]; then
-        typeDay="weekday"
-    else
-        typeDay="weekend"
-    fi
-}
+    if [ "$dayToCheck" != "Saturday" ] && [ "$dayToCheck" != "Sunday" ]; then typeDay="weekday" ; else typeDay="weekend" ; fi }
 
 
 userCheck(){
@@ -63,13 +44,19 @@ userCheck(){
     #### PC
     if [ "$host" == "$main" ]; then
         pc="$main"
-        pid_log_file="$LXscripts/Startup_Routine/pids.txt"
+        pid_log_file="$LXlogs/pids_main.log"
     
     #### Laptop
     elif [ "$host" != "$main" ]; then
         pc="$laptop"
-        pid_log_file="$LXscripts/Startup_Routine/pids_laptop.txt"
+        pid_log_file="$LXlogs/pids_laptop.txt"
     fi
+}
+
+raiseAlarm(){
+    logCheck="${1:-}"
+    if [ -f "$logCheck" ]; then gedit "$logCheck" > /dev/null 2>&1 & fi
+    vlc "$logCheckerAlarm" > /dev/null 2>&1 &
 }
 
 
@@ -139,19 +126,19 @@ PYscripts="$HOME/Nextcloud/Python/scripts"
 
 LXlogs="$HOME/Nextcloud/Linux/log"
 
-pathStartupUpdaterClean="$HOME/Nextcloud/Linux/log/startup_updater.txt"
+pathStartupUpdaterClean="$HOME/Nextcloud/Linux/log/startup_updater.log"
 
-pathStartupUpdaterFull="$HOME/Nextcloud/Linux/log/adv_everyday/upd_"$(get_file_date)".txt"
+pathStartupUpdaterFull="$HOME/Nextcloud/Linux/log/adv_everyday/upd_"$(get_file_date)".log"
 
-pathManualUpd="$LXlogs/manual_updater.txt" 
+pathManualUpd="$LXlogs/manual_updater.log" 
 
-pathROOTKIT="$LXlogs/rk_scan.txt"
+pathROOTKIT="$LXlogs/rk_scan.log"
 
-pathCLAMSCAN="$LXlogs/clamav_scan.txt"
+pathCLAMSCAN="$LXlogs/clamav_scan.log"
 
-ufw_log_check="$LXlogs/ufw_log_check.txt"
+ufw_log_check="$LXlogs/ufw_log_check.log"
 
-repoPushLog="$LXlogs/startup_repo_push.txt"
+repoPushLog="$LXlogs/startup_repo_push.log"
 
 logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
 
@@ -165,7 +152,6 @@ logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
 ####                            Bluetooth devices
 
 getActiveDevice(){
-
     for device in "$@"; do
 
         deviceInfo=$(bluetoothctl info "$device")
@@ -173,16 +159,8 @@ getActiveDevice(){
         isAvailable=$(echo -e "$deviceInfo" | grep -i "not available")
         isConnected=$(echo -e "$deviceInfo" | grep -i "Connected: yes")
 
-
-        if [ ! -z "$isAvailable" ]; then
-            device="" #### device unavailable
-            break
-        fi
-
-        if [ -n "$isConnected" ]; then
-           activeDevice="$device"
-        fi
-        
+        if [ ! -z "$isAvailable" ]; then device=""  ; break ;
+        else activeDevice="$device"; fi      
     done
 }
 
