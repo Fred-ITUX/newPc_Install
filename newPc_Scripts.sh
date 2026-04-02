@@ -17,8 +17,7 @@ sudo find $HOME/Nextcloud/ -type f -name "*.sh" -exec chmod +x {} +
 ######################################################################################
 #### Setup startup routine start at boot
 
-#### .desktop double execution bug -- first exec no enviroment / borked env, 2nd exec corrtecly
-mkdir -p ~/.config/autostart
+mkdir -p ~/.config/autostart #### .desktop double execution bug -- first exec no enviroment / borked env, 2nd exec corrtecly
 
 fileEntry="[Desktop Entry]
 Type=Application
@@ -30,42 +29,6 @@ Name=Startup Routine
 Comment=Run my startup script"
 
 echo "$fileEntry" > ~/.config/autostart/startup_routine.desktop
-
-
-
-#### Systemd unit deploy
-
-# # ExecStart=/bin/bash /home/federico/Nextcloud/Linux/scripts/Startup_Routine/startup_routine.sh
-# mkdir -p ~/.config/systemd/user
-
-# echo "[Unit]
-# Description=Startup Routine
-# After=graphical-session.target dbus.service
-# Wants=graphical-session.target
-
-# [Service]
-# Type=oneshot
-# RemainAfterExit=yes
-
-# ExecStart=/bin/bash -c '
-#     [ -n \"\$DISPLAY\" ] && [ -n \"\$DBUS_SESSION_BUS_ADDRESS\" ] || exit 0
-#     exec /home/federico/Nextcloud/Linux/scripts/Startup_Routine/startup_routine.sh
-# '
-
-# KillMode=process
-# Restart=no
-
-# [Install]
-# WantedBy=graphical-session.target
-# " > ~/.config/systemd/user/startup_routine.service
-
-# systemctl --user daemon-reload
-# systemctl --user enable startup_routine.service
-# systemctl --user disable startup_routine.service
-
-# systemctl --user status startup_routine.service
-# journalctl --user -u startup_routine.service -b
-# systemctl --user start startup_routine.service
 ######################################################################################
 
 

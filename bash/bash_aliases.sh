@@ -1,6 +1,5 @@
 #!/bin/bash
-
-if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi               
+if [ -f "$HOME/.bash_UT"        ]; then . "$HOME/.bash_UT"       ; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_UT"       ; exit 1; fi       
 
 #### Quality of life
 alias c='clear'
