@@ -225,10 +225,6 @@ $HOME/Nextcloud/Linux/scripts/New_Pc/gnome_shortcut_dump/load-shortcuts.sh &
 
 
 ######################################################################################
-#### Git login
-git config --global user.email "thealldedfred@gmail.com"                                      
-git config --global user.name "Fred-ITUX"
-
 #### Github login
 gh auth login --hostname github.com --git-protocol https --web
 ######################################################################################
