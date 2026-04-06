@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -d $HOME/Nextcloud ]; then
+if [ -d "$HOME/Nextcloud" ]; then
     echo -e "Nextcloud path found $HOME/Nextcloud\n"
     read -r -p "Press enter to continue" 
 else    
@@ -10,13 +10,12 @@ fi
 
 
 #### executable scripts --- except bashrc && bash_aliases
-sudo find $HOME/Nextcloud/ -type f -name "*.sh" -exec chmod +x {} +
+sudo find "$HOME/Nextcloud/" -type f -name "*.sh" -exec chmod +x {} +
 
 
 
 ######################################################################################
 #### Setup startup routine start at boot
-
 mkdir -p ~/.config/autostart #### .desktop double execution bug -- first exec no enviroment / borked env, 2nd exec corrtecly
 
 fileEntry="[Desktop Entry]
@@ -140,8 +139,6 @@ sudo rm /usr/share/wayland-sessions/ubuntu*.desktop
 mkdir -p ~/.config/environment.d
 echo "MUTTER_DEBUG_TRIPLE_BUFFER=1
 CLUTTER_PAINT=disable-clipped-redraws:disable-culling" | sudo tee  ~/.config/environment.d/gnome-performance.conf
-
-
 ######################################################################################
 
 
@@ -163,8 +160,6 @@ cp $HOME/Nextcloud/Linux/scripts/Other/NEMO_mediainfo.sh $HOME/.local/share/nemo
 
 
 ######################################################################################
-#### Flatpacks override settings -- flatpak override --user --reset
-
 #### GPU acceleration
 flatpak override --user --device=dri com.google.Chrome
 flatpak override --user --device=dri com.brave.Browser
@@ -188,7 +183,6 @@ flatpak override --user --filesystem=/home/federico/.fonts
 
 ######################################################################################
 #### Deamons disable
-
 #### Wait for network
 sudo systemctl disable NetworkManager-wait-online.service
 #### Local network discovery
@@ -200,8 +194,6 @@ sudo systemctl disable clamav-daemon.service
 #### Disable CUPS (printer deamon)
 sudo systemctl disable cups.service cups.socket
 sudo systemctl stop cups.service cups.socket
-
-
 ######################################################################################
 
 
@@ -211,21 +203,11 @@ sudo cp /root/$logFile $HOME/Nextcloud/Linux/log/newPc_history/
 sudo chown $USER $HOME/Nextcloud/Linux/log/newPc_history/*
 
 
-
-######################################################################################
-#### Launch scripts
-$HOME/Nextcloud/Linux/scripts/New_Pc/theme_updater.sh &
-$HOME/Nextcloud/Kden/scripts/editing_setup.sh &
-$HOME/Nextcloud/Linux/scripts/Github/cloning.sh &
-$HOME/Nextcloud/Linux/scripts/New_Pc/gnome_shortcut_dump/load-shortcuts.sh &
-######################################################################################
+"$HOME/Nextcloud/Linux/scripts/New_Pc/theme_updater.sh" &
+"$HOME/Nextcloud/Kden/scripts/editing_setup.sh" &
+"$HOME/Nextcloud/Linux/scripts/Github/cloning.sh" &
+"$HOME/Nextcloud/Linux/scripts/New_Pc/gnome_shortcut_dump/load-shortcuts.sh" &
+"$HOME/Nextcloud/Linux/scripts/New_Pc/gnome_extensions_settings_dump/02_ext_set_restore.sh" &
 
 
-
-
-
-######################################################################################
-#### Github login
-gh auth login --hostname github.com --git-protocol https --web
-######################################################################################
-
+gh auth login --hostname github.com --git-protocol https --web #### Github login
