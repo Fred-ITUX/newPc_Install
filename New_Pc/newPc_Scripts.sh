@@ -47,8 +47,9 @@ DefaultTasksMax=infinity
 EOF
 
 
-
-
+#### Configure user permissions for GPU
+sudo usermod -aG video $USER
+sudo usermod -aG render $USER
 
 
 ######################################################################################
