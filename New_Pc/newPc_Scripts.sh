@@ -135,10 +135,10 @@ sudo rm /usr/share/xsessions/ubuntu*.desktop
 sudo rm /usr/share/wayland-sessions/ubuntu*.desktop
 
 
-#### Enable gnome triple buffer rendering
-mkdir -p ~/.config/environment.d
-echo "MUTTER_DEBUG_TRIPLE_BUFFER=1
-CLUTTER_PAINT=disable-clipped-redraws:disable-culling" | sudo tee  ~/.config/environment.d/gnome-performance.conf
+#### Enable gnome triple buffer rendering !!!! EXPERIMENTAL !!!!
+# mkdir -p ~/.config/environment.d
+# echo "MUTTER_DEBUG_TRIPLE_BUFFER=1
+# CLUTTER_PAINT=disable-clipped-redraws:disable-culling" | sudo tee  ~/.config/environment.d/gnome-performance.conf
 ######################################################################################
 
 
