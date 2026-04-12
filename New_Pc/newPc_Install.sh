@@ -89,7 +89,7 @@ echo -e "\n\n\n\n\n
         START INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-sudo apt install -y gnome ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
+sudo apt-get install -y gnome ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
 echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
@@ -101,7 +101,7 @@ echo -e "\n\n\n\n\n
 
 
 echo -e "LateX (texlive-full) install.\n Spam ENTER if it freezes.\n"
-sudo apt install texlive-full -y 
+sudo apt-get install texlive-full -y 
 
 echo -e "\n\n\n\n\n
 +------------------------------------+ 
@@ -110,11 +110,11 @@ echo -e "\n\n\n\n\n
 
 +------------------------------------+\n\n\n\n\n"
 echo -e "\n\n\n\n  Clamav:"
-sudo apt install clamav clamav-daemon clamav-freshclam -y
+sudo apt-get install clamav clamav-daemon clamav-freshclam -y
 clamconf
 sudo freshclam
 echo -e "\n\n\n\n  Rk hunter:"
-sudo apt install rkhunter -y
+sudo apt-get install rkhunter -y
 echo -e "\n\n\n\n\n
 +------------------------------------+ 
 
@@ -190,7 +190,7 @@ pythonPackages=(
 # python3-full
 
 printf '%s\n\n' "${pythonPackages[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt-get install -y "{}"' \
 >> "$pathFile" 2>&1
 
 
@@ -259,7 +259,7 @@ appPackages=(
 
 
 printf '%s\n\n' "${appPackages[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt install -y "{}"' \
+  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt-get install -y "{}"' \
 >> "$pathFile" 2>&1
 
 
@@ -282,22 +282,22 @@ echo -e "\n\n\n\n\n
 +---------------------------------------------+\n\n\n\n\n"
 
 echo -e "\n\n\n • Development / Build Tools"
-sudo apt install -y build-essential cmake git pkg-config wget curl libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev libxcb-xfixes0-dev libdrm-dev libopengl-dev libfontconfig1-dev libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 || true
+sudo apt-get install -y build-essential cmake git pkg-config wget curl libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev libxcb-xfixes0-dev libdrm-dev libopengl-dev libfontconfig1-dev libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 || true
 
 echo -e "\n\n\n • Video / Kdenlive / MLT / FFmpeg"
-sudo apt install -y ffmpeg ffmpegthumbs melt libmlt7 libmlt++7 libmlt-data libmlt-dev libmlt++-dev frei0r-plugins libvpx-dev libx264-dev libx265-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavfilter-dev libavdevice-dev libpostproc-dev libbluray-dev libchromaprint-dev libmp3lame0 libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 liba52-0.7.4 libfaac-dev libfaad2 libdvdread8 libdvdread-dev libdvdnav4 libdvdnav-dev libv4l-0 v4l-utils mediainfo kdenlive-data mkvtoolnix mpv || true
+sudo apt-get install -y ffmpeg ffmpegthumbs melt libmlt7 libmlt++7 libmlt-data libmlt-dev libmlt++-dev frei0r-plugins libvpx-dev libx264-dev libx265-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavfilter-dev libavdevice-dev libpostproc-dev libbluray-dev libchromaprint-dev libmp3lame0 libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 liba52-0.7.4 libfaac-dev libfaad2 libdvdread8 libdvdread-dev libdvdnav4 libdvdnav-dev libv4l-0 v4l-utils mediainfo kdenlive-data mkvtoolnix mpv || true
 
 echo -e "\n\n\n • Audio / Sound / Plugins"
-sudo apt install -y ladspa-sdk sox libpulse-dev libjack-jackd2-dev libsoxr-dev || true
+sudo apt-get install -y ladspa-sdk sox libpulse-dev libjack-jackd2-dev libsoxr-dev || true
 
 echo -e "\n\n\n • Graphics / Photo / Imaging"
-sudo apt install -y libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libjpeg-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 gmic || true
+sudo apt-get install -y libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libjpeg-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 gmic || true
 
 echo -e "\n\n\n • Hardware Acceleration / GPU / Video Output"
-sudo apt install -y libva-dev vainfo mesa-va-drivers libvdpau-dev libva-glx2 libva2 libva2:i386 mesa-utils mesa-vulkan-drivers libvulkan1 libvulkan1:i386 || true
+sudo apt-get install -y libva-dev vainfo mesa-va-drivers libvdpau-dev libva-glx2 libva2 libva2:i386 mesa-utils mesa-vulkan-drivers libvulkan1 libvulkan1:i386 || true
 
 echo -e "\n\n\n • 32-bit / Gaming / Extra Libraries"
-sudo apt install -y lib32gcc-s1 lib32stdc++6 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 gamemode zram-tools cpufrequtils radeontop || true
+sudo apt-get install -y lib32gcc-s1 lib32stdc++6 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 gamemode zram-tools cpufrequtils radeontop || true
 
 echo -e "\n\n\n\n\n
 +---------------------------------------------+ 
@@ -413,7 +413,7 @@ printf '%s\n\n' "${flatpakAppPackages[@]}" \
   | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && flatpak install flathub -y "{}"' \
 >> "$pathFile" 2>&1
 
-sudo apt install steam-devices -y #### required steam addon
+sudo apt-get install steam-devices -y #### required steam addon
 
 
 echo -e "\n\n\n\n\n
@@ -508,7 +508,7 @@ printf '%s\n' "${appToPurge[@]}" \
   | xargs -I{} bash -c 'echo -e "\n\n\n\t• Uninstalling {}..." && sudo apt purge -y "{}"' \
 >> "$pathFile" 2>&1
 
-sudo apt install nemo -y #### It gets removed from the cinnamon purge
+sudo apt-get install nemo -y #### It gets removed from the cinnamon purge
 
 echo -e "\n\n\n\n\n
             +------------------------------------------+ 
