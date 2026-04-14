@@ -341,10 +341,10 @@ latexUPD(){
 
 ##################################################
 
-minecraft(){
-    gamemoderun java -jar "/media/federico/SSD450GB/minecraft/launcher/TLauncher.jar"
-
-    nemo --tabs "/media/federico/SSD450GB/minecraft/curseforge /media/federico/SSD450GB/minecraft/curseforge/curse_minecraft/Instances" "/media/federico/SSD450GB/minecraft/versions /home/federico/Nextcloud/Games/Minecraft" &
+minecraft(){                
+    mcFolder="/media/federico/SSD1TB/minecraft"
+    gamemoderun java -jar "$mcFolder/launcher/TLauncher.jar" #### "/media/federico/SSD450GB/minecraft/launcher/TLauncher.jar"
+    nemo --tabs "$mcFolder/curseforge" "$mcFolder/curseforge/curse_minecraft/Instances" "$mcFolder/versions" "$HOME/Nextcloud/Games/Minecraft" &
     exit
 }
 
