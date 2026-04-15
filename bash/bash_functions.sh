@@ -384,3 +384,12 @@ allRepoPush(){
 
 ##################################################
 
+getFileInfo(){
+    for file in "$@"; do
+
+        mediainfo --Output=$'General;File Name: %FileName%\\r\\nBit Rate: %BitRate/String%\\r\\nDuration: %Duration/String3%\\r\\nFPS: %FrameRate%\\r\\nSize: %FileSize/String%\nVideo;\\r\\nDimensions: %Width%x%Height%\\r\\n' "$file"
+
+    done | zenity --text-info --width=500 --height=300 --title="Video Info"
+}
+
+##################################################
