@@ -342,7 +342,7 @@ latexUPD(){
 ##################################################
 
 minecraft(){                
-    mcFolder="/media/federico/SSD1TB/minecraft"
+    mcFolder="/media/federico/SSD450GB/minecraft"
     gamemoderun java -jar "$mcFolder/launcher/TLauncher.jar" #### "/media/federico/SSD450GB/minecraft/launcher/TLauncher.jar"
     nemo --tabs "$mcFolder/curseforge" "$mcFolder/curseforge/curse_minecraft/Instances" "$mcFolder/versions" "$HOME/Nextcloud/Games/Minecraft" &
     exit
