@@ -10,13 +10,13 @@ pathFile="$HOME/newPC_$start_time.txt"
 ###########################################################################################
 ####                            Swap allocation and setup
 
-SWAP=6 #### GB -- 2GB default 
+SWAP=16 #### GB +2GB default 
 
 #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
 SWAPPINESS=10
 
 #### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
-CACHE_PRESSURE=20
+CACHE_PRESSURE=10
 
 
 
