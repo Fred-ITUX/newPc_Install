@@ -72,6 +72,21 @@ sudo ufw reload
 
 
 
+######################################################################################
+#### X11 screen tear fix
+cnfgContent='Section "Device"
+    Identifier  "AMD Graphics"
+    Driver      "amdgpu"
+    Option      "TearFree" "true"
+EndSection'
+cnfgFile="/etc/X11/xorg.conf.d/20-amd.conf"
+echo "$cnfgContent" | sudo tee "$cnfgFile"
+######################################################################################
+
+
+
+
+
 
 ######################################################################################
 #### GRUB USB not working after waking up (sleep / hybernation / suspend)
