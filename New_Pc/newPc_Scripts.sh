@@ -167,7 +167,7 @@ sudo mkdir -p /var/lib/samba/usershares
 sudo chown root:sambashare /var/lib/samba/usershares
 sudo chmod 1770 /var/lib/samba/usershares
 
-cp $HOME/Nextcloud/Linux/scripts/Other/NEMO_mediainfo.sh $HOME/.local/share/nemo/scripts
+cp "$HOME/Nextcloud/Linux/scripts/Other/NEMO_mediainfo.sh" "$HOME/.local/share/nemo/scripts"
 ######################################################################################
 
 
@@ -208,8 +208,11 @@ sudo systemctl disable avahi-daemon.service
 sudo systemctl disable clamav-daemon.service
 
 #### Disable CUPS (printer deamon)
-sudo systemctl disable cups.service cups.socket
-sudo systemctl stop cups.service cups.socket
+sudo systemctl disable cups.service
+sudo systemctl disable cups.socket
+sudo systemctl stop cups.service 
+sudo systemctl stop cups.socket
+sudo apt purge cups -y
 ######################################################################################
 
 
