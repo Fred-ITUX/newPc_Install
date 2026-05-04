@@ -39,12 +39,13 @@ echo "N" | sudo tee /sys/module/zswap/parameters/enabled
 echo -e "* soft nofile 1048576\n* hard nofile 1048576" | sudo tee /etc/security/limits.d/99-nofile.conf
 
 #### Reduce GNOME stalls
-mkdir -p ~/.config/systemd/user.conf.d
-cat << 'EOF' > ~/.config/systemd/user.conf.d/limits.conf
-[Manager]
+limitConfPath="$HOME/.config/systemd/user.conf.d"
+limitConf="[Manager]
 DefaultLimitNOFILE=1048576
-DefaultTasksMax=infinity
-EOF
+DefaultTasksMax=infinity"
+mkdir -p "$limitConfPath"
+echo -e "$limitConf" > "$limitConfPath/limits.conf"
+
 
 
 #### Configure user permissions for GPU
