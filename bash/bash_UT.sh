@@ -49,7 +49,7 @@ userCheck(){
     #### Laptop
     elif [ "$host" != "$main" ]; then
         pc="$laptop"
-        pid_log_file="$LXlogs/pids_laptop.txt"
+        pid_log_file="$LXlogs/pids_laptop.log"
     fi
 }
 
