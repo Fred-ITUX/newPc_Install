@@ -10,11 +10,11 @@ esac
 #### History settings
 HISTCONTROL=ignoreboth
 HISTSIZE=1000
-HISTFILESIZE=1000
+HISTFILESIZE=1000  
 
-if [ -f ~/.bash_aliases ]; then . ~/.bash_aliases; fi    
-if [ -f ~/.bash_functions ]; then . ~/.bash_functions; fi 
-if [ -f ~/.bash_UT ]; then . ~/.bash_UT; fi               
+if [ -f "$HOME/.bash_aliases"   ]; then . "$HOME/.bash_aliases"  ; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_aliases"  ; fi
+if [ -f "$HOME/.bash_functions" ]; then . "$HOME/.bash_functions"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; fi
+if [ -f "$HOME/.bash_UT"        ]; then . "$HOME/.bash_UT"       ; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_UT"       ; fi
 
 #### Enable bash completion if available
 if [ -f /usr/share/bash-completion/bash_completion ]; then
