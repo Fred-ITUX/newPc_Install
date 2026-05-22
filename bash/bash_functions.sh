@@ -1,11 +1,11 @@
 #!/bin/bash
-if [ -f "$HOME/.bash_UT"        ]; then . "$HOME/.bash_UT"       ; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_UT"       ; exit 1; fi
+if [ -f "$HOME/.bash_UT"        ]; then . "$HOME/.bash_UT"       ; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_UT"       ; fi
 userCheck
 ##################################################
 
 bashUpd(){
-
-    LXscripts="$HOME/Nextcloud/Linux/scripts"
+    if [ -z "$LXscripts" ]; then LXscripts="$HOME/Nextcloud/Linux/scripts"; fi
+    
     cp "$LXscripts"/bash/bash_RC.sh "$HOME"/.bashrc 
     source "$HOME"/.bashrc
     
