@@ -255,6 +255,7 @@ appPackages=(
         vlc
         gedit 
         piper                                   #### logitech mouse software
+        gparted                                 #### disk utility
 )
 
 
