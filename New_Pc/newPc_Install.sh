@@ -27,12 +27,10 @@ elif [ $SWAPPINESS -gt 30 ] && [ $SWAPPINESS -le 100 ] ; then
     SwapFavor="SWAP"
 
 elif [ $SWAPPINESS -gt 100 ] || [ $SWAPPINESS -lt 0 ]; then
-    echo -e "Swappiness error: not in range 0 - 100. Current: $SWAPPINESS)"
-    exit 1
+    echo -e "Swappiness error: not in range 0 - 100. Current: $SWAPPINESS)"; exit 1
 
 else
-    echo -e "Unexpected swappiness error: $SWAPPINESS \nExiting"
-    exit 1
+    echo -e "Unexpected swappiness error: $SWAPPINESS \nExiting"; exit 1
 fi
 
 
@@ -43,23 +41,22 @@ elif [ $CACHE_PRESSURE -gt 30 ] && [ $CACHE_PRESSURE -le 200 ] ; then
     cacheFavor="Less RAM for cache"
 
 elif [ $CACHE_PRESSURE -gt 200 ] || [ $CACHE_PRESSURE -lt 0 ]; then
-    echo -e "CACHE_PRESSURE error: not in range 0 - 200. Current: $CACHE_PRESSURE)"
-    exit 1
+    echo -e "CACHE_PRESSURE error: not in range 0 - 200. Current: $CACHE_PRESSURE)"; exit 1
 
 else
-    echo -e "Unexpected CACHE_PRESSURE error: $CACHE_PRESSURE \nExiting"
-    exit 1
+    echo -e "Unexpected CACHE_PRESSURE error: $CACHE_PRESSURE \nExiting" ; exit 1
 fi
+
 ###########################################################################################
 
 
 safetyUpdateCheck(){
-sudo dpkg --configure -a 
-sudo apt --fix-broken install -y  
-sudo apt update
-sudo apt full-upgrade -y 
-sudo apt autoremove -y 
-sudo apt clean
+        sudo dpkg --configure -a 
+        sudo apt --fix-broken install -y  
+        sudo apt update
+        sudo apt full-upgrade -y 
+        sudo apt autoremove -y 
+        sudo apt clean
 }
 
 ###########################################################################################
@@ -89,7 +86,7 @@ echo -e "\n\n\n\n\n
         START INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-sudo apt-get install -y gnome ubuntu-restricted-extras -y #### ubuntu extras for DRM streaming
+sudo apt-get install -y gnome ubuntu-restricted-extras #### ubuntu extras for DRM streaming
 echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
@@ -167,48 +164,6 @@ echo -e "\n\n\n
 
 
 echo -e "\n\n\n\n\n
-+----------------------------------+ 
-
-        START INSTALL PYTON3
-
-+----------------------------------+\n\n\n\n\n"
-
-pythonPackages=(
-    python3-pip
-    python3-ipykernel
-    python3-pandas
-    python3-xlsxwriter
-    python3-seaborn
-    python3-mutagen
-    python3-fuzzywuzzy
-    python3-pil
-    python3-srt
-    python3-pygments
-    pipx
-)
-
-# python3-full
-
-printf '%s\n\n' "${pythonPackages[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt-get install -y "{}"' \
->> "$pathFile" 2>&1
-
-
-pipx ensurepath #### pipx path fix
-pip3 install vosk --break-system-packages #### speech to text -- system-wide install
-pipx install yt-dlp #### pipx install "yt-dlp[default]"
-
-echo -e "\n\n\n\n\n
-+----------------------------------+ 
-
-        END   INSTALL PYTON3
-
-+----------------------------------+\n\n\n\n\n"
-
-
-
-
-echo -e "\n\n\n\n\n
         +------------------------------------------+ 
 
                 REPOSITORY && APT APPS BEGIN
@@ -225,6 +180,8 @@ echo -e "\n\n\n\n\n
 +---------------------------------------+\n\n\n\n\n"
 
 appPackages=(
+        pipx                                    #### python pipx
+        python3-psutil                          #### required for scripts
         flatpak
         wget 
         curl 

@@ -12,13 +12,13 @@ alias zip2="7z a -mmt=3"                #### Compress with limited cores
 
 
 
-alias pswd="python3 $PYscripts/passwd_gen.py"
+alias pswd="py $PYscripts/passwd_gen.py"
 
-alias percentage="python3 $PYscripts/perc_calc.py"
+alias percentage="py $PYscripts/perc_calc.py"
 
-alias math="python3 $PYscripts/Games/math_calc.py"
+alias math="py $PYscripts/Games/math_calc.py"
 
-alias test-py="python3 $HOME/Nextcloud/Linux/scripts/Other/test.py"
+alias test-py="py $HOME/Nextcloud/Linux/scripts/Other/test.py"
 alias test-sh="$HOME/Nextcloud/Linux/scripts/Other/test.sh"
 
 
@@ -30,12 +30,12 @@ alias kdenBKP="$HOME/Nextcloud/Kden/scripts/kden_temp_bkp.sh"
 alias kdenUpd="$HOME/Nextcloud/Kden/scripts/kden_bkp_version_update.sh"
 
 #### editing utilities
-alias sub="python3 $PYscripts/subtitle.py"
+alias sub="py $PYscripts/subtitle.py"
 alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
 alias editing="$LXscripts/Startup_Routine/Sessions.sh editing && kden"
 
 #### Converters
-alias convImg="python3 $PYscripts/FileModder/image_converter.py"
-alias convWav="python3 $PYscripts/FileModder/wav_converter.py"
-alias convMkv="python3 $PYscripts/FileModder/mkv_converter.py"
-alias convMetric="python3 $PYscripts/measure_unit_converter.py"
+alias convImg="py $PYscripts/FileModder/image_converter.py"
+alias convWav="py $PYscripts/FileModder/wav_converter.py"
+alias convMkv="py $PYscripts/FileModder/mkv_converter.py"
+alias convMetric="py $PYscripts/measure_unit_converter.py"

@@ -102,7 +102,7 @@ sysUPD(){
 
 updater(){
     sysUPD >> "$pathManualUpd" 
-    python3 "$LXscripts/Startup_Routine/log_cleaner.py"
+    py "$LXscripts/Startup_Routine/log_cleaner.py"
     gedit "$pathManualUpd" &
 }    
 
@@ -352,7 +352,7 @@ minecraft(){
 
 pizza(){
     echo -e "$(date +"%Y-%m-%d")" >> "$PYscripts/PizzaPlot/pizza_data.csv"
-    python3 "$PYscripts/PizzaPlot/pizza.py"
+    py "$PYscripts/PizzaPlot/pizza.py"
     echo -e "🍕 Pizza 🍕"
     flatpak run org.nomacs.ImageLounge "$PYscripts/PizzaPlot/PizzaPlot.png" &
 }

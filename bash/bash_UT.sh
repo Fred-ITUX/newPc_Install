@@ -30,6 +30,40 @@ get_sysInfo_END(){
 }
 
 
+##################################################
+
+createVenv(){
+
+    if [ -d "$HOME/.venv"  ]; then sysLogger e "venv already present, not creating"
+
+    else
+
+        sysLogger i "Creating venv $HOME/.venv \n"
+
+        python3 -m venv "$HOME/.venv"
+
+        source "$HOME/.venv/bin/activate"
+
+        if [ -s "$HOME/Nextcloud/Python/requirements.txt" ]; then
+            pip install -r "$HOME/Nextcloud/Python/requirements.txt"
+        
+        else sysLogger e "No requirements.txt found, skipping package install" ; fi
+
+        echo -e "\n"; pip list; deactivate; fi
+}
+
+py(){
+    pyScript="${1:-}"
+
+    if [ ! -d "$HOME/.venv"  ]; then sysLogger w "venv not found, creating"; createVenv; fi
+
+    if [ -z "$pyScript" ] || [ ! -s "$pyScript" ] ; then sysLogger e "No valid script selected"
+        else if [ -s "$pyScript" ]; then source "$HOME/.venv/bin/activate"; python "$1"; deactivate; fi
+    fi
+}
+
+##################################################
+
 
 check_day_type(){
     dayToCheck=$(date +"%A") #### "%a" --- 3 letter day
