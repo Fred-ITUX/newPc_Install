@@ -23,18 +23,21 @@ fi
 
 
 # Prompt components --- ANSI color codes
-debian_chroot_part='${debian_chroot:+($debian_chroot)}'     #### Show chroot if applicable
-user_color='\[\033[01;31m\]'                                #### Bold red
-host_color='\[\033[01;31m\]'                                #### Bold red
-path_color='\[\033[01;34m\]'                                #### Bold blue
-reset_color='\[\033[00m\]'                                  #### Reset to default color
-prompt_char='\$'                                            #### '$' for regular users, '#' for root
+debian_chroot_part='${debian_chroot:+($debian_chroot)}'         #### Show chroot if applicable
+user_color='\[\033[01;31m\]'                                    #### Bold red
+host_color='\[\033[01;31m\]'                                    #### Bold red
+path_color='\[\033[01;34m\]'                                    #### Bold blue
+reset_color='\[\033[00m\]'                                      #### Reset to default color
+prompt_char='\$'                                                #### '$' for regular users, '#' for root
+
 
 #### host@user
 #PS1="${debian_chroot_part}${user_color}\u@\h${reset_color}:${path_color}\w${reset_color}${prompt_char} "
 
 #### host@os (lower os name)
-PS1="${debian_chroot_part}${user_color}\u@${osname}${reset_color}:${path_color}\w${reset_color}${prompt_char} "
+# PS1="${debian_chroot_part}${user_color}\u@${osname}${reset_color}:${path_color}\w${reset_color}${prompt_char} "
+PS1="${path_color}\w${reset_color} ${prompt_char} "
+
 
 #### Enable color support for ls and other commands
 alias ls='ls --color=auto'
