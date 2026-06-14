@@ -140,6 +140,31 @@ gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 
 gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
 # gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 2500 #### 1000~10000
 
+
+
+
+#### Terminal customization
+
+#### Get default key value & set the cursor to underline
+PROFILE=$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
+gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-shape 'underline'
+
+gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" background-transparency-percent 30
+
+gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-blink-mode off
+
+gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-rows 90
+
+gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-columns 26
+
+
+#### Check for all available customization options
+#### gsettings list-keys "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/"
+
+
+
+
+
 #### Disable gnome tracker (home folder indexing)
 systemctl --user mask tracker-miner-fs-3.service
 systemctl --user mask tracker-extract-3.service

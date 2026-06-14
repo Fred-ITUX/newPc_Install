@@ -26,7 +26,9 @@ fi
 debian_chroot_part='${debian_chroot:+($debian_chroot)}'         #### Show chroot if applicable
 user_color='\[\033[01;31m\]'                                    #### Bold red
 host_color='\[\033[01;31m\]'                                    #### Bold red
-path_color='\[\033[01;34m\]'                                    #### Bold blue
+# path_color='\[\033[01;34m\]'                                    #### Bold blue
+path_color='\[\033[38;5;81m\]'                                  #### Cyan
+# path_color='\[\033[38;5;71m\]'                                  #### Green
 reset_color='\[\033[00m\]'                                      #### Reset to default color
 prompt_char='\$'                                                #### '$' for regular users, '#' for root
 
@@ -36,7 +38,8 @@ prompt_char='\$'                                                #### '$' for reg
 
 #### host@os (lower os name)
 # PS1="${debian_chroot_part}${user_color}\u@${osname}${reset_color}:${path_color}\w${reset_color}${prompt_char} "
-PS1="${path_color}\w${reset_color} ${prompt_char} "
+PS1="${path_color}\w${reset_color} \[\033[38;5;240m\]>\[\033[0m\] "
+# PS1='\[\033[38;5;208m\]\u\[\033[0m\]@\[\033[38;5;39m\]${osname}\[\033[0m\]:\[\033[38;5;118m\]\W\[\033[0m\]  '
 
 
 #### Enable color support for ls and other commands
