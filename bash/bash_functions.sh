@@ -321,7 +321,7 @@ addExec(){
 ##################################################
 
 latexUPD(){
-    latexFile="$1"
+    latexFile="$HOME/$1"
     cd $(dirname "$latexFile")       ####  LaTeX dumps the files to the current working directory
     latexPdf=$(echo -e "$latexFile" | awk '{$1=$1; gsub(/\.tex/, "") ; print}' )
     flatpak run org.kde.okular "$latexPdf.pdf" &
