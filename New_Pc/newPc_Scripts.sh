@@ -53,6 +53,13 @@ sudo usermod -aG video $USER
 sudo usermod -aG render $USER
 
 
+#### Add current user to docker to avoid running it with sudo
+sudo groupadd docker
+sudo usermod -aG docker $USER
+newgrp docker
+
+
+
 ######################################################################################
 #### UFW Firewall setup
 set -e
@@ -188,6 +195,10 @@ sudo rm /usr/share/wayland-sessions/ubuntu*.desktop
 ######################################################################################
 
 
+#### Add current user to docker to avoid running it with sudo
+sudo groupadd docker
+sudo usermod -aG docker $USER
+newgrp docker
 
 
 
