@@ -10,7 +10,7 @@ pathFile="$HOME/newPC_$start_time.txt"
 ###########################################################################################
 ####                            Swap allocation and setup
 
-SWAP=16 #### GB +2GB default 
+SWAP=8 #### GB +2GB default 
 
 #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
 SWAPPINESS=10
@@ -95,10 +95,6 @@ echo -e "\n\n\n\n\n
 +---------------------------------+\n\n\n\n\n"
 
 
-
-
-echo -e "LateX (texlive-full) install.\n Spam ENTER if it freezes.\n"
-sudo apt-get install texlive-full -y 
 
 echo -e "\n\n\n\n\n
 +------------------------------------+ 
@@ -186,7 +182,7 @@ appPackages=(
         wget 
         curl 
         git 
-        gh                                      #### github session login
+        gh                                      #### github https session login
         smartmontools                           #### temp check
         gufw                                    #### firewall
         htop                                    #### task manager
@@ -358,6 +354,7 @@ flatpakAppPackages=(
     org.audacityteam.Audacity                                   #### Audacity
     app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
     org.libreoffice.LibreOffice 
+    org.onlyoffice.desktopeditors/x86_64/stable                 
     org.gnome.TextEditor
     # app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
     # net.pcsx2.PCSX2                                             #### Ps2
