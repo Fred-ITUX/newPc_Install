@@ -320,6 +320,14 @@ addExec(){
 
 ##################################################
 
+latexSET(){
+    nemo --tabs "$HOME/Nextcloud/Docker" "$HOME/Nextcloud/Latex" &
+    
+    gnome-terminal --tab --working-directory="$HOME/Nextcloud/Latex"  &  
+
+    gnome-terminal --tab --working-directory="$HOME/Nextcloud/Docker/Containers/latex" & 
+}
+
 latexUPD(){
     latexFile="$HOME/$1"
     cd $(dirname "$latexFile")       ####  LaTeX dumps the files to the current working directory
