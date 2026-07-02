@@ -209,6 +209,7 @@ appPackages=(
         gedit 
         piper                                   #### logitech mouse software
         gparted                                 #### disk utility
+        openjdk-25-jre
 )
 
 
