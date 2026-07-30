@@ -227,8 +227,8 @@ flatpak override --user --device=dri org.audacityteam.Audacity
 flatpak override --user --device=dri com.obsproject.Studio
 
 #### Steam SSD whitelist (for external storing)
-flatpak override --user --filesystem=/media/federico/SSD450GB com.valvesoftware.Steam
-flatpak override --user --filesystem=/media/federico/SSD450GB com.usebottles.bottles
+flatpak override --user --filesystem=/media/federico/SSD1TB com.valvesoftware.Steam
+flatpak override --user --filesystem=/media/federico/SSD1TB com.usebottles.bottles
 
 #### Allow all flatpak to see and use fonts and themes
 flatpak override --user --filesystem=/home/federico/.themes 

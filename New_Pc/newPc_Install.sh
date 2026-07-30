@@ -10,7 +10,7 @@ pathFile="$HOME/newPC_$start_time.txt"
 ###########################################################################################
 ####                            Swap allocation and setup
 
-SWAP=8 #### GB +2GB default 
+SWAP=4 #### GB +2GB default 
 
 #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
 SWAPPINESS=10
@@ -86,34 +86,13 @@ echo -e "\n\n\n\n\n
         START INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-sudo apt-get install -y gnome ubuntu-restricted-extras #### ubuntu extras for DRM streaming
+sudo apt-get install -y
 echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
         END   INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-
-
-
-echo -e "\n\n\n\n\n
-+------------------------------------+ 
-
-        START INSTALL SCANNERS
-
-+------------------------------------+\n\n\n\n\n"
-echo -e "\n\n\n\n  Clamav:"
-sudo apt-get install clamav clamav-daemon clamav-freshclam -y
-clamconf
-sudo freshclam
-echo -e "\n\n\n\n  Rk hunter:"
-sudo apt-get install rkhunter -y
-echo -e "\n\n\n\n\n
-+------------------------------------+ 
-
-        END   INSTALL SCANNERS
-
-+------------------------------------+\n\n\n\n\n"
 
 
 
@@ -130,364 +109,371 @@ export DEBIAN_FRONTEND=noninteractive #### prompt avoid
 
 {
 
-echo -e "\n\n
-        +------------------------+ 
+    echo -e "\n\n
+            +------------------------+ 
 
-                CODE START
+                    CODE START
 
-        +------------------------+\n\n\n"
+            +------------------------+\n\n\n"
 
 
 
 
-echo -e "\n\n\n
-+-----------------------------------------------------------+ 
+    echo -e "\n\n\n
+    +-----------------------------------------------------------+ 
 
-        START UPDATE, FULL UPGRADE AND CHECK INSTALLS
+            START UPDATE, FULL UPGRADE AND CHECK INSTALLS
 
-+-----------------------------------------------------------+\n\n\n"
-safetyUpdateCheck
-echo -e "\n\n\n
-+---------------------------------------------------------+ 
+    +-----------------------------------------------------------+\n\n\n"
+    safetyUpdateCheck
+    echo -e "\n\n\n
+    +---------------------------------------------------------+ 
 
-        END UPDATE, FULL UPGRADE AND CHECK INSTALLS
+            END UPDATE, FULL UPGRADE AND CHECK INSTALLS
 
-+---------------------------------------------------------+\n\n\n"
+    +---------------------------------------------------------+\n\n\n"
 
 
-##################################################################
-##################################################################
+    ##################################################################
+    ##################################################################
 
 
-echo -e "\n\n\n\n\n
-        +------------------------------------------+ 
-
-                REPOSITORY && APT APPS BEGIN
-
-        +------------------------------------------+\n\n\n\n\n"
-
-
-appPackages=(
-        #### Devtools
-        python3-psutil                          #### required for scripts
-        wget 
-        curl 
-        cmake
-        ninja-build
-        git 
-        gh                                      #### github https session login
-
-        #### Utilities
-        flatpak
-        smartmontools                           #### temp check
-        gufw                                    #### firewall
-        htop                                    #### task manager
-        redshift                                #### brightness and night light -- X11
-        xdotool                                 #### X11 -- window / keyboard utilities
-        ddcutil                                 #### change monitors brightness
-        fzf                                     #### terminal interactive selection
-        vlc
-        gedit 
-        piper                                   #### logitech mouse software
-        gparted                                 #### disk utility
-        nemo                                    #### file explorer
-        moreutils                               #### ts command and other ut
-        jq                                      #### lightweight, flexible command-line JSON processor
-        rar
-        p7zip-full 
-        p7zip-rar
-        tree                                    #### ls tree
-        wine
-        bluez 
-        bluez-tools
-        font-manager
-
-        #### Audio
-        pulseaudio
-        pavucontrol 
-        pulseeffects
-        pulseaudio-module-bluetooth 
-
-        #### Editing
-        ffmpeg
-        mediainfo 
-        mkvtoolnix 
-        mpv 
-
-        #### Gaming
-        vainfo 
-        mesa-utils
-        gamemode
-        zram-tools 
-        cpufrequtils 
-        radeontop
-        openjdk-25-jre
-)
-
-
-printf '%s\n\n' "${appPackages[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt-get install -y "{}"' \
->> "$pathFile" 2>&1
-
-
-
-echo -e "\n\n\n\n\n
-        +----------------------------------------+ 
-
-                REPOSITORY && APT APPS END
-
-        +----------------------------------------+\n\n\n\n\n"
-
-
-##################################################################
-##################################################################
-
-
-
-echo -e "\n\n\n\n\n
-+-----------------------------------+ 
-
-        START SWAP ALLOCATION
-
-+-----------------------------------+\n\n\n"
-
-sudo swapon --show
-free -h
-df -h
-sudo fallocate -l "$SWAP"G /swapspace
-ls -lh /swapspace
-sudo chmod 700 /swapspace
-ls -lh /swapspace
-sudo mkswap /swapspace
-sudo swapon /swapspace
-sudo swapon --show
-free -h
-sudo cp /etc/fstab /etc/fstab.bak
-echo '/swapspace none swap sw 0 0' | sudo tee -a /etc/fstab
-cat /proc/sys/vm/swappiness
-
-
-sudo sysctl vm.swappiness="$SWAPPINESS"
-echo -e "vm.swappiness=$SWAPPINESS" | sudo tee -a /etc/sysctl.conf   
-echo "$SWAPPINESS" | sudo tee /proc/sys/vm/swappiness
-
-
-sudo sysctl vm.vfs_cache_pressure="$CACHE_PRESSURE"
-echo "$CACHE_PRESSURE" | sudo tee /proc/sys/vm/vfs_cache_pressure
-echo -e "vm.vfs_cache_pressure=$CACHE_PRESSURE" | sudo tee -a /etc/sysctl.conf
-
-
-swapCheck=$(sudo swapon --show)
-echo -e "Swap check: $swapCheck"
-
-echo -e "\n\n\n
-+---------------------------------+ 
-
-        END SWAP ALLOCATION
-
-+---------------------------------+\n\n\n\n\n"
-
-
-##################################################################
-##################################################################
-
-echo -e "\n\n\n\n\n
-        +--------------------------------+ 
-
-                FLATPAK APPS BEGIN
-
-        +--------------------------------+\n\n\n\n\n"
-
-flatpak install app/org.flathub.electron-sample-app/x86_64/stable -y 
-
-flatpakAppPackages=(
-    com.brave.Browser
-    app/com.google.Chrome/x86_64/stable
-    org.torproject.torbrowser-launcher
-    com.github.tchx84.Flatseal/x86_64/stable                    #### flatseal - flatpak permissions
-    app/com.mattjakeman.ExtensionManager/x86_64/stable          #### GNOME - Extension Manager
-    app/com.vscodium.codium/x86_64/stable                       #### VS Codium
-    com.nextcloud.desktopclient.nextcloud                       #### Nextcloud desktop client
-    app/com.usebottles.bottles/x86_64/stable                    #### Bottles - WINE client
-    app/org.kde.okular/x86_64/stable                            #### Pdf reader / highlight
-    com.valvesoftware.Steam 
-    com.valvesoftware.Steam.CompatibilityTool.Proton-GE
-    org.nomacs.ImageLounge                                      #### Photo viewer / light editor
-    org.gimp.GIMP/x86_64/stable                                 #### Gimp
-    app/com.discordapp.Discord/x86_64/stable
-    app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
-    page.codeberg.libre_menu_editor.LibreMenuEditor             #### app info and editor
-    com.obsproject.Studio                                       #### OBS
-    org.audacityteam.Audacity                                   #### Audacity
-    app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
-    org.libreoffice.LibreOffice 
-    org.onlyoffice.desktopeditors/x86_64/stable                 
-    org.gnome.TextEditor
-    # app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
-    # net.pcsx2.PCSX2                                             #### Ps2
-    # org.ppsspp.PPSSPP                                           #### PsP
-    # net.kuribo64.melonDS/x86_64/stable                          #### Ds
-    # app/io.mgba.mGBA/x86_64/stable                              #### Gba
-)
-
-
-printf '%s\n\n' "${flatpakAppPackages[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && flatpak install flathub -y "{}"' \
->> "$pathFile" 2>&1
-
-sudo apt-get install steam-devices -y #### required steam addon
-
-
-echo -e "\n\n\n\n\n
-            +------------------------------+ 
-
-                    FLATPAK APPS END
-
-            +------------------------------+\n\n\n\n\n"
-
-
-##################################################################
-##################################################################
-
-
-echo -e "\n\n\n\n\n
-            +--------------------------------------------+ 
-
-                    START PRE-INSTALLED APPS PURGE
-
-            +--------------------------------------------+\n\n\n\n\n"
-
-
-sudo apt purge cinnamon* -y 
-
-appToPurge=(
-        thunderbird* 
-        libreoffice*
-        cheese 
-        hypnotix 
-        rhythmbox 
-        aisleriot 
-        celluloid  
-        hexchat 
-        onboard 
-        mahjongg 
-        pix 
-        remmina 
-        five-or-more 
-        four-in-a-row 
-        drawing 
-        xed 
-        lightsoff 
-        hitori 
-        quadrapassel 
-        shotwell 
-        swell-foop
-        avahi-daemon 
-        tali 
-        evolution 
-        evince 
-        iagno 
-        warpinator
-        mintchat
-        baobab
-        xreader
-        totem
-        eog
-        postfixr
-        timeshift*
-        mintinstall
-        mintwelcome
-        mintupdate* 
-        mintmenu 
-        mintreport
-        blueman
-        transmission-gtk 
-        webapp-manager
-        simple-scan
-        system-config-printer
-        gnome-software
-        gnome-system-monitor
-        gnome-calendar
-        gnome-mahjongg 
-        gnome-mines 
-        gnome-sudoku 
-        gnome-todo 
-        gnome-chess 
-        gnome-2048 
-        gnome-contacts 
-        gnome-maps 
-        gnome-tetravex 
-        gnome-music 
-        gnome-nibbles 
-        gnome-klotski 
-        gnome-robots 
-        gnome-weather 
-        gnome-remote-desktop 
-        gnome-taquin 
-)
-
-printf '%s\n' "${appToPurge[@]}" \
-  | xargs -I{} bash -c 'echo -e "\n\n\n\t• Uninstalling {}..." && sudo apt purge -y "{}"' \
->> "$pathFile" 2>&1
-
-sudo apt-get install nemo -y #### It gets removed from the cinnamon purge
-
-echo -e "\n\n\n\n\n
+    echo -e "\n\n\n\n\n
             +------------------------------------------+ 
 
-                    END PRE-INSTALLED APPS PURGE
+                    REPOSITORY && APT APPS BEGIN
 
             +------------------------------------------+\n\n\n\n\n"
 
 
-###############################################################
+    appPackages=(
+            #### Devtools
+            python3-psutil                          #### required for scripts
+            wget 
+            curl 
+            git 
+            gh                                      #### github https session login
+            jq                                      #### lightweight, flexible command-line JSON processor
 
-##########        DON'T ADD CODE AFTER THIS          ##########
+            #### Utilities
+            flatpak
+            smartmontools                           #### temp check
+            gufw                                    #### firewall
+            htop                                    #### task manager
+            redshift                                #### brightness and night light -- X11
+            xdotool                                 #### X11 -- window / keyboard utilities
+            ddcutil                                 #### change monitors brightness
+            fzf                                     #### terminal interactive selection
+            vlc
+            gedit 
+            piper                                   #### logitech mouse software
+            gparted                                 #### disk utility
+            nemo                                    #### file explorer
+            moreutils                               #### ts command and other ut
+            rar
+            p7zip-full 
+            p7zip-rar
+            tree                                    #### ls tree
+            wine
+            bluez 
+            bluez-tools
+            font-manager
 
-###############################################################
+            #### Audio
+            pulseaudio
+            pavucontrol 
+            pulseeffects
+            pulseaudio-module-bluetooth 
+
+            #### Editing
+            ffmpeg
+            mediainfo 
+            mkvtoolnix 
+            mpv 
+
+            #### Gaming
+            vainfo 
+            mesa-utils
+            gamemode
+            zram-tools 
+            cpufrequtils 
+            radeontop
+            openjdk-25-jre
+    )
 
 
-echo -e "\n\n\n\n\n
-+------------------------------------------------------------+ 
-
-        START FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
-
-+------------------------------------------------------------+\n\n\n\n\n"
-safetyUpdateCheck
-echo -e "\n\n\n\n\n
-+----------------------------------------------------------+ 
-
-        END FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
-
-+----------------------------------------------------------+\n\n\n\n\n"
+    printf '%s\n\n' "${appPackages[@]}" \
+    | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt-get install -y "{}"' \
+    >> "$pathFile" 2>&1
 
 
 
-echo -e "\n\n\n\n\n\n\n\n\n\n
-            +----------------------+ 
+    echo -e "\n\n\n\n\n
+            +----------------------------------------+ 
 
-                    END CODE
+                    REPOSITORY && APT APPS END
 
-            +----------------------+\n\n\n"
-
-
-end_time=$(date '+%d-%m-%Y___%H:%M:%S')
-
-EndDiskSpace=$(df -h)
+            +----------------------------------------+\n\n\n\n\n"
 
 
-echo -e "\n\n
-                +------------------+ 
+    ##################################################################
+    ##################################################################
 
-                        INFO
 
-                +------------------+\n\n"
 
-echo -e "Start time:\t$start_time"
-echo -e "End time  :\t$end_time"
+    echo -e "\n\n\n\n\n
+    +-----------------------------------+ 
 
-echo -e "\n\nStart disk space:\t$StartDiskSpace"
-echo -e "End disk space      :\t$EndDiskSpace \n\n"
+            START SWAP ALLOCATION
+
+    +-----------------------------------+\n\n\n"
+
+    sudo swapon --show
+    free -h
+    df -h
+    sudo fallocate -l "$SWAP"G /swapspace
+    ls -lh /swapspace
+    sudo chmod 700 /swapspace
+    ls -lh /swapspace
+    sudo mkswap /swapspace
+    sudo swapon /swapspace
+    sudo swapon --show
+    free -h
+    sudo cp /etc/fstab /etc/fstab.bak
+    echo '/swapspace none swap sw 0 0' | sudo tee -a /etc/fstab
+    cat /proc/sys/vm/swappiness
+
+
+    sudo sysctl vm.swappiness="$SWAPPINESS"
+    echo -e "vm.swappiness=$SWAPPINESS" | sudo tee -a /etc/sysctl.conf   
+    echo "$SWAPPINESS" | sudo tee /proc/sys/vm/swappiness
+
+
+    sudo sysctl vm.vfs_cache_pressure="$CACHE_PRESSURE"
+    echo "$CACHE_PRESSURE" | sudo tee /proc/sys/vm/vfs_cache_pressure
+    echo -e "vm.vfs_cache_pressure=$CACHE_PRESSURE" | sudo tee -a /etc/sysctl.conf
+
+
+    swapCheck=$(sudo swapon --show)
+    echo -e "Swap check: $swapCheck"
+
+    echo -e "\n\n\n
+    +---------------------------------+ 
+
+            END SWAP ALLOCATION
+
+    +---------------------------------+\n\n\n\n\n"
+
+
+    ##################################################################
+    ##################################################################
+
+    echo -e "\n\n\n\n\n
+            +--------------------------------+ 
+
+                    FLATPAK APPS BEGIN
+
+            +--------------------------------+\n\n\n\n\n"
+
+
+    flatpakAppPackages=(
+        #### Browsers
+        com.brave.Browser
+        app/com.google.Chrome/x86_64/stable
+        org.torproject.torbrowser-launcher
+        
+        #### Utilities
+        com.github.tchx84.Flatseal/x86_64/stable                    #### flatseal - flatpak permissions
+        app/com.mattjakeman.ExtensionManager/x86_64/stable          #### GNOME - Extension Manager
+        app/com.vscodium.codium/x86_64/stable                       #### VS Codium
+        com.nextcloud.desktopclient.nextcloud                       #### Nextcloud desktop client
+        app/com.usebottles.bottles/x86_64/stable                    #### Bottles - WINE client
+        app/net.christianbeier.Gromit-MPX/x86_64/stable             #### draw on screen
+        page.codeberg.libre_menu_editor.LibreMenuEditor             #### app info and editor
+        app/com.github.hluk.copyq/x86_64/stable                     #### Clipboard manager
+        org.gnome.TextEditor
+        
+        #### Editing
+        com.obsproject.Studio                                       #### OBS
+        org.audacityteam.Audacity                                   #### Audacity
+        org.nomacs.ImageLounge                                      #### Photo viewer / light editor
+        org.gimp.GIMP/x86_64/stable                                 #### Gimp
+        # app/org.musescore.MuseScore/x86_64/stable                   #### music sheet editor
+        
+        #### Apps    
+        app/org.kde.okular/x86_64/stable                            #### Pdf reader / highlight
+        app/com.discordapp.Discord/x86_64/stable
+        app/org.keepassxc.KeePassXC/x86_64/stable                   #### Database DB
+        org.libreoffice.LibreOffice 
+        org.onlyoffice.desktopeditors/x86_64/stable                 
+        
+        #### Gaming
+        com.valvesoftware.Steam 
+        com.valvesoftware.Steam.CompatibilityTool.Proton-GE
+        # net.pcsx2.PCSX2                                             #### Ps2
+        # org.ppsspp.PPSSPP                                           #### PsP
+        # net.kuribo64.melonDS/x86_64/stable                          #### Ds
+        # app/io.mgba.mGBA/x86_64/stable                              #### Gba
+    )
+
+
+    printf '%s\n\n' "${flatpakAppPackages[@]}" \
+    | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && flatpak install flathub -y "{}"' \
+    >> "$pathFile" 2>&1
+
+    sudo apt-get install steam-devices -y #### required steam addon
+
+
+    echo -e "\n\n\n\n\n
+                +------------------------------+ 
+
+                        FLATPAK APPS END
+
+                +------------------------------+\n\n\n\n\n"
+
+
+    ##################################################################
+    ##################################################################
+
+
+    echo -e "\n\n\n\n\n
+                +--------------------------------------------+ 
+
+                        START PRE-INSTALLED APPS PURGE
+
+                +--------------------------------------------+\n\n\n\n\n"
+
+
+    sudo apt purge cinnamon* -y 
+
+    appToPurge=(
+            thunderbird* 
+            libreoffice*
+            cheese 
+            hypnotix 
+            rhythmbox 
+            aisleriot 
+            celluloid  
+            hexchat 
+            onboard 
+            mahjongg 
+            pix 
+            remmina 
+            five-or-more 
+            four-in-a-row 
+            drawing 
+            xed 
+            lightsoff 
+            hitori 
+            quadrapassel 
+            shotwell 
+            swell-foop
+            avahi-daemon 
+            tali 
+            evolution 
+            evince 
+            iagno 
+            warpinator
+            mintchat
+            baobab
+            xreader
+            totem
+            eog
+            postfixr
+            timeshift*
+            mintinstall
+            mintwelcome
+            mintupdate* 
+            mintmenu 
+            mintreport
+            blueman
+            transmission-gtk 
+            webapp-manager
+            simple-scan
+            system-config-printer
+            gnome-software
+            gnome-system-monitor
+            gnome-calendar
+            gnome-mahjongg 
+            gnome-mines 
+            gnome-sudoku 
+            gnome-todo 
+            gnome-chess 
+            gnome-2048 
+            gnome-contacts 
+            gnome-maps 
+            gnome-tetravex 
+            gnome-music 
+            gnome-nibbles 
+            gnome-klotski 
+            gnome-robots 
+            gnome-weather 
+            gnome-remote-desktop 
+            gnome-taquin 
+    )
+
+    printf '%s\n' "${appToPurge[@]}" \
+    | xargs -I{} bash -c 'echo -e "\n\n\n\t• Uninstalling {}..." && sudo apt purge -y "{}"' \
+    >> "$pathFile" 2>&1
+
+    sudo apt-get install nemo -y #### It gets removed from the cinnamon purge
+
+    echo -e "\n\n\n\n\n
+                +------------------------------------------+ 
+
+                        END PRE-INSTALLED APPS PURGE
+
+                +------------------------------------------+\n\n\n\n\n"
+
+
+    ###############################################################
+
+    ##########        DON'T ADD CODE AFTER THIS          ##########
+
+    ###############################################################
+
+
+    echo -e "\n\n\n\n\n
+    +------------------------------------------------------------+ 
+
+            START FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
+
+    +------------------------------------------------------------+\n\n\n\n\n"
+    safetyUpdateCheck
+    echo -e "\n\n\n\n\n
+    +----------------------------------------------------------+ 
+
+            END FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
+
+    +----------------------------------------------------------+\n\n\n\n\n"
+
+
+
+    echo -e "\n\n\n\n\n\n\n\n\n\n
+                +----------------------+ 
+
+                        END CODE
+
+                +----------------------+\n\n\n"
+
+
+    end_time=$(date '+%d-%m-%Y___%H:%M:%S')
+
+    EndDiskSpace=$(df -h)
+
+
+    echo -e "\n\n
+                    +------------------+ 
+
+                            INFO
+
+                    +------------------+\n\n"
+
+    echo -e "Start time:\t$start_time"
+    echo -e "End time  :\t$end_time"
+
+    echo -e "\n\nStart disk space:\t$StartDiskSpace"
+    echo -e "End disk space      :\t$EndDiskSpace \n\n"
 
 
 } >> "$pathFile" 2>&1 

@@ -205,50 +205,50 @@ extract(){
 
 ##################################################
 
-vscan(){
-    sudo systemctl start clamav-daemon.service
-    cd "$1"
-    files=$(ls -A) #### -A removes the dots
-    clamTempLog="/tmp/clamTempLog.log"
-    clamLockFile="/tmp/clam_lock.lock"
+# vscan(){
+#     sudo systemctl start clamav-daemon.service
+#     cd "$1"
+#     files=$(ls -A) #### -A removes the dots
+#     clamTempLog="/tmp/clamTempLog.log"
+#     clamLockFile="/tmp/clam_lock.lock"
 
-    exec 200>"$clamLockFile"
-    flock -n 200 || { sysLogger w "Scansion already running, skipping."; return; } 
+#     exec 200>"$clamLockFile"
+#     flock -n 200 || { sysLogger w "Scansion already running, skipping."; return; } 
 
-    sysLogger i "Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
+#     sysLogger i "Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
 
-    clamScanning(){
-        dir="${1:-$(pwd)}"
-        max_size="5M" 
+#     clamScanning(){
+#         dir="${1:-$(pwd)}"
+#         max_size="5M" 
 
-        echo -e "$(get_sys_Info)
-            • Scanning dir: $dir - Max "$max_size"B
-            • Clamav signatures DB update..."
-        sudo freshclam --q #### freshclam update DB (--q suppress output)
-        sysLogger i "Signatures DB updated, starting scan"
-        sudo clamscan --remove --recursive --infected --max-filesize="$max_size"  "$dir" 
+#         echo -e "$(get_sys_Info)
+#             • Scanning dir: $dir - Max "$max_size"B
+#             • Clamav signatures DB update..."
+#         sudo freshclam --q #### freshclam update DB (--q suppress output)
+#         sysLogger i "Signatures DB updated, starting scan"
+#         sudo clamscan --remove --recursive --infected --max-filesize="$max_size"  "$dir" 
 
-        get_sysInfo_END
-    }  > "$clamTempLog" 2>&1
+#         get_sysInfo_END
+#     }  > "$clamTempLog" 2>&1
 
-    clamScanning
-    cat "$clamTempLog" >> "$pathCLAMSCAN"
+#     clamScanning
+#     cat "$clamTempLog" >> "$pathCLAMSCAN"
 
-    pathCLAMSCAN_check=$(grep -i "infected files:" "$pathCLAMSCAN" | sort -u)
-    if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then 
-        vlc "$logCheckerAlarm" > /dev/null 2>&1 & 
-        gedit "$pathCLAMSCAN" > /dev/null 2>&1 &
-    fi
-    rm "$clamLockFile"
-    sudo systemctl disable clamav-daemon.service
-} 
+#     pathCLAMSCAN_check=$(grep -i "infected files:" "$pathCLAMSCAN" | sort -u)
+#     if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then 
+#         vlc "$logCheckerAlarm" > /dev/null 2>&1 & 
+#         gedit "$pathCLAMSCAN" > /dev/null 2>&1 &
+#     fi
+#     rm "$clamLockFile"
+#     sudo systemctl disable clamav-daemon.service
+# } 
 
-rscan(){
-    export DEBIAN_FRONTEND=noninteractive
-    get_sys_Info
-    sudo rkhunter --check --propupd --skip-keypress --no-color -x --report-warnings-only
-    get_sysInfo_END 
-} >> "$pathROOTKIT" 2>&1
+# rscan(){
+#     export DEBIAN_FRONTEND=noninteractive
+#     get_sys_Info
+#     sudo rkhunter --check --propupd --skip-keypress --no-color -x --report-warnings-only
+#     get_sysInfo_END 
+# } >> "$pathROOTKIT" 2>&1
 
 ##################################################
 
