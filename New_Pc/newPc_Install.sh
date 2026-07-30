@@ -167,22 +167,18 @@ echo -e "\n\n\n\n\n
         +------------------------------------------+\n\n\n\n\n"
 
 
-
-echo -e "\n\n\n\n\n
-+---------------------------------------+ 
-
-        START INSTALL COMMON APPS
-
-+---------------------------------------+\n\n\n\n\n"
-
 appPackages=(
-        pipx                                    #### python pipx
+        #### Devtools
         python3-psutil                          #### required for scripts
-        flatpak
         wget 
         curl 
+        cmake
+        ninja-build
         git 
         gh                                      #### github https session login
+
+        #### Utilities
+        flatpak
         smartmontools                           #### temp check
         gufw                                    #### firewall
         htop                                    #### task manager
@@ -190,6 +186,10 @@ appPackages=(
         xdotool                                 #### X11 -- window / keyboard utilities
         ddcutil                                 #### change monitors brightness
         fzf                                     #### terminal interactive selection
+        vlc
+        gedit 
+        piper                                   #### logitech mouse software
+        gparted                                 #### disk utility
         nemo                                    #### file explorer
         moreutils                               #### ts command and other ut
         jq                                      #### lightweight, flexible command-line JSON processor
@@ -198,17 +198,29 @@ appPackages=(
         p7zip-rar
         tree                                    #### ls tree
         wine
+        bluez 
+        bluez-tools
+        font-manager
+
+        #### Audio
         pulseaudio
         pavucontrol 
         pulseeffects
         pulseaudio-module-bluetooth 
-        bluez 
-        bluez-tools
-        font-manager
-        vlc
-        gedit 
-        piper                                   #### logitech mouse software
-        gparted                                 #### disk utility
+
+        #### Editing
+        ffmpeg
+        mediainfo 
+        mkvtoolnix 
+        mpv 
+
+        #### Gaming
+        vainfo 
+        mesa-utils
+        gamemode
+        zram-tools 
+        cpufrequtils 
+        radeontop
         openjdk-25-jre
 )
 
@@ -216,52 +228,6 @@ appPackages=(
 printf '%s\n\n' "${appPackages[@]}" \
   | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && sudo apt-get install -y "{}"' \
 >> "$pathFile" 2>&1
-
-
-echo -e "\n\n\n\n\n
-+---------------------------------------+ 
-
-        END   INSTALL COMMON APPS
-
-+---------------------------------------+\n\n\n\n\n"
-
-
-
-
-
-echo -e "\n\n\n\n\n
-+---------------------------------------------+ 
-
-        START INSTALL LIBS && UTILITIES
-
-+---------------------------------------------+\n\n\n\n\n"
-
-echo -e "\n\n\n • Development / Build Tools"
-sudo apt-get install -y build-essential cmake git pkg-config wget curl libx11-dev libxext-dev libxfixes-dev libxcb1-dev libxcb-dri3-dev libxcb-xfixes0-dev libdrm-dev libopengl-dev libfontconfig1-dev libcurl4-openssl-dev libxrandr-dev libxinerama-dev libudev-dev libpci3 || true
-
-echo -e "\n\n\n • Video / Kdenlive / MLT / FFmpeg"
-sudo apt-get install -y ffmpeg ffmpegthumbs melt libmlt7 libmlt++7 libmlt-data libmlt-dev libmlt++-dev frei0r-plugins libvpx-dev libx264-dev libx265-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavfilter-dev libavdevice-dev libpostproc-dev libbluray-dev libchromaprint-dev libmp3lame0 libopus-dev libvorbis-dev libflac-dev libtheora-dev libquicktime2 liba52-0.7.4 libfaac-dev libfaad2 libdvdread8 libdvdread-dev libdvdnav4 libdvdnav-dev libv4l-0 v4l-utils mediainfo kdenlive-data mkvtoolnix mpv || true
-
-echo -e "\n\n\n • Audio / Sound / Plugins"
-sudo apt-get install -y ladspa-sdk sox libpulse-dev libjack-jackd2-dev libsoxr-dev || true
-
-echo -e "\n\n\n • Graphics / Photo / Imaging"
-sudo apt-get install -y libgegl-dev libheif1 libtiff-tools libtiff-dev libpng-dev libjpeg-dev libwebp-dev colord icc-profiles argyll imagemagick exiv2 libexif-dev pngquant libopenjp2-7 gmic || true
-
-echo -e "\n\n\n • Hardware Acceleration / GPU / Video Output"
-sudo apt-get install -y libva-dev vainfo mesa-va-drivers libvdpau-dev libva-glx2 libva2 libva2:i386 mesa-utils mesa-vulkan-drivers libvulkan1 libvulkan1:i386 || true
-
-echo -e "\n\n\n • 32-bit / Gaming / Extra Libraries"
-sudo apt-get install -y lib32gcc-s1 lib32stdc++6 libx11-6:i386 libxext6:i386 libxrandr2:i386 libxrender1:i386 libxslt1.1:i386 libfreetype6:i386 libpng16-16:i386 libsdl2-2.0-0 libsdl2-2.0-0:i386 gamemode zram-tools cpufrequtils radeontop || true
-
-echo -e "\n\n\n\n\n
-+---------------------------------------------+ 
-
-        END   INSTALL LIBS && UTILITIES
-
-+---------------------------------------------+\n\n\n\n\n"
-
-
 
 
 
