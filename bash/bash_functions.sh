@@ -32,6 +32,12 @@ shutdown_routine(){
     sleep 1s
     if [ "$pc" == "$main" ]; then
         kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" #### rm kden bkp to avoid stacking
+
+        #### Turn off the monitors
+        #### 01 -- On <> 05 -- Off <> 04 -- Standby / Sleep
+        ddcutil --display 1 setvcp d6 04
+        # ddcutil --display 2 setvcp d6 05
+
         if [ -d "$kdenBkpDir" ]; then sudo rm -rf "$kdenBkpDir"; fi; fi
 }
 

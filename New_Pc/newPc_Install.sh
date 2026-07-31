@@ -51,12 +51,12 @@ fi
 
 
 safetyUpdateCheck(){
-        sudo dpkg --configure -a 
-        sudo apt --fix-broken install -y  
-        sudo apt update
-        sudo apt full-upgrade -y 
-        sudo apt autoremove -y 
-        sudo apt clean
+    sudo dpkg --configure -a 
+    sudo apt --fix-broken install -y  
+    sudo apt update
+    sudo apt full-upgrade -y 
+    sudo apt autoremove -y 
+    sudo apt clean
 }
 
 ###########################################################################################
@@ -86,7 +86,7 @@ echo -e "\n\n\n\n\n
         START INSTALL GNOME
 
 +---------------------------------+\n\n\n\n\n"
-sudo apt-get install -y
+sudo apt-get install gnome -y
 echo -e "\n\n\n\n\n
 +---------------------------------+ 
 
@@ -192,6 +192,7 @@ export DEBIAN_FRONTEND=noninteractive #### prompt avoid
             mpv 
 
             #### Gaming
+            steam-devices
             vainfo 
             mesa-utils
             gamemode
@@ -320,8 +321,6 @@ export DEBIAN_FRONTEND=noninteractive #### prompt avoid
     printf '%s\n\n' "${flatpakAppPackages[@]}" \
     | xargs -I{} bash -c 'echo -e "\n\n\n\t• Installing {}..." && flatpak install flathub -y "{}"' \
     >> "$pathFile" 2>&1
-
-    sudo apt-get install steam-devices -y #### required steam addon
 
 
     echo -e "\n\n\n\n\n
