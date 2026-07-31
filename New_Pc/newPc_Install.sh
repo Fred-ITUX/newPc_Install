@@ -154,6 +154,8 @@ export DEBIAN_FRONTEND=noninteractive #### prompt avoid
             git 
             gh                                      #### github https session login
             jq                                      #### lightweight, flexible command-line JSON processor
+            docker.io 
+            docker-compose
 
             #### Utilities
             flatpak
