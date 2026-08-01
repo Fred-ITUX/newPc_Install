@@ -1,22 +1,22 @@
 #!/bin/bash
-if [ -f "$HOME/.bash_UT"        ]; then . "$HOME/.bash_UT"       ; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_UT"       ; fi
+
+if [ -f "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common" ; fi
+
 userCheck
+
 ##################################################
 
 bashUpd(){
     if [ -z "$LXscripts" ]; then LXscripts="$HOME/Nextcloud/Linux/scripts"; fi
     
-    cp "$LXscripts"/bash/bash_RC.sh "$HOME"/.bashrc 
+    cp "$LXscripts"/bash/bash_rc.sh "$HOME"/.bashrc 
     source "$HOME"/.bashrc
-    
-    cp "$LXscripts"/bash/bash_aliases.sh "$HOME"/.bash_aliases
-    source "$HOME"/.bash_aliases
     
     cp "$LXscripts"/bash/bash_functions.sh "$HOME"/.bash_functions
     source "$HOME"/.bash_functions
 
-    cp "$LXscripts"/bash/bash_UT.sh "$HOME"/.bash_UT
-    source "$HOME"/.bash_UT
+    cp "$LXscripts"/bash/bash_common.sh "$HOME"/.bash_common
+    source "$HOME"/.bash_common
 
     exec bash
 }
@@ -156,7 +156,7 @@ systemInfo(){
     }
 
     get_gnome_version(){
-        isGnome=$(echo "$XDG_CURRENT_DESKTOP")
+        local isGnome=$(echo "$XDG_CURRENT_DESKTOP")
         if [ "$isGnome" == "GNOME" ]; then printOut=$(echo -e "$(gnome-shell --version 2>/dev/null | cut -d' ' -f3)"); else printOut=""; fi
         echo "$printOut"
     }
@@ -187,8 +187,7 @@ BKP_home(){
 ##################################################
 
 extract(){
-    file="$1"
-    mmt=4
+    local file="$1"; local mmt=6
 
     if [[ "$file" == "a" ]]; then files=(*.zip *.7z *.tar *.tar.gz *.rar); elif [[ -n "$file" ]]; then files=("$file"); fi
 
@@ -211,56 +210,8 @@ extract(){
 
 ##################################################
 
-# vscan(){
-#     sudo systemctl start clamav-daemon.service
-#     cd "$1"
-#     files=$(ls -A) #### -A removes the dots
-#     clamTempLog="/tmp/clamTempLog.log"
-#     clamLockFile="/tmp/clam_lock.lock"
-
-#     exec 200>"$clamLockFile"
-#     flock -n 200 || { sysLogger w "Scansion already running, skipping."; return; } 
-
-#     sysLogger i "Checking files:\n$files \n\nOutput file: $pathCLAMSCAN"
-
-#     clamScanning(){
-#         dir="${1:-$(pwd)}"
-#         max_size="5M" 
-
-#         echo -e "$(get_sys_Info)
-#             • Scanning dir: $dir - Max "$max_size"B
-#             • Clamav signatures DB update..."
-#         sudo freshclam --q #### freshclam update DB (--q suppress output)
-#         sysLogger i "Signatures DB updated, starting scan"
-#         sudo clamscan --remove --recursive --infected --max-filesize="$max_size"  "$dir" 
-
-#         get_sysInfo_END
-#     }  > "$clamTempLog" 2>&1
-
-#     clamScanning
-#     cat "$clamTempLog" >> "$pathCLAMSCAN"
-
-#     pathCLAMSCAN_check=$(grep -i "infected files:" "$pathCLAMSCAN" | sort -u)
-#     if [ "$pathCLAMSCAN_check" != "Infected files: 0" ]; then 
-#         vlc "$logCheckerAlarm" > /dev/null 2>&1 & 
-#         gedit "$pathCLAMSCAN" > /dev/null 2>&1 &
-#     fi
-#     rm "$clamLockFile"
-#     sudo systemctl disable clamav-daemon.service
-# } 
-
-# rscan(){
-#     export DEBIAN_FRONTEND=noninteractive
-#     get_sys_Info
-#     sudo rkhunter --check --propupd --skip-keypress --no-color -x --report-warnings-only
-#     get_sysInfo_END 
-# } >> "$pathROOTKIT" 2>&1
-
-##################################################
-
 alarm(){
-    timeAmount="$1"
-    total_seconds=$((timeAmount * 60))  #### alarm in minutes
+    local timeAmount="$1"; local total_seconds=$((timeAmount * 60))  #### alarm in minutes
 
     echo -e "⏰ Starting timer: ${timeAmount} minute(s)"
     sleep 1s
@@ -283,7 +234,7 @@ alarm(){
 ##################################################
 
 stopwatch(){
-    time=0
+    local time=0
     echo -e "⏰ Starting stopwatch: $(get_formatted_date)\n"
 
     while true; do
@@ -299,8 +250,8 @@ stopwatch(){
 ##################################################
 
 killp9(){
-    process="$1"
-    pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
+    local process="$1"
+    local pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
 
     for pid in "${pids[@]}"; do
         sysLogger i "Killing process - $process: $pid"
@@ -309,19 +260,13 @@ killp9(){
 }
 
 killp15(){
-    process="$1"
-    pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
+    local process="$1"
+    local pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
 
     for pid in "${pids[@]}"; do
         sysLogger i "Killing process - $process: $pid"
         sudo kill -15 "$pid"
     done
-}
-
-##################################################
-
-addExec(){
-    if [ -n "$1" ]; then sysLogger i "Adding executable propriety to all .sh files in: $1" && sudo find "$1" -type f -name "*.sh" -exec chmod +x {} +; fi
 }
 
 ##################################################
@@ -335,19 +280,23 @@ latexSET(){
 }
 
 latexUPD(){
-    latexFile="$HOME/$1"
+    local latexFile="$HOME/$1"
     cd $(dirname "$latexFile")       ####  LaTeX dumps the files to the current working directory
-    latexPdf=$(echo -e "$latexFile" | awk '{$1=$1; gsub(/\.tex/, "") ; print}' )
+    
+    local latexPdf=$(echo -e "$latexFile" | awk '{$1=$1; gsub(/\.tex/, "") ; print}' )
     flatpak run org.kde.okular "$latexPdf.pdf" &
+    
     check(){
         stat -c "%Y" "$latexFile"    #### check file update
     }
-    ver1=$(check)
+
+    local ver1=$(check)
+    
     while true; do
         sleep 1s
-        ver2=$(check)
+        local ver2=$(check)
         if [ "$ver1" != "$ver2" ]; then
-            ver1=$(check)
+            local ver1=$(check)
             xelatex -shell-escape "$latexFile" #### Shell escape is required for minted package
         fi
     done
@@ -356,7 +305,7 @@ latexUPD(){
 ##################################################
 
 minecraft(){                
-    mcFolder="/media/federico/SSD1TB/minecraft"
+    local mcFolder="/media/federico/SSD1TB/minecraft"
     nemo --tabs "$mcFolder/curseforge" "$mcFolder/curseforge/curse_minecraft/Instances" "$mcFolder/versions" "$HOME/Nextcloud/Games/Minecraft" &
     gamemoderun java -jar "$mcFolder/launcher/TLauncher.jar" 
 }
@@ -387,7 +336,7 @@ orion-uninstall(){
 ##################################################
 
 allRepoPush(){
-    scripts=$(find "$LXscripts/Github" -maxdepth 1 -type f -name  "*_update.sh" )
+    local scripts=$(find "$LXscripts/Github" -maxdepth 1 -type f -name  "*_update.sh" )
     
     for script in $scripts; do
         sysLogger i "Running -- $(basename "$script")" && bash "$script"
