@@ -6,70 +6,6 @@ osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/l
 
 sessionType="$XDG_SESSION_TYPE"
 
-get_formatted_date(){ date +%a\ %b\ %d\ %Y\ %H:%M:%S ; } #### python %a %b %d %Y %H:%M:%S
-
-get_date_comparison(){ date +%a\ %b\ %d ; }
-
-get_file_date(){ date +%Y\-%m-\%d\_%H-\%M-\%S ; }    #### python %Y-%m-%d_%H-%M-%S
-
-
-get_logger_date(){ date +%Y\-%m-\%d\ %H:\%M:\%S ; } #### date "+%F %T"
-
-get_sys_Info(){
-echo -e "
-________________________________________________________ 
-\t
-    Start time :  "$(get_formatted_date)"
-    Running for:  $(whoami)@$osname [$(hostname)]"
-}
-
-get_sysInfo_END(){
-    echo -e "\t
-    End time   :  $(get_formatted_date)
-    \t"
-}
-
-
-##################################################
-
-createVenv(){
-
-    if [ -d "$HOME/.venv"  ]; then sysLogger e "venv already present, not creating"
-
-    else
-
-        sysLogger i "Creating venv $HOME/.venv \n"
-
-        python3 -m venv "$HOME/.venv"
-
-        source "$HOME/.venv/bin/activate"
-
-        if [ -s "$HOME/Nextcloud/Python/requirements.txt" ]; then
-            pip install -r "$HOME/Nextcloud/Python/requirements.txt"
-        
-        else sysLogger e "No requirements.txt found, skipping package install" ; fi
-
-        echo -e "\n"; pip list; deactivate; fi
-}
-
-py(){
-    pyScript="${1:-}"
-
-    if [ ! -d "$HOME/.venv"  ]; then sysLogger w "venv not found, creating"; createVenv; fi
-
-    if [ -z "$pyScript" ] || [ ! -s "$pyScript" ] ; then sysLogger e "No valid script selected"
-        else if [ -s "$pyScript" ]; then source "$HOME/.venv/bin/activate"; python "$1"; deactivate; fi
-    fi
-}
-
-##################################################
-
-
-check_day_type(){
-    dayToCheck=$(date +"%A") #### "%a" --- 3 letter day
-    if [ "$dayToCheck" != "Saturday" ] && [ "$dayToCheck" != "Sunday" ]; then typeDay="weekday" ; else typeDay="weekend" ; fi }
-
-
 userCheck(){
     host=$(hostname)
     main="federico"
@@ -87,10 +23,85 @@ userCheck(){
     fi
 }
 
+
+##################################################
+
+
+get_formatted_date(){ date +%a\ %b\ %d\ %Y\ %H:%M:%S ; } #### python %a %b %d %Y %H:%M:%S
+
+
+get_date_comparison(){ date +%a\ %b\ %d ; }
+
+
+get_file_date(){ date +%Y\-%m-\%d\_%H-\%M-\%S ; }    #### python %Y-%m-%d_%H-%M-%S
+
+
+get_logger_date(){ date +%Y\-%m-\%d\ %H:\%M:\%S ; } #### date "+%F %T"
+
+
+check_day_type(){
+    dayToCheck=$(date +"%A") #### "%a" --- 3 letter day
+    if [ "$dayToCheck" != "Saturday" ] && [ "$dayToCheck" != "Sunday" ]; then typeDay="weekday" ; else typeDay="weekend" ; fi 
+}
+
+
+##################################################
+
+getSysInfoStart(){
+echo -e "
+________________________________________________________ 
+\t f
+Start time :  "$(get_formatted_date)"
+    Running for:  $(whoami)@$osname [$(hostname)]"
+}
+
+
+getSysInfoEnd(){
+    echo -e "\t
+End time   :  $(get_formatted_date)
+    \t"
+}
+
+
+##################################################
+
+createVenv(){
+    if [ -d "$HOME/.venv" ]; then sysLogger e "venv already present, not creating"
+
+    else
+
+        sysLogger i "Creating venv $HOME/.venv \n"
+
+        python3 -m venv "$HOME/.venv"
+
+        source "$HOME/.venv/bin/activate"
+
+        if [ -s "$HOME/Nextcloud/Python/requirements.txt" ]; then
+            pip install -r "$HOME/Nextcloud/Python/requirements.txt"
+        
+        else sysLogger e "No requirements.txt found, skipping package install" ; fi
+
+        echo -e "\n"; pip list; deactivate; fi
+}
+
+
+py(){
+    local pyScript="${1:-}"
+
+    if [ ! -d "$HOME/.venv" ]; then sysLogger w "venv not found, creating"; createVenv; fi
+
+    if [ -z "$pyScript" ] || [ ! -s "$pyScript" ] ; then sysLogger e "No valid script selected"
+        else if [ -s "$pyScript" ]; then source "$HOME/.venv/bin/activate"; python "$1"; deactivate; fi
+    fi
+}
+
+##################################################
+
+
 raiseAlarm(){
     logCheck="${1:-}"
     if [ -f "$logCheck" ]; then gedit "$logCheck" > /dev/null 2>&1 & fi
-    vlc "$logCheckerAlarm" > /dev/null 2>&1 &
+    vlc "$logCheckerAlarm" --gain 0.3 > /dev/null 2>&1 &
 }
 
 
@@ -98,7 +109,7 @@ sysLogger(){
     local logType="${1:-}"
     local logBody="${2:-}"
     local caller="${FUNCNAME[1]:-MAIN}"
-    logType="${logType^^}"
+    logType=$( echo -e "$logType" | tr '[:lower:]' '[:upper:]' )
     declare -a options=('W' 'I' 'E' 'DEBUG')
     if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1; fi
 
@@ -112,11 +123,12 @@ sysLogger(){
     echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody"
 }
 
+
 PID_sysLogger(){
     local logType="${1:-}"
     local logBody="${2:-}"
     local caller="${FUNCNAME[1]:-MAIN}"
-    logType="${logType^^}"
+    logType=$( echo -e "$logType" | tr '[:lower:]' '[:upper:]' )
     declare -a options=('W' 'I' 'E' 'DEBUG')
     if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1; fi
 
@@ -130,19 +142,105 @@ PID_sysLogger(){
     echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody" >> "$pid_log_file" 
 }
 
+
 debugLogger(){
     if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1"; fi
 }
+
 
 PID_debugLogger(){
     if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1"  >> "$pid_log_file"; fi  
 }
 
+
 EX_PID_debugLogger(){
     if [ "$DEBUG" == true ]; then sysLogger DEBUG "$1" >> "${XDG_RUNTIME_DIR}/exclusive_beforePID.log"; fi   
 }
 
+
+##################################################
+
+
+stringStrip(){
+    local string="${1:-}"
+
+    if [ -n "$string" ]; then
+        string="${string#"${string%%[![:space:]]*}"}"  #### remove leading
+        string="${string%"${string##*[![:space:]]}"}"  #### remove trailing
+        echo "$string"
+
+    else echo -e "Usage VAR=\$( stringStrip \$STRING )"; fi
+}
+
+
+stringFullStrip(){ #### Removes multiple spaces in between too 
+    local string="${1:-}"
+
+    if [ -n "$string" ]; then
+        string=$( echo -e "$testString" | awk '{$1=$1;print}' ) #### / awk '{$1=$1};1'
+        echo -e "$string"
+
+    else echo -e "Usage VAR=\$( stringStrip \$STRING )"; fi
+}
+
+
+stringUpper(){
+    local string="${1:-}"
+
+    if [ -n "$string" ]; then echo "$string" | tr '[:lower:]' '[:upper:]' #### NON-POSIX -- echo ${string^^}
+    else echo -e "Usage VAR=\$( stringUpper \$STRING )"; fi
+}
+
+
+stringLower(){
+    local string="${1:-}"
+
+    if [ -n "$string" ]; then echo "$string" | tr '[:upper:]' '[:lower:]' #### NON-POSIX -- echo ${string,,}
+    else echo -e "Usage VAR=\$( stringLower \$STRING )"; fi
+}
+
+
+stringNormalizeLow(){
+    local string="${1:-}"
+
+    if [ -n "$string" ]; then
+        string=$( stringStrip "$string" )
+        string=$( stringLower "$string" )
+        echo "$string"
+
+    else echo -e "Usage VAR=\$( stringNormalizeLow \$STRING )"; fi
+}
+
+
+stringNormalizeUpp(){
+    local string="${1:-}"
+
+    if [ -n "$string" ]; then
+        string=$( stringStrip "$string" )
+        string=$( stringUpper "$string" )
+        echo "$string"
+
+    else echo -e "Usage VAR=\$( stringNormalizeUpp \$STRING )"; fi
+}
+
+
+stringNormalizeNoBlanks(){
+    local string="${1:-}"
+
+    if [ -n "$string" ]; then
+        string=$( stringFullStrip "$string" )
+        string=$( stringLower "$string" )
+        string=$( echo -e "$string" | tr ' ' '_' )
+        echo "$string"
+
+    else echo -e "Usage VAR=\$( stringNormalizeNoBlanks \$STRING )"; fi
+}
+
+
 ################################################################################################
+
+
+
 
 
 
@@ -202,7 +300,7 @@ getActiveDevice(){
 bluetoothHeadset="00:A4:1C:04:E1:1F"
 
 #### Earbuds / in-ear other bluetooth devices -- TWS
-bletoothInEar="41:42:32:02:B1:95"
+bletoothInEar=""
 
 #### Other bluetooth controllers
 bluetoothController=""

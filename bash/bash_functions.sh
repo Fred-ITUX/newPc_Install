@@ -63,7 +63,7 @@ end(){
 
 sysUPD(){
     export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
-    get_sys_Info
+    getSysInfoStart
 
     echo -e "\n\t
         • Fix broken pkg:
@@ -103,7 +103,7 @@ sysUPD(){
     sudo dpkg --configure -a 
     sudo apt-get --fix-broken install -y 
 
-    get_sysInfo_END
+    getSysInfoEnd
 } 
 
 updater(){
