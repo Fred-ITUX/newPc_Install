@@ -61,56 +61,183 @@ end(){
 
 ##################################################
 
-sysUPD(){
-    export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
-    getSysInfoStart
+# sysUPD(){
+#     export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
+#     getSysInfoStart
 
-    echo -e "\n\t
-        • Fix broken pkg:
-        \t"
-    sudo dpkg --configure -a 
-    sudo apt-get --fix-broken install -y 
+#     echo -e "\n\t
+#         • Fix broken pkg:
+#         \t"
+#     sudo dpkg --configure -a 
+#     sudo apt-get --fix-broken install -y 
 
 
-    echo -e "\n\t
-        • Update:
-        \t"
-    sudo apt-get --fix-missing -q update
+#     echo -e "\n\t
+#         • Update:
+#         \t"
+#     sudo apt-get --fix-missing -q update
         
 
-    echo -e "\n\t
-        • Upgrade:
-        \t"
-    sudo apt-get dist-upgrade -y #### full-upgrade
+#     echo -e "\n\t
+#         • Upgrade:
+#         \t"
+#     sudo apt-get dist-upgrade -y #### full-upgrade
 
 
-    echo -e "\n\t
-        • Flatpak update:
-        \t" 
-    sudo flatpak update -y 
+#     echo -e "\n\t
+#         • Flatpak update:
+#         \t" 
+#     sudo flatpak update -y 
 
 
-    echo -e "\n\t
-        • Autoremove:
-        \t"
-    sudo apt-get autoremove -y
-    sudo apt-get clean
+#     echo -e "\n\t
+#         • Autoremove:
+#         \t"
+#     sudo apt-get autoremove -y
+#     sudo apt-get clean
 
 
-    echo -e "\n\t
-        • 2nd Fix broken pkg:
-        \t"
-    sudo dpkg --configure -a 
-    sudo apt-get --fix-broken install -y 
+#     echo -e "\n\t
+#         • 2nd Fix broken pkg:
+#         \t"
+#     sudo dpkg --configure -a 
+#     sudo apt-get --fix-broken install -y 
 
-    getSysInfoEnd
+#     getSysInfoEnd
+# }
+
+sysUPD(){
+    export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
+
+    local UPD_path="${XDG_RUNTIME_DIR}/UPD_logs"
+
+    if [ ! -d "$UPD_path" ]; then mkdir -p "$UPD_path" ; fi
+
+    local outputLog="${1:-}"
+
+    local fixPkg="$UPD_path/UPD_fixPkg.log"
+    local update="$UPD_path/UPD_update.log"
+    local upgrade="$UPD_path/UPD_upgrade.log"
+    local flatpakUpdt="$UPD_path/UPD_flatpakUpdt.log"
+    local cleanup="$UPD_path/UPD_cleanup.log"
+    local completeLog="$UPD_path/UPD_completeLog.log"
+
+    echo -n > "$fixPkg" ; echo -n > "$update" ; echo -n > "$upgrade" ; echo -n > "$flatpakUpdt" ; echo -n > "$cleanup" ; echo -n > "$completeLog"
+
+    UPD_fix(){
+        echo -e "\n• Fix broken pkg: \n"
+        sudo dpkg --configure -a 
+        sudo apt-get --fix-broken install -y 
+    } > "$fixPkg"
+
+
+    UPD_updater(){
+        echo -e "\n• Update: \n"
+        sudo apt-get --fix-missing -q update
+    } > "$update"
+
+
+    UPD_upgrade(){
+        echo -e "\n• Upgrade: \n"
+        sudo apt-get dist-upgrade -y #### full-upgrade
+    } > "$upgrade"
+
+
+    UPD_flatpak(){
+        echo -e "\n• Flatpak update: \n" 
+        sudo flatpak update -y 
+    } > "$flatpakUpdt"
+
+
+    UPD_cleanup(){
+        echo -e "\n• Autoremove: \n"
+        sudo apt-get autoremove -y ; sudo apt-get clean
+    } > "$cleanup"
+
+
+    #### If the content matches with the empty preset, that block does not get saved
+    UPD_check(){
+
+        if [ -n "$content_fixPkg" ] && [ -n "$content_update" ] && [ -n "$content_upgrade" ] && [ -n "$content_flatpakUpdt" ] && [ -n "$content_cleanup" ]; then
+            echo -e "\n\t> Nothing to report" >> "$completeLog"; return 0
+        fi
+
+        if [ -n "$content_fixPkg" ]; then echo -n > "$fixPkg"
+            else cat "$fixPkg" >> "$completeLog"
+        fi
+
+        #### Reverse logic -- the only useful output is in case of ERRORS / WARNINGS
+        if [ -z "$content_update" ]; then echo -n > "$update"
+            else cat "$update" >> "$completeLog"
+        fi
+
+
+        if [ -n "$content_upgrade" ]; then echo -n > "$upgrade"
+            else cat "$upgrade" >> "$completeLog"
+        fi
+
+
+        if [ -n "$content_flatpakUpdt" ]; then echo -n > "$flatpakUpdt"
+            else cat "$flatpakUpdt" >> "$completeLog"
+        fi
+
+
+        if [ -n "$content_cleanup" ]; then echo -n > "$cleanup"
+            else cat "$cleanup" >> "$completeLog"
+        fi
+    }
+
+
+    UPD_fix
+    UPD_updater
+    UPD_upgrade
+    UPD_flatpak
+    UPD_cleanup
+    UPD_fix
+
+    #### Indent text to allow fold per-day
+    sed 's/^/\t/' -i "$fixPkg"
+    sed 's/^/\t/' -i "$update"
+    sed 's/^/\t/' -i "$upgrade"
+    sed 's/^/\t/' -i "$flatpakUpdt"
+    sed 's/^/\t/' -i "$cleanup"
+    sed 's/^/\t/' -i "$completeLog"
+
+
+    #### Retain full log
+    local strtp_full="$pathStartupUpdaterFull"
+    getSysInfoStart     >> "$strtp_full"
+    cat "$fixPkg"       >> "$strtp_full" 
+    cat "$update"       >> "$strtp_full" 
+    cat "$upgrade"      >> "$strtp_full" 
+    cat "$flatpakUpdt"  >> "$strtp_full" 
+    cat "$cleanup"      >> "$strtp_full" 
+    getSysInfoEnd       >> "$strtp_full"
+    
+
+    local content_fixPkg=$( cat "$fixPkg" | grep -iE "0 upgraded, 0 newly installed, 0 to remove" )
+    local content_update=$( cat "$update" | grep -iE "WARN|ERR|ERROR|REMOVED" )
+    local content_upgrade=$( cat "$upgrade" | grep -iE "0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded" )
+    local content_flatpakUpdt=$( cat "$flatpakUpdt" | grep -iE "Nothing to do" )
+    local content_cleanup=$( cat "$cleanup" | grep -iE "0 upgraded, 0 newly installed, 0 to remove" )
+
+
+
+    getSysInfoStart >> "$completeLog"
+
+    UPD_check
+
+    getSysInfoEnd >> "$completeLog"
+
+    echo -e "$completeLog" | py "$LXscripts/Startup_Routine/log_cleaner.py" 
+
+    cat "$completeLog" >> "$1"
 } 
 
 updater(){
-    sysUPD >> "$pathManualUpd" 
-    py "$LXscripts/Startup_Routine/log_cleaner.py"
+    sysUPD "$pathManualUpd" 
     gedit "$pathManualUpd" &
-}    
+}
 
 ##################################################
 
