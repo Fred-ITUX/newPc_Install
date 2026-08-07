@@ -7,7 +7,7 @@ userCheck
 ##################################################
 
 bashUpd(){
-    if [ -z "$LXscripts" ]; then LXscripts="$HOME/Nextcloud/Linux/scripts"; fi
+    if [ -z "$LXscripts" ]; then local LXscripts="$HOME/Nextcloud/Linux/scripts"; fi
     
     cp "$LXscripts"/bash/bash_rc.sh "$HOME"/.bashrc 
     source "$HOME"/.bashrc
@@ -34,7 +34,7 @@ shutdown_routine(){
         kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" #### rm kden bkp to avoid stacking
 
         #### Turn off the monitors
-        #### 01 -- On <> 05 -- Off <> 04 -- Standby / Sleep
+        #### 01 -- On   |   05 -- Off   |   04 -- Standby / Sleep
         ddcutil --display 1 setvcp d6 04
         # ddcutil --display 2 setvcp d6 05
 
@@ -60,51 +60,6 @@ end(){
 }
 
 ##################################################
-
-# sysUPD(){
-#     export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
-#     getSysInfoStart
-
-#     echo -e "\n\t
-#         • Fix broken pkg:
-#         \t"
-#     sudo dpkg --configure -a 
-#     sudo apt-get --fix-broken install -y 
-
-
-#     echo -e "\n\t
-#         • Update:
-#         \t"
-#     sudo apt-get --fix-missing -q update
-        
-
-#     echo -e "\n\t
-#         • Upgrade:
-#         \t"
-#     sudo apt-get dist-upgrade -y #### full-upgrade
-
-
-#     echo -e "\n\t
-#         • Flatpak update:
-#         \t" 
-#     sudo flatpak update -y 
-
-
-#     echo -e "\n\t
-#         • Autoremove:
-#         \t"
-#     sudo apt-get autoremove -y
-#     sudo apt-get clean
-
-
-#     echo -e "\n\t
-#         • 2nd Fix broken pkg:
-#         \t"
-#     sudo dpkg --configure -a 
-#     sudo apt-get --fix-broken install -y 
-
-#     getSysInfoEnd
-# }
 
 sysUPD(){
     export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
@@ -297,7 +252,7 @@ systemInfo(){
 BKP_nxt(){
     if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
     elif [ -n "$1" ] && [ -d "$1" ]; then
-        7z a -mmt=4 "$1/bkp_nextcloud_$(get_file_date).zip" "$HOME/Nextcloud"
+        7z a -mmt=8 "$1/bkp_nextcloud_$(get_file_date).zip" "$HOME/Nextcloud"
         sysLogger i "Created $1/bkp_nextcloud_$(get_file_date).zip"
     else sysLogger e "Not a valid path: $1"; fi
 }
@@ -306,7 +261,7 @@ BKP_nxt(){
 BKP_home(){
     if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
     elif [ -n "$1" ] && [ -d "$1" ]; then
-        7z a -mmt=4 "$1/homebkp_$(get_file_date).zip"  $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
+        7z a -mmt=8 "$1/homebkp_$(get_file_date).zip"  $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
         sysLogger i "Created $zipName"
     else sysLogger e "Not a valid path: $1"; fi
 }
