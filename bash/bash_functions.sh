@@ -113,7 +113,7 @@ sysUPD(){
     #### If the content matches with the empty preset, that block does not get saved
     UPD_check(){
 
-        if [ -n "$content_fixPkg" ] && [ -n "$content_update" ] && [ -n "$content_upgrade" ] && [ -n "$content_flatpakUpdt" ] && [ -n "$content_cleanup" ]; then
+        if [ -n "$content_fixPkg" ] && [ -z "$content_update" ] && [ -n "$content_upgrade" ] && [ -n "$content_flatpakUpdt" ] && [ -n "$content_cleanup" ]; then
             echo -e "\n\t> Nothing to report" >> "$completeLog"; return 0
         fi
 
