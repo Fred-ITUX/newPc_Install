@@ -77,6 +77,9 @@ sysUPD(){
     local cleanup="$UPD_path/UPD_cleanup.log"
     local completeLog="$UPD_path/UPD_completeLog.log"
 
+    #### Retain full log
+    local strtp_full="$pathStartupUpdaterFull"
+
     echo -n > "$fixPkg" ; echo -n > "$update" ; echo -n > "$upgrade" ; echo -n > "$flatpakUpdt" ; echo -n > "$cleanup" ; echo -n > "$completeLog"
 
     UPD_fix(){
@@ -143,6 +146,9 @@ sysUPD(){
     }
 
 
+    getSysInfoStart >> "$completeLog"
+    getSysInfoStart >> "$strtp_full"
+
     UPD_fix
     UPD_updater
     UPD_upgrade
@@ -156,12 +162,8 @@ sysUPD(){
     sed 's/^/\t/' -i "$upgrade"
     sed 's/^/\t/' -i "$flatpakUpdt"
     sed 's/^/\t/' -i "$cleanup"
-    sed 's/^/\t/' -i "$completeLog"
 
 
-    #### Retain full log
-    local strtp_full="$pathStartupUpdaterFull"
-    getSysInfoStart     >> "$strtp_full"
     cat "$fixPkg"       >> "$strtp_full" 
     cat "$update"       >> "$strtp_full" 
     cat "$upgrade"      >> "$strtp_full" 
@@ -176,10 +178,6 @@ sysUPD(){
     local content_flatpakUpdt=$( cat "$flatpakUpdt" | grep -iE "Nothing to do" )
     local content_cleanup=$( cat "$cleanup" | grep -iE "0 upgraded, 0 newly installed, 0 to remove" )
 
-
-
-    getSysInfoStart >> "$completeLog"
-
     UPD_check
 
     getSysInfoEnd >> "$completeLog"
@@ -188,6 +186,7 @@ sysUPD(){
 
     cat "$completeLog" >> "$1"
 } 
+
 
 updater(){
     sysUPD "$pathManualUpd" 
