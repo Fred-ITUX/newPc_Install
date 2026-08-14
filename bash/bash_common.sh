@@ -81,18 +81,42 @@ createVenv(){
         
         else sysLogger e "No requirements.txt found, skipping package install" ; fi
 
-        echo -e "\n"; pip list; deactivate; fi
+        echo -e "\n\n $(pip list) \n\n\n" 
+        deactivate; fi
 }
 
 
 py(){
     local pyScript="${1:-}"
+    local filename=$(basename -- "$pyScript")
+    local extension="${filename##*.}"
+    local venvPath="$HOME/.venv"
 
-    if [ ! -d "$HOME/.venv" ]; then sysLogger w "venv not found, creating"; createVenv; fi
+    venvRecheck(){
+        sysLogger e "Venv corrupted, cannot activate. Deleting it and recreating..." 
 
-    if [ -z "$pyScript" ] || [ ! -s "$pyScript" ] ; then sysLogger e "No valid script selected"
-        else if [ -s "$pyScript" ]; then source "$HOME/.venv/bin/activate"; python "$1"; deactivate; fi
-    fi
+        #### Unset current active venv state cleanly before wiping
+        deactivate 2>/dev/null || true
+
+
+        rm -rf "$venvPath"
+        createVenv
+        
+        "$HOME/.venv/bin/python" --version || { sysLogger e "Venv missing or corrupted"; return 1 ;}
+
+        source "$HOME/.venv/bin/activate" || { sysLogger e "Failed to activate venv"; }
+    }
+
+
+    if [ "$extension" != 'py' ] || [ ! -f "$pyScript" ] ; then sysLogger e "Not a python script"; return 1; fi
+
+    if [ ! -d "$venvPath" ]; then sysLogger w "Venv not found in expected path: $venvPath , creating..."; createVenv; fi
+
+        
+    #### Suppress 'No such file' stderr
+    source "$HOME/.venv/bin/activate" 2>/dev/null || venvRecheck 
+
+    python "$1"; deactivate
 }
 
 ##################################################
