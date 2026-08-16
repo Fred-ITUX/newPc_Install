@@ -1,6 +1,13 @@
 #!/bin/bash
 
-if [ -f "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common" ; fi
+brokenEnv=false
+
+if [ -f "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
+
+if $brokenEnv; then
+    echo -e "[CRITICAL ERROR] Enviroment degraded, functions disabled"
+    return 1
+fi;
 
 userCheck
 
@@ -26,19 +33,21 @@ bashUpd(){
 shutdown_routine(){
     "$LXscripts/Shortcuts/night_light.sh" off
     echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
-    if [ -f "$HOME/.bash_history" ]; then sudo rm "$HOME/.bash_history"; fi
+    
+    if [ -f "$HOME/.bash_history" ]; then rm "$HOME/.bash_history"; fi
     killp15 "brave" &
     killp15 "chrome" &
     sleep 1s
+
     if [ "$pc" == "$main" ]; then
-        kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" #### rm kden bkp to avoid stacking
+        local kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" #### rm kden bkp to avoid stacking
 
         #### Turn off the monitors
         #### 01 -- On   |   05 -- Off   |   04 -- Standby / Sleep
         ddcutil --display 1 setvcp d6 04
         # ddcutil --display 2 setvcp d6 05
 
-        if [ -d "$kdenBkpDir" ]; then sudo rm -rf "$kdenBkpDir"; fi; fi
+        if [ -d "$kdenBkpDir" ]; then rm -rf "$kdenBkpDir"; fi; fi
 }
 
 
@@ -47,11 +56,13 @@ shutdown(){
     sudo shutdown now
 }
 
+
 reboot(){
     read -r -p ''
     shutdown_routine
     sudo reboot now
 }
+
 
 end(){
     read -r -p ''
@@ -78,7 +89,7 @@ sysUPD(){
     local completeLog="$UPD_path/UPD_completeLog.log"
 
     #### Retain full log
-    local strtp_full="$pathStartupUpdaterFull"
+    local strtp_full="$(get_pathStartupUpdaterFull)"
 
     echo -n > "$fixPkg" ; echo -n > "$update" ; echo -n > "$upgrade" ; echo -n > "$flatpakUpdt" ; echo -n > "$cleanup" ; echo -n > "$completeLog"
 
@@ -250,25 +261,33 @@ systemInfo(){
 
 BKP_nxt(){
     if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
+    
     elif [ -n "$1" ] && [ -d "$1" ]; then
-        7z a -mmt=8 "$1/bkp_nextcloud_$(get_file_date).zip" "$HOME/Nextcloud"
-        sysLogger i "Created $1/bkp_nextcloud_$(get_file_date).zip"
+        local zipFile="$1/bkp_nextcloud_$(get_file_date).zip"
+
+        7z a -mmt=8 "$zipFile" "$HOME/Nextcloud"
+        sysLogger i "Created $zipFile"
+    
     else sysLogger e "Not a valid path: $1"; fi
 }
 
 
 BKP_home(){
     if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
+    
     elif [ -n "$1" ] && [ -d "$1" ]; then
-        7z a -mmt=8 "$1/homebkp_$(get_file_date).zip"  $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
-        sysLogger i "Created $zipName"
+        local zipFile="$1/bkp_nextcloud_$(get_file_date).zip"
+
+        7z a -mmt=8 "$zipFile"  $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
+        sysLogger i "Created $zipFile"
+        
     else sysLogger e "Not a valid path: $1"; fi
 }
 
 ##################################################
 
 extract(){
-    local file="$1"; local mmt=6
+    local file="${1:-}"; local mmt=8
 
     if [[ "$file" == "a" ]]; then files=(*.zip *.7z *.tar *.tar.gz *.rar); elif [[ -n "$file" ]]; then files=("$file"); fi
 
@@ -330,24 +349,32 @@ stopwatch(){
 
 ##################################################
 
+
 killp9(){
-    local process="$1"
+    local process="${1:-}"
     local pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
 
-    for pid in "${pids[@]}"; do
-        sysLogger i "Killing process - $process: $pid"
-        sudo kill -9 "$pid"
-    done
+    if [ -n "$process" ]; then
+        for pid in "${pids[@]}"; do
+            sysLogger i "Killing process - $process: $pid"
+            sudo kill -9 "$pid"
+        done    
+    else sysLogger e "No process passed"
+    fi    
 }
 
+
 killp15(){
-    local process="$1"
+    local process="${1:-}"
     local pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
 
-    for pid in "${pids[@]}"; do
-        sysLogger i "Killing process - $process: $pid"
-        sudo kill -15 "$pid"
-    done
+    if [ -n "$process" ]; then
+        for pid in "${pids[@]}"; do
+            sysLogger i "Killing process - $process: $pid"
+            sudo kill -15 "$pid"
+        done    
+    else sysLogger e "No process passed"
+    fi    
 }
 
 ##################################################
@@ -361,7 +388,12 @@ latexSET(){
 }
 
 latexUPD(){
-    local latexFile="$HOME/$1"
+    local latexFile="${1:-}"
+
+    if [ ! -f "$latexFile" ]; then 
+        echo -e "No file selected"; return 1    
+    else latexFile="$HOME/$latexFile"; fi
+
     cd $(dirname "$latexFile")       ####  LaTeX dumps the files to the current working directory
     
     local latexPdf=$(echo -e "$latexFile" | awk '{$1=$1; gsub(/\.tex/, "") ; print}' )

@@ -116,7 +116,7 @@ py(){
     #### Suppress 'No such file' stderr
     source "$HOME/.venv/bin/activate" 2>/dev/null || venvRecheck 
 
-    python "$1"; deactivate
+    python "$pyScript"; deactivate
 }
 
 ##################################################
@@ -134,7 +134,9 @@ sysLogger(){
     local logBody="${2:-}"
     local caller="${FUNCNAME[1]:-MAIN}"
     logType=$( echo -e "$logType" | tr '[:lower:]' '[:upper:]' )
+    
     declare -a options=('W' 'I' 'E' 'DEBUG')
+
     if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1; fi
 
     case "$logType" in
@@ -201,7 +203,7 @@ stringFullStrip(){ #### Removes multiple spaces in between too
     local string="${1:-}"
 
     if [ -n "$string" ]; then
-        string=$( echo -e "$testString" | awk '{$1=$1;print}' ) #### / awk '{$1=$1};1'
+        string=$( echo -e "$string" | awk '{$1=$1;print}' ) #### / awk '{$1=$1};1'
         echo -e "$string"
 
     else echo -e "Usage VAR=\$( stringStrip \$STRING )"; fi
@@ -284,7 +286,7 @@ LXlogs="$HOME/Nextcloud/Linux/log"
 
 pathStartupUpdaterClean="$HOME/Nextcloud/Linux/log/startup_updater.log"
 
-pathStartupUpdaterFull="$HOME/Nextcloud/Linux/log/adv_everyday/upd_"$(get_file_date)".log"
+get_pathStartupUpdaterFull(){ echo -e "$HOME/Nextcloud/Linux/log/adv_everyday/upd_"$(get_file_date)".log"; } #### 
 
 pathManualUpd="$LXlogs/manual_updater.log" 
 
