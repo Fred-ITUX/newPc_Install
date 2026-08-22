@@ -2,41 +2,97 @@
 
 ################################################################################################
 
-osname=$(grep -oP '(?<=^NAME=)"?[^"]+' /etc/os-release | sed 's/^"//' | sed 's/linux //i' | tr '[:upper:]' '[:lower:]')
+sessionType="${XDG_SESSION_TYPE:-unknown}"
 
-sessionType="$XDG_SESSION_TYPE"
+DEBUG="${DEBUG:-false}" 
+
+
+################################################################################################
+####                            Scripts path
+
+LXscripts="$HOME/Nextcloud/Linux/scripts"
+
+PYscripts="$HOME/Nextcloud/Python/scripts"
+
+
+####                            Logs path
+
+LXlogs="$HOME/Nextcloud/Linux/log"
+
+pathStartupUpdaterClean="$HOME/Nextcloud/Linux/log/startup_updater.log"
+
+get_pathStartupUpdaterFull(){ echo "$HOME/Nextcloud/Linux/log/adv_everyday/upd_"$(get_file_date)".log"; } 
+
+pathManualUpd="$LXlogs/manual_updater.log" 
+
+pathROOTKIT="$LXlogs/rk_scan.log"
+
+pathCLAMSCAN="$LXlogs/clamav_scan.log"
+
+ufw_log_check="$LXlogs/ufw_log_check.log"
+
+repoPushLog="$LXlogs/startup_repo_push.log"
+
+logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
+
+################################################################################################
+
+
+
+
+
+################################################################################################
+####                            Bluetooth devices
+
+#### Sony WH-CH720N
+bluetoothHeadset="00:A4:1C:04:E1:1F"
+
+#### Earbuds / in-ear other bluetooth devices -- TWS
+bletoothInEar=""
+
+#### Other bluetooth controllers
+bluetoothController=""
+
+#### Only ps5 controller
+ps5Controller="24:A6:FA:8B:8A:B9"
+
+################################################################################################
+
 
 userCheck(){
-    host=$(hostname)
-    main="federico"
-    laptop="federico-HP"
+    local host="$HOSTNAME"
+    hostMain="federico"
 
-    #### PC
-    if [ "$host" == "$main" ]; then
-        pc="$main"
-        pid_log_file="$LXlogs/pids_main.log"
-    
-    #### Laptop
-    elif [ "$host" != "$main" ]; then
-        pc="$laptop"
-        pid_log_file="$LXlogs/pids_laptop.log"
-    fi
+    host=$(stringNormalizeLow "$host")
+
+    case "$host" in
+        federico) pc="$hostMain" ; pid_log_file="$LXlogs/pids_main.log" ;;
+        federico-hp) pc="$host"; pid_log_file="$LXlogs/pids_extra.log" ;;
+
+        *) pc="unknown"; pid_log_file="$LXlogs/pids_unknown.log" ;;
+    esac 
 }
 
 
-##################################################
+get_osname(){
+    source /etc/os-release
+    local sourcedName="${PRETTY_NAME,,}"
+    
+    local o=$( stringNormalizeLow "$sourcedName" | sed 's/linux//' )
+    osname=$( stringNormalizeNoBlanks "$o" )
+}
 
 
-get_formatted_date(){ date +%a\ %b\ %d\ %Y\ %H:%M:%S ; } #### python %a %b %d %Y %H:%M:%S
+get_formatted_date(){ date "+%a %b %d %Y %H:%M:%S" ; } #### python %a %b %d %Y %H:%M:%S
 
 
-get_date_comparison(){ date +%a\ %b\ %d ; }
+get_date_comparison(){ date "+%a %b %d" ; }
 
 
-get_file_date(){ date +%Y\-%m-\%d\_%H-\%M-\%S ; }    #### python %Y-%m-%d_%H-%M-%S
+get_file_date(){ date "+%Y-%m-%d_%H-%M-%S" ; }    #### python %Y-%m-%d_%H-%M-%S
 
 
-get_logger_date(){ date +%Y\-%m-\%d\ %H:\%M:\%S ; } #### date "+%F %T"
+get_logger_date(){ date "+%Y-%m-%d %H:%M:%S" ; } #### date "+%F %T"
 
 
 check_day_type(){
@@ -48,11 +104,13 @@ check_day_type(){
 ##################################################
 
 getSysInfoStart(){
+userCheck
+get_osname
 echo -e "
 ________________________________________________________ 
 \t
 Start time :  "$(get_formatted_date)"
-    Running for:  $(whoami)@$osname [$(hostname)]"
+    Running for:  $(whoami)@$osname [$pc]"
 }
 
 
@@ -77,7 +135,7 @@ createVenv(){
         source "$HOME/.venv/bin/activate"
 
         if [ -s "$HOME/Nextcloud/Python/requirements.txt" ]; then
-            pip install -r "$HOME/Nextcloud/Python/requirements.txt"
+            pip install -r "$HOME/Nextcloud/Python/requirements.txt" || { sysLogger e "requirements.txt install failed"; deactivate; return 1; } 
         
         else sysLogger e "No requirements.txt found, skipping package install" ; fi
 
@@ -116,14 +174,14 @@ py(){
     #### Suppress 'No such file' stderr
     source "$HOME/.venv/bin/activate" 2>/dev/null || venvRecheck 
 
-    python "$pyScript"; deactivate
+    python "$pyScript"; deactivate 2>/dev/null || true
 }
 
 ##################################################
 
 
 raiseAlarm(){
-    logCheck="${1:-}"
+    local logCheck="${1:-}"
     if [ -f "$logCheck" ]; then gedit "$logCheck" > /dev/null 2>&1 & fi
     vlc "$logCheckerAlarm" --gain 0.3 > /dev/null 2>&1 &
 }
@@ -203,8 +261,8 @@ stringFullStrip(){ #### Removes multiple spaces in between too
     local string="${1:-}"
 
     if [ -n "$string" ]; then
-        string=$( echo -e "$string" | awk '{$1=$1;print}' ) #### / awk '{$1=$1};1'
-        echo -e "$string"
+        string=$( echo "$string" | awk '{$1=$1;print}' ) #### / awk '{$1=$1};1'
+        echo "$string"
 
     else echo -e "Usage VAR=\$( stringStrip \$STRING )"; fi
 }
@@ -256,7 +314,7 @@ stringNormalizeNoBlanks(){
     if [ -n "$string" ]; then
         string=$( stringFullStrip "$string" )
         string=$( stringLower "$string" )
-        string=$( echo -e "$string" | tr ' ' '_' )
+        string=$( echo "$string" | tr ' ' '_' )
         echo "$string"
 
     else echo -e "Usage VAR=\$( stringNormalizeNoBlanks \$STRING )"; fi
@@ -264,76 +322,3 @@ stringNormalizeNoBlanks(){
 
 
 ################################################################################################
-
-
-
-
-
-
-
-
-################################################################################################
-####                            Scripts path
-
-LXscripts="$HOME/Nextcloud/Linux/scripts"
-
-PYscripts="$HOME/Nextcloud/Python/scripts"
-
-
-####                            Logs path
-
-LXlogs="$HOME/Nextcloud/Linux/log"
-
-pathStartupUpdaterClean="$HOME/Nextcloud/Linux/log/startup_updater.log"
-
-get_pathStartupUpdaterFull(){ echo -e "$HOME/Nextcloud/Linux/log/adv_everyday/upd_"$(get_file_date)".log"; } #### 
-
-pathManualUpd="$LXlogs/manual_updater.log" 
-
-pathROOTKIT="$LXlogs/rk_scan.log"
-
-pathCLAMSCAN="$LXlogs/clamav_scan.log"
-
-ufw_log_check="$LXlogs/ufw_log_check.log"
-
-repoPushLog="$LXlogs/startup_repo_push.log"
-
-logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
-
-################################################################################################
-
-
-
-
-
-################################################################################################
-####                            Bluetooth devices
-
-getActiveDevice(){
-    for device in "$@"; do
-
-        deviceInfo=$(bluetoothctl info "$device")
-
-        isAvailable=$(echo -e "$deviceInfo" | grep -i "not available")
-        isConnected=$(echo -e "$deviceInfo" | grep -i "Connected: yes")
-
-        if [ ! -z "$isAvailable" ]; then device=""  ; break ;
-        else activeDevice="$device"; fi      
-    done
-}
-
-#### Sony WH-CH720N
-bluetoothHeadset="00:A4:1C:04:E1:1F"
-
-#### Earbuds / in-ear other bluetooth devices -- TWS
-bletoothInEar=""
-
-#### Other bluetooth controllers
-bluetoothController=""
-
-#### Only ps5 controller
-ps5Controller="24:A6:FA:8B:8A:B9"
-
-################################################################################################
-
-

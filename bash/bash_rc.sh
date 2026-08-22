@@ -16,8 +16,8 @@ HISTFILESIZE=1000
 brokenEnv=false
 
 
-if [ -f "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
 if [ -f "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
+if [ -f "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
 
 #### Enable bash completion if available
 if [ -f /usr/share/bash-completion/bash_completion ]; then source /usr/share/bash-completion/bash_completion; fi
@@ -27,19 +27,10 @@ if [ -f /usr/share/bash-completion/bash_completion ]; then source /usr/share/bas
 debian_chroot_part='${debian_chroot:+($debian_chroot)}'         #### Show chroot if applicable
 user_color='\[\033[01;31m\]'                                    #### Bold red
 host_color='\[\033[01;31m\]'                                    #### Bold red
-# path_color='\[\033[01;34m\]'                                    #### Bold blue
 path_color='\[\033[38;5;81m\]'                                  #### Cyan
-# path_color='\[\033[38;5;71m\]'                                  #### Green
 reset_color='\[\033[00m\]'                                      #### Reset to default color
 prompt_char='\$'                                                #### '$' for regular users, '#' for root
 
-
-#### host@user
-#PS1="${debian_chroot_part}${user_color}\u@\h${reset_color}:${path_color}\w${reset_color}${prompt_char} "
-
-#### host@os (lower os name)
-# PS1="${debian_chroot_part}${user_color}\u@${osname}${reset_color}:${path_color}\w${reset_color}${prompt_char} "
-# PS1='\[\033[38;5;208m\]\u\[\033[0m\]@\[\033[38;5;39m\]${osname}\[\033[0m\]:\[\033[38;5;118m\]\W\[\033[0m\]  '
 
 PS1="${path_color}\w${reset_color} \[\033[38;5;240m\]>\[\033[0m\] "
 

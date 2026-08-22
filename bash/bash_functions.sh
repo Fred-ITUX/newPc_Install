@@ -39,7 +39,7 @@ shutdown_routine(){
     killp15 "chrome" &
     sleep 1s
 
-    if [ "$pc" == "$main" ]; then
+    if [ "$pc" == "$hostMain" ]; then
         local kdenBkpDir="$HOME/Videos/Edit/Kden/kdenFiles/data/kdenlive/.backup" #### rm kden bkp to avoid stacking
 
         #### Turn off the monitors
