@@ -272,6 +272,19 @@ BKP_nxt(){
 }
 
 
+BKP_nxt_scripts(){
+    if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
+    
+    elif [ -n "$1" ] && [ -d "$1" ]; then
+        local zipFile="$1/bkp_nextcloud_$(get_file_date).zip"
+
+        7z a -mmt=8 "$zipFile" "$HOME/Nextcloud/Linux" "$HOME/Nextcloud/Python"
+        sysLogger i "Created $zipFile"
+    
+    else sysLogger e "Not a valid path: $1"; fi
+}
+
+
 BKP_home(){
     if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
     

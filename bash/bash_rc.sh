@@ -23,16 +23,12 @@ if [ -f "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else ech
 if [ -f /usr/share/bash-completion/bash_completion ]; then source /usr/share/bash-completion/bash_completion; fi
 
 
-# Prompt components --- ANSI color codes
-debian_chroot_part='${debian_chroot:+($debian_chroot)}'         #### Show chroot if applicable
-user_color='\[\033[01;31m\]'                                    #### Bold red
-host_color='\[\033[01;31m\]'                                    #### Bold red
-path_color='\[\033[38;5;81m\]'                                  #### Cyan
-reset_color='\[\033[00m\]'                                      #### Reset to default color
-prompt_char='\$'                                                #### '$' for regular users, '#' for root
+#### Prompt components --- ANSI color codes
+path_color='\[\033[38;5;81m\]'
+reset_color='\[\033[00m\]'
+grey_color='\[\033[38;5;240m\]'
 
-
-PS1="${path_color}\w${reset_color} \[\033[38;5;240m\]>\[\033[0m\] "
+PS1="${path_color}\w${reset_color} ${grey_color}>${reset_color} "
 
 
 
@@ -60,6 +56,7 @@ if $brokenEnv; then
     echo -e "[CRITICAL ERROR] Enviroment degraded, path-dependent aliases disabled"
 
 else
+
 	alias pswd="py $PYscripts/passwd_gen.py"
 
 	alias percentage="py $PYscripts/perc_calc.py"
@@ -88,4 +85,3 @@ else
 	alias convMkv="py $PYscripts/FileModder/mkv_converter.py"
 	alias convMetric="py $PYscripts/measure_unit_converter.py"
 fi
-
