@@ -81,6 +81,8 @@ sysUPD(){
 
     local outputLog="${1:-}"
 
+    if [ -z "$outputLog" ]; then sysLogger e "sysUPD requires an output log path"; return 1; fi
+
     local fixPkg="$UPD_path/UPD_fixPkg.log"
     local update="$UPD_path/UPD_update.log"
     local upgrade="$UPD_path/UPD_upgrade.log"
@@ -160,12 +162,14 @@ sysUPD(){
     getSysInfoStart >> "$completeLog"
     getSysInfoStart >> "$strtp_full"
 
+
     UPD_fix
     UPD_updater
     UPD_upgrade
     UPD_flatpak
     UPD_cleanup
     UPD_fix
+
 
     #### Indent text to allow fold per-day
     sed 's/^/\t/' -i "$fixPkg"
@@ -181,7 +185,7 @@ sysUPD(){
     cat "$flatpakUpdt"  >> "$strtp_full" 
     cat "$cleanup"      >> "$strtp_full" 
     getSysInfoEnd       >> "$strtp_full"
-    
+
 
     local content_fixPkg=$( cat "$fixPkg" | grep -iE "0 upgraded, 0 newly installed, 0 to remove" )
     local content_update=$( cat "$update" | grep -iE "WARN|ERR|ERROR|REMOVED" )
@@ -195,7 +199,7 @@ sysUPD(){
 
     echo -e "$completeLog" | py "$LXscripts/Startup_Routine/log_cleaner.py" 
 
-    cat "$completeLog" >> "$1"
+    cat "$completeLog" >> "$outputLog"
 } 
 
 
@@ -464,10 +468,10 @@ orion-uninstall(){
 allRepoPush(){
     local scripts=$(find "$LXscripts/Github" -maxdepth 1 -type f -name  "*_update.sh" )
     
-    for script in $scripts; do
+    for script in "$scripts"; do
         sysLogger i "Running -- $(basename "$script")" && bash "$script"
-        if [ $? -ne 0 ]; then sysLogger e "$(basename "$script") failed!"; fi done
-    sysLogger i "Repo update done."
+        if [ $? -ne 0 ]; then sysLogger e "$(basename "$script") failed"; fi done
+    sysLogger i "Repo update done"
 }
 
 ##################################################
