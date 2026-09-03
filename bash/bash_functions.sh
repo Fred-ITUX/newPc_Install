@@ -2,7 +2,7 @@
 
 brokenEnv=false
 
-if [ -f "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
+if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
 
 if $brokenEnv; then
     echo -e "[CRITICAL ERROR] Enviroment degraded, functions disabled"
@@ -35,8 +35,8 @@ shutdown_routine(){
     echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
     
     if [ -f "$HOME/.bash_history" ]; then rm "$HOME/.bash_history"; fi
-    killp15 "brave" &
-    killp15 "chrome" &
+    killp "15" "brave" &
+    killp "15" "chrome" &
     sleep 1s
 
     if [ "$pc" == "$hostMain" ]; then
@@ -58,15 +58,14 @@ shutdown(){
 
 
 reboot(){
-    read -r -p ''
+    read -r -p 'To reboot press enter'
     shutdown_routine
     sudo reboot now
 }
 
 
 end(){
-    read -r -p ''
-    shutdown_routine
+    read -r -p 'To shut down press enter'
     shutdown
 }
 
@@ -116,7 +115,7 @@ sysUPD(){
 
     UPD_flatpak(){
         echo -e "\n• Flatpak update: \n" 
-        sudo flatpak update -y 
+        flatpak update -y --user; sudo flatpak update -y --system
     } > "$flatpakUpdt"
 
 
@@ -168,7 +167,6 @@ sysUPD(){
     UPD_upgrade
     UPD_flatpak
     UPD_cleanup
-    UPD_fix
 
 
     #### Indent text to allow fold per-day
@@ -197,7 +195,7 @@ sysUPD(){
 
     getSysInfoEnd >> "$completeLog"
 
-    echo -e "$completeLog" | py "$LXscripts/Startup_Routine/log_cleaner.py" 
+    py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
 
     cat "$completeLog" >> "$outputLog"
 } 
@@ -258,7 +256,7 @@ systemInfo(){
     }
 
     #### Bold title ---- New lines inserted to fold the function
-    echo -e "\033[1mSystem Info:\033[0m $(get_formatted_date) \nOS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \") \nKernel: $(uname -r) \nUptime: $(uptime -p | sed 's/up //') \nPackages: $(dpkg -l | wc -l) \nFlatpak pkg: $(flatpak list  | wc -l) \nShell: $(get_shell_version) \nDE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_gnome_version) \nSession: ${XDG_SESSION_TYPE:-unknown} \nWM: $(get_wm) \nCompositor: $(get_compositor) \nTheme: $(get_gtk_theme) \nIcons: $(get_icon_theme) \nFont: $(get_font_name) \nCPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//') \nGPU: $(lspci | grep VGA | cut -d: -f3 | xargs) \nRAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}') \nSWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
+    echo -e "\033[1mSystem Info:\033[0m $(get_formatted_date) \nOS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \") \nKernel: $(uname -r) \nUptime: $(uptime -p | sed 's/up //') \nPackages: $(dpkg-query -f '.\n' -W 2>/dev/null | wc -l) \nFlatpak pkg: $(flatpak list  | wc -l) \nShell: $(get_shell_version) \nDE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_gnome_version) \nSession: ${XDG_SESSION_TYPE:-unknown} \nWM: $(get_wm) \nCompositor: $(get_compositor) \nTheme: $(get_gtk_theme) \nIcons: $(get_icon_theme) \nFont: $(get_font_name) \nCPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//') \nGPU: $(lspci | grep VGA | cut -d: -f3 | xargs) \nRAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}') \nSWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
 }
 
 ##################################################
@@ -304,7 +302,7 @@ BKP_home(){
 ##################################################
 
 extract(){
-    local file="${1:-}"; local mmt=8
+    local file="${1:-}"; local mmt=8; local files
 
     if [[ "$file" == "a" ]]; then files=(*.zip *.7z *.tar *.tar.gz *.rar); elif [[ -n "$file" ]]; then files=("$file"); fi
 
@@ -317,8 +315,9 @@ extract(){
         case "$file" in 
             *.zip)     7z x -mmt="$mmt" "$file" ;; 
             *.7z)      7z x -mmt="$mmt" "$file" ;;
-            *.tar)     tar -xvf "$file" ;;
             *.tar.gz)  tar -xvzf "$file" ;;
+            *.tar|*.tar.*|*.tgz|*.tbz2|*.txz) tar -xf "$file" ;;
+            
             *.rar)     7z x -mmt="$mmt" "$file" ;; #### -mmt... -p"" file for password archives
             *)         sysLogger e "Unsupported file type: $file" ;;
         esac
@@ -327,31 +326,9 @@ extract(){
 
 ##################################################
 
-alarm(){
-    local timeAmount="$1"; local total_seconds=$((timeAmount * 60))  #### alarm in minutes
-
-    echo -e "⏰ Starting timer: ${timeAmount} minute(s)"
-    sleep 1s
-
-    #### Clean output in terminal at each iteration
-    while (( total_seconds > 0 )); do
-        mins=$(( total_seconds / 60 ))
-        secs=$(( total_seconds % 60 ))
-
-        printf "\r⏳ Time left: %02d:%02d " "$mins" "$secs"
-
-        sleep 1s
-        (( total_seconds-- ))
-    done
-
-    printf "\r%*s\r" "$(tput cols)" "" #### Clear line + newline before playing sound
-    cvlc "$HOME/Nextcloud/Linux/Stuff/alarm.mp3" #--gain=1
-}
-
-##################################################
-
 stopwatch(){
-    local time=0
+    local time="0"
+    [[ "$time" =~ ^[0-9]+$ ]] || { sysLogger e "Usage: alarm <minutes>"; return 1; }
     echo -e "⏰ Starting stopwatch: $(get_formatted_date)\n"
 
     while true; do
@@ -366,32 +343,16 @@ stopwatch(){
 
 ##################################################
 
-
-killp9(){
-    local process="${1:-}"
-    local pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
-
-    if [ -n "$process" ]; then
-        for pid in "${pids[@]}"; do
-            sysLogger i "Killing process - $process: $pid"
-            sudo kill -9 "$pid"
-        done    
-    else sysLogger e "No process passed"
-    fi    
-}
-
-
-killp15(){
-    local process="${1:-}"
-    local pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
+killp(){
+    local sig="${1:-15}"; local process="${2:-}"
+	local pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
 
     if [ -n "$process" ]; then
         for pid in "${pids[@]}"; do
             sysLogger i "Killing process - $process: $pid"
-            sudo kill -15 "$pid"
+            kill -"$sig" "$pid"
         done    
-    else sysLogger e "No process passed"
-    fi    
+    else sysLogger e "No process passed"; fi    
 }
 
 ##################################################
@@ -407,11 +368,9 @@ latexSET(){
 latexUPD(){
     local latexFile="${1:-}"
 
-    if [ ! -f "$latexFile" ]; then 
-        echo -e "No file selected"; return 1    
-    else latexFile="$HOME/$latexFile"; fi
+    if [ ! -f "$latexFile" ]; then echo -e "No file selected"; return 1; fi
 
-    cd $(dirname "$latexFile")       ####  LaTeX dumps the files to the current working directory
+    cd "$(dirname "$latexFile")"       ####  LaTeX dumps the files to the current working directory
     
     local latexPdf=$(echo -e "$latexFile" | awk '{$1=$1; gsub(/\.tex/, "") ; print}' )
     flatpak run org.kde.okular "$latexPdf.pdf" &
@@ -434,8 +393,11 @@ latexUPD(){
 
 ##################################################
 
-minecraft(){                
+minecraft(){
     local mcFolder="/media/federico/SSD1TB/minecraft"
+    
+    if [ ! -f "$mcFolder/launcher/TLauncher.jar" ]; then sysLogger e "TLauncher.jar not found"; fi
+
     nemo --tabs "$mcFolder/curseforge" "$mcFolder/curseforge/curse_minecraft/Instances" "$mcFolder/versions" "$HOME/Nextcloud/Games/Minecraft" &
     gamemoderun java -jar "$mcFolder/launcher/TLauncher.jar" 
 }
@@ -466,12 +428,17 @@ orion-uninstall(){
 ##################################################
 
 allRepoPush(){
-    local scripts=$(find "$LXscripts/Github" -maxdepth 1 -type f -name  "*_update.sh" )
-    
-    for script in "$scripts"; do
-        sysLogger i "Running -- $(basename "$script")" && bash "$script"
-        if [ $? -ne 0 ]; then sysLogger e "$(basename "$script") failed"; fi done
-    sysLogger i "Repo update done"
+	shopt -s nullglob
+	local script rc=0
+
+		for script in "$LXscripts"/Github/*_update.sh; do
+			sysLogger i "Running -- $(basename "$script")"
+			if ! bash "$script"; then sysLogger e "$(basename "$script") failed"; rc=1; fi
+		done
+	shopt -u nullglob
+	return "$rc"
+
+	sysLogger i "Repo update done"
 }
 
 ##################################################

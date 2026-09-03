@@ -9,15 +9,24 @@ esac
 
 #### History settings
 HISTCONTROL=ignoreboth
-HISTSIZE=1000
-HISTFILESIZE=1000  
+HISTSIZE=10000
+HISTFILESIZE=10000
+HISTTIMEFORMAT='%F %T  '
+shopt -s histappend
+shopt -s checkwinsize
+
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'
+
+export EDITOR="${EDITOR:-nano}"
+export VISUAL="$EDITOR"
 
 
 brokenEnv=false
 
 
-if [ -f "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
-if [ -f "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
+if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
+if [ -s "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
 
 #### Enable bash completion if available
 if [ -f /usr/share/bash-completion/bash_completion ]; then source /usr/share/bash-completion/bash_completion; fi
@@ -27,9 +36,12 @@ if [ -f /usr/share/bash-completion/bash_completion ]; then source /usr/share/bas
 path_color='\[\033[38;5;81m\]'
 reset_color='\[\033[00m\]'
 grey_color='\[\033[38;5;240m\]'
+parse_git_branch(){ git branch --show-current 2>/dev/null | sed 's/.*/ (&)/'; }
 
-PS1="${path_color}\w${reset_color} ${grey_color}>${reset_color} "
+# PS1="${path_color}\w${reset_color} ${grey_color}>${reset_color} "
+PS1="${path_color}\w\[\033[38;5;178m\]\$(parse_git_branch)${grey_color} >${reset_color} "
 
+if $brokenEnv; then PS1="\[\033[41m\][DEGRADED]\[\033[0m\] $PS1 "; fi
 
 
 ##################################################
@@ -47,7 +59,7 @@ alias c='clear'
 alias e='exit'
 alias addx='chmod +x'
 
-alias cp2="rsync -ah --progress -r"     #### Single-threaded copy with ETA
+alias cp2="rsync -ah --progress"     	#### Single-threaded copy with ETA
 alias zip2="7z a -mmt=8"                #### Compress with limited cores
 
 
@@ -65,8 +77,6 @@ else
 
 	alias test-py="py $HOME/Nextcloud/Linux/scripts/Other/test.py"
 	alias test-sh="$HOME/Nextcloud/Linux/scripts/Other/test.sh"
-
-
 
 	#### kden
 	alias kden="$HOME/Nextcloud/Kden/scripts/kden_custom_launch.sh"
