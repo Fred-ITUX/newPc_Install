@@ -195,7 +195,10 @@ sysUPD(){
 
     getSysInfoEnd >> "$completeLog"
 
-    py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
+
+    echo "$completeLog" | py "$LXscripts/Startup_Routine/log_cleaner.py" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
+
+    # py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
 
     cat "$completeLog" >> "$outputLog"
 } 
