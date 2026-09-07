@@ -1,46 +1,69 @@
 #!/bin/bash
+set -euo pipefail
+
+exec > >(tee -a /var/log/$(date "+%Y-%m-%d_%H-%M-%S")_newpc-setup.log) 2>&1
 
 
 user=${SUDO_USER:-$(whoami)}
 
-#### Ensure sudo run
-if [[ $EUID -ne 0 ]]; then
-    echo "Please run this script with sudo."
-    exit 1
-fi
+repo="https://github.com/Fred-ITUX/newPc_Install"
+
+[ "${SUDO_USER:-}" ] || { echo "Run via sudo as your normal user, not as root" >&2; exit 1; }
+
+user="$SUDO_USER"
+
+[[ "$user" =~ ^[a-z_][a-z0-9_-]*$ ]] || { echo "Unsafe username: $user" >&2; exit 1; }
+
+id -- "$user" >/dev/null 2>&1 || { echo "No such user: $user" >&2; exit 1; }
+
+sudoers_file="/etc/sudoers.d/10-${user}-nopasswd"
 
 
-sudoers_file="/etc/sudoers.d/$user"
 
-#### Add user to sudoers
-echo "$user ALL=(ALL) NOPASSWD:ALL" | tee "$sudoers_file"
 
-#### Set correct permissions
-chmod 440 "$sudoers_file"
+cat <<EOF
+The script is about to:
+  • grant $user passwordless sudo for ALL commands (permanent)
+  • clone Fred-ITUX/newPc_Install into $userHome
+  • run newPc_Install.sh, which installs ~50 apt + 35 flatpak packages,
+    purges ~65 packages, creates a swapfile, and REBOOTS
+EOF
+read -r -p "Type 'yes' to proceed: " ans
+[ "$ans" = yes ] || exit 1
 
-#### Validate sudoers syntax
-visudo -c
 
-if [[ $? -eq 0 ]]; then
-    echo "Sudo privileges granted successfully for $user."
+
+
+#### Check a candidate file in isolation, then install atomically
+tmp=$(mktemp) || exit 1
+
+printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$user" > "$tmp"
+
+if visudo -cf "$tmp"; then
+    install -m 0440 -o root -g root "$tmp" "$sudoers_file"
 else
-    echo "Error: Invalid sudoers syntax! Removing file..."
-    rm "$sudoers_file"
-    exit 1
+    echo "Refusing to install invalid sudoers rule" >&2; rm -f "$tmp"; exit 1
 fi
 
+rm -f "$tmp"
 
 
+timeout 10 getent hosts github.com >/dev/null || { echo "No network / DNS. Aborting" >&2; exit 1; }
 
 
-
-#### Git clone repo script && script exec 
-sudo apt install git -y
-cd $HOME
-git clone https://github.com/Fred-ITUX/newPc_Install
-cd $HOME/newPc_Install/
-sudo find $HOME/newPc_Install/ -type f -name "*.sh" -exec chmod +x {} +
+#### Install git if not already present
+apt update || { echo "Apt update failed, not continuing with stale package index"; exit 1; }
+apt install git -y || { echo "Git install failed. No point in keeping execution, exiting"; exit 1; }
 
 
-#### Launch the script
-$HOME/newPc_Install/newPc_Install.sh
+#### Resolve the real user's home and run the installer as that user, escalating per-command
+userHome=$(getent passwd "$user" | cut -d: -f6)
+
+[ -d "$userHome" ] || { echo "No home dir for $user" >&2; exit 1; }
+
+#### Then clone repo script && script exec 
+sudo -u "$user" git clone --depth 1 "$repo" "$userHome/newPc_Install"
+
+sudo -u "$user" find "$userHome/newPc_Install" -type f -name '*.sh' -exec chmod +x {} +
+
+sudo -u "$user" "$userHome/newPc_Install/newPc_Install.sh"

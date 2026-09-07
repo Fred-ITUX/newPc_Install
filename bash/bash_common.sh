@@ -106,8 +106,7 @@ check_day_type(){
 getSysInfoStart(){
 userCheck
 get_osname
-echo -e "
-________________________________________________________ 
+echo -e "________________________________________________________ 
 \t
 Start time :  "$(get_formatted_date)"
     Running for:  $(whoami)@$osname [$pc]"
@@ -124,57 +123,67 @@ End time   :  $(get_formatted_date)
 ##################################################
 
 createVenv(){
-    if [ -d "$HOME/.venv" ]; then sysLogger e "venv already present, not creating"
+    local venvPath="$HOME/.venv"
+    local requirements="$HOME/Nextcloud/Python/requirements.txt"
 
-    else
+    if [ -d "$venvPath" ]; then sysLogger e "venv already present, not creating"; return 0; fi
 
-        sysLogger i "Creating venv $HOME/.venv \n"
+    sysLogger i "Creating venv $venvPath \n"
 
-        python3 -m venv "$HOME/.venv"
+    python3 -m venv "$venvPath" || { sysLogger e "venv creation failed (is python3-venv installed?)"; return 1; }
 
-        source "$HOME/.venv/bin/activate"
+    source "$venvPath/bin/activate" || { sysLogger e "Cannot activate the venv just created"; return 1; }
 
-        if [ -s "$HOME/Nextcloud/Python/requirements.txt" ]; then
-            pip install -r "$HOME/Nextcloud/Python/requirements.txt" || { sysLogger e "requirements.txt install failed"; deactivate; return 1; } 
-        
-        else sysLogger e "No requirements.txt found, skipping package install" ; fi
+    if [ -s "$requirements" ]; then
+        pip install -r "$requirements" || { sysLogger e "requirements.txt install failed"; deactivate 2>/dev/null || true; return 1; }
 
-        echo -e "\n\n $(pip list) \n\n\n" 
-        deactivate; fi
+    else sysLogger e "No requirements.txt found, skipping package install"; fi
+
+    echo -e "\n\n $(pip list) \n\n\n"
+
+    deactivate 2>/dev/null || true
+    return 0
 }
 
 
 py(){
-    local pyScript="${1:-}"
-    local filename=$(basename -- "$pyScript")
-    local extension="${filename##*.}"
     local venvPath="$HOME/.venv"
+    local pyScript="${1:-}"
+    local pyArgs=( "${@:2}" )          #### everything after the script path; $@ is never mutated
+    local filename extension rc
+
+    filename=$(basename -- "$pyScript")
+    extension="${filename##*.}"
 
     venvRecheck(){
-        sysLogger e "Venv corrupted, cannot activate. Deleting it and recreating..." 
+        sysLogger e "Venv corrupted, cannot activate. Deleting it and recreating..."
 
         #### Unset current active venv state cleanly before wiping
         deactivate 2>/dev/null || true
 
-
+        [ -n "$venvPath" ] || { sysLogger e "venvPath empty, refusing rm -rf"; return 1; }
         rm -rf "$venvPath"
-        createVenv
-        
-        "$HOME/.venv/bin/python" --version || { sysLogger e "Venv missing or corrupted"; return 1 ;}
 
-        source "$HOME/.venv/bin/activate" || { sysLogger e "Failed to activate venv"; }
+        createVenv                       || { sysLogger e "Venv recreation failed";   return 1; }
+        "$venvPath/bin/python" --version || { sysLogger e "Venv missing or corrupted"; return 1; }
+        source "$venvPath/bin/activate"  || { sysLogger e "Failed to activate venv";   return 1; }
     }
-
 
     if [ "$extension" != 'py' ] || [ ! -f "$pyScript" ] ; then sysLogger e "Not a python script"; return 1; fi
 
-    if [ ! -d "$venvPath" ]; then sysLogger w "Venv not found in expected path: $venvPath , creating..."; createVenv; fi
+    if [ ! -d "$venvPath" ]; then
+        sysLogger w "Venv not found in expected path: $venvPath , creating..."
+        createVenv || return 1
+    fi
 
-        
     #### Suppress 'No such file' stderr
-    source "$HOME/.venv/bin/activate" 2>/dev/null || venvRecheck 
+    source "$venvPath/bin/activate" 2>/dev/null || venvRecheck || return 1
 
-    python "$pyScript"; deactivate 2>/dev/null || true
+    python "$pyScript" "${pyArgs[@]}"
+    rc=$?
+
+    deactivate 2>/dev/null || true
+    return "$rc"
 }
 
 ##################################################

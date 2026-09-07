@@ -115,7 +115,7 @@ sysUPD(){
 
     UPD_flatpak(){
         echo -e "\n• Flatpak update: \n" 
-        flatpak update -y --user; sudo flatpak update -y --system
+        sudo flatpak update -y
     } > "$flatpakUpdt"
 
 
@@ -196,9 +196,9 @@ sysUPD(){
     getSysInfoEnd >> "$completeLog"
 
 
-    echo "$completeLog" | py "$LXscripts/Startup_Routine/log_cleaner.py" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
+    # echo "$completeLog" | py "$LXscripts/Startup_Routine/log_cleaner.py" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
 
-    # py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
+    py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
 
     cat "$completeLog" >> "$outputLog"
 } 

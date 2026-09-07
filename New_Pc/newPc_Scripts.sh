@@ -5,12 +5,13 @@ if [ -d "$HOME/Nextcloud" ]; then
     read -r -p "Press enter to continue" 
 else    
     echo -e "Run only after Nextcloud setup..."
-    exit 0
+    exit 1
 fi
 
 
 #### executable scripts --- except bashrc && bash_aliases
 sudo find "$HOME/Nextcloud/" -type f -name "*.sh" -exec chmod +x {} +
+
 
 
 
@@ -231,8 +232,9 @@ flatpak override --user --filesystem=/media/federico/SSD1TB com.valvesoftware.St
 flatpak override --user --filesystem=/media/federico/SSD1TB com.usebottles.bottles
 
 #### Allow all flatpak to see and use fonts and themes
-flatpak override --user --filesystem=/home/federico/.themes 
-flatpak override --user --filesystem=/home/federico/.fonts 
+flatpak override --user --filesystem="$HOME/.local/share/icons":ro  
+flatpak override --user --filesystem="$HOME/.local/share/themes":ro  
+flatpak override --user --filesystem="$HOME/.local/share/fonts":ro  
 ######################################################################################
 
 
