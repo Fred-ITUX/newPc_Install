@@ -251,6 +251,13 @@ EX_PID_debugLogger(){
 }
 
 
+kindLogger(){ 
+    local logBody="${1:-}"
+    if [ -z "$logBody" ]; then return 1; fi
+    echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] $logBody" ; 
+} 
+
+
 ##################################################
 
 
