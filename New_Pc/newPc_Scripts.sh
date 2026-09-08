@@ -2,13 +2,27 @@
 set -uo pipefail
 
 
-if [ -d "$HOME/Nextcloud" ]; then
-    echo -e "Nextcloud path found $HOME/Nextcloud\n"
-    read -r -p "Press enter to continue" 
-else    
-    echo -e "Run only after Nextcloud setup..."
-    exit 1
-fi
+nextcloudCheck(){
+    shopt -s nullglob dotglob
+
+    set -- "$HOME/Nextcloud"/*
+
+    if [ -d "$HOME/Nextcloud" ]; then
+
+            if (( $# > 0 )); then echo -e "Nextcloud path found "$HOME/Nextcloud""
+            else echo "$HOME/Nextcloud is empty, aborting"; return 1; fi
+
+        read -p "Press enter to continue" 
+    
+    else    
+        echo -e "Run only after Nextcloud setup..."
+        return 1
+    fi
+
+    shopt -u nullglob dotglob 
+}
+nextcloudCheck || { echo -e "Nextcloud check failed, aborting execution" ; exit 1; }
+
 
 
 brokenEnv=false
@@ -27,7 +41,7 @@ fi;
 
 ######################################################################################
 
-
+failedRuns=()
 
 log="$HOME/Nextcloud/Linux/log/newPc_history/newPc_Scripts_$(date +%F_%H-%M-%S).log"
 
@@ -217,7 +231,7 @@ tearFix(){
 
 
 
-grupSetup(){
+grubSetup(){
     sysLogger i "GRUB USB not working after waking up (sleep / hybernation / suspend)"
     
     local grub_line_path="/etc/default/grub"
@@ -297,9 +311,9 @@ GNOME_global_settings(){
 
     gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-blink-mode off
 
-    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-rows 80
+    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-rows 26 #### default 24
 
-    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-columns 24
+    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-columns 90 #### default 80
 
 
     #### Check for all available customization options
@@ -314,8 +328,13 @@ GNOME_global_settings(){
 
 
     #### Remove useless Ubuntu sessions options from login
-    sudo rm /usr/share/xsessions/ubuntu*.desktop
-    sudo rm /usr/share/wayland-sessions/ubuntu*.desktop
+    if [ -f "/usr/share/xsessions/ubuntu*.desktop" ]; then
+        sudo rm "/usr/share/xsessions/ubuntu*.desktop"    
+    fi
+
+    if [ -f "/usr/share/wayland-sessions/ubuntu*.desktop" ]; then
+        sudo rm "/usr/share/wayland-sessions/ubuntu*.desktop"    
+    fi
 
 
     #### Enable gnome triple buffer rendering !!!! EXPERIMENTAL !!!!
@@ -420,23 +439,6 @@ deamonsPurge(){
 
 
 
-GH_gitConfig(){
-    sysLogger i "Checking internet connectivity, the script will abort if the systems results offline."
-    timeout 10 getent hosts archive.ubuntu.com2 > /dev/null || { sysLogger e "No network. Aborting."; return 1; }
-
-
-    sysLogger i "Attempting GIT login using 'gh'"
-    if ! command gh > /dev/null ; then sysLogger e "'gh' command not found"
-    else gh auth login --hostname github.com --git-protocol https --web
-    fi
-}
-
-
-
-######################################################################################
-
-
-
 scriptLauncher(){
 
     local scripts=(
@@ -450,7 +452,7 @@ scriptLauncher(){
 
         if [ -s "$script" ]; then
             sysLogger i "Launching "$script"\n"
-            # "$script" || sysLogger e "execution failed for "$script"\n"     
+            "$script" || sysLogger e "execution failed for "$script"\n"     
 
         else sysLogger e "failed to launch "$script"\n"
         fi
@@ -465,40 +467,146 @@ scriptLauncher(){
 ######################################################################################
 
 
+swapSetup(){
+    sysLogger i "Swap allocation and setup started"
+
+    local SWAP=4 #### GB +2GB default 
+    
+    #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
+    local SWAPPINESS=10
+
+    #### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
+    local CACHE_PRESSURE=10
+
+    local swapFavor ; local cacheFavor
+
+
+    if [ $SWAPPINESS -le 30 ] && [ $SWAPPINESS -ge 0 ] ; then
+        swapFavor="RAM"
+
+    elif [ $SWAPPINESS -gt 30 ] && [ $SWAPPINESS -le 100 ] ; then
+        swapFavor="SWAP"
+
+    elif [ $SWAPPINESS -gt 100 ] || [ $SWAPPINESS -lt 0 ]; then
+        echo -e "Swappiness error: not in range 0 - 100. Current: $SWAPPINESS)"; return 1
+
+    else
+        echo -e "Unexpected swappiness error: $SWAPPINESS \nExiting"; return 1
+    fi
+
+
+    if [ $CACHE_PRESSURE -le 30 ] && [ $CACHE_PRESSURE -ge 0 ] ; then
+        cacheFavor="More RAM for cache"
+
+    elif [ $CACHE_PRESSURE -gt 30 ] && [ $CACHE_PRESSURE -le 200 ] ; then
+        cacheFavor="Less RAM for cache"
+
+    elif [ $CACHE_PRESSURE -gt 200 ] || [ $CACHE_PRESSURE -lt 0 ]; then
+        echo -e "CACHE_PRESSURE error: not in range 0 - 200. Current: $CACHE_PRESSURE)"; return 1
+
+    else
+        echo -e "Unexpected CACHE_PRESSURE error: $CACHE_PRESSURE \nExiting" ; return 1
+    fi
+
+    sysLogger i "SWAP config: 
+    	> "$SWAP"GB swap memory will be created
+        > SWAPPINESS=$SWAPPINESS   CACHE_PRESSURE=$CACHE_PRESSURE
+	    > Swap favor:  "$swapFavor" - "$cacheFavor"
+    "
+
+    sysLogger i "Starting creating swapspace\n"
+
+	sudo swapon --show
+	free -h
+	df -h
+	sudo fallocate -l "$SWAP"G /swapspace
+	ls -lh /swapspace
+	sudo chmod 600 /swapspace
+	ls -lh /swapspace
+	sudo mkswap /swapspace
+	sudo swapon /swapspace
+	sudo swapon --show
+	free -h
+
+	sudo cp /etc/fstab /etc/"$(date "+%Y-%m-%d_%H-%M-%S")"_fstab.bak
+	echo '/swapspace none swap sw 0 0' | sudo tee -a /etc/fstab
+	cat /proc/sys/vm/swappiness
+
+	printf 'vm.swappiness=%s\nvm.vfs_cache_pressure=%s\n' "$SWAPPINESS" "$CACHE_PRESSURE" \
+	| sudo tee /etc/sysctl.d/99-local-vm.conf >/dev/null
+	sudo sysctl --system
+
+	printf 'vm.swappiness=%s\nvm.vfs_cache_pressure=%s\n' "$SWAPPINESS" "$CACHE_PRESSURE" \
+    | sudo tee /etc/sysctl.d/99-local-vm.conf >/dev/null
+	sudo sysctl --system
+
+
+    sysLogger i "Finished creating swapspace"
+
+	local swapCheck=$(sudo swapon --show)
+	sysLogger i "Swap status check:\n$swapCheck \n"
+
+    sysLogger i "Swap allocation and setup terminated"
+}
+
+
+
+
+######################################################################################
+
 
 mainLauncher(){
 
-    sysLogger i "Function mainLauncher start"
+    sysLogger i "Function mainLauncher started"
 
-    newpcHistory
+    local functions=(
+        newpcHistory
+        startupBootstrap
+        GNOME_performance
+        userGroupCheck
+        firewallSetup
+        tearFix
+        grubSetup
+        GNOME_global_settings
+        nemoSetup
+        flatpakOverrides
+        deamonsPurge
+        scriptLauncher
+        swapSetup
+    )
 
-    startupBootstrap
-    
-    GNOME_performance
-    
-    userGroupCheck
-    
-    firewallSetup
-    
-    tearFix
-    
-    grupSetup
-
-    GNOME_global_settings
-
-    nemoSetup
-
-    flatpakOverrides
-
-    deamonsPurge
-
-    GH_gitConfig
-
-    scriptLauncher
+    for func in "${functions[@]}"; do
+        sysLogger i "Launching function: "$func""
+        "$func" || { sysLogger e "$func failed" ; failedRuns+=("$func"); }
+    done
 
     sysLogger i "Function mainLauncher terminated"
 
+    for failed in "${failedRuns[@]}"; do
+        sysLogger e "Run failed - $failed"
+    done 
+
 } >> "$log" 2>&1 
-
-
 mainLauncher
+
+
+
+######################################################################################
+
+
+
+GH_gitConfig(){
+    sysLogger i "Git 'gh' config started, expect prompts"
+
+    sysLogger i "Checking internet connectivity, the script will abort if the system results offline."
+    timeout 10 getent hosts archive.ubuntu.com > /dev/null || { sysLogger e "No network. Aborting."; return 1; }
+
+
+    sysLogger i "Attempting GIT login using 'gh'"
+    if ! command gh > /dev/null ; then sysLogger e "'gh' command not found"
+    else gh auth login --hostname github.com --git-protocol https --web
+    fi
+
+    sysLogger i "Git 'gh' config terminated"
+}
+GH_gitConfig ||  || { sysLogger e "GH_gitConfig failed" ; }

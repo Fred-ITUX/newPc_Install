@@ -8,45 +8,7 @@ pathFile="$HOME/newPC_$start_time.txt"
 
 
 ###########################################################################################
-####							Swap allocation and setup
 
-SWAP=4 #### GB +2GB default 
-
-#### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
-SWAPPINESS=10
-
-#### Filesystem cache - more memory used to cache file access paths and metadata = smoother UI in file managers -- range 0 to 200+ 
-CACHE_PRESSURE=10
-
-
-if [ $SWAPPINESS -le 30 ] && [ $SWAPPINESS -ge 0 ] ; then
-   SwapFavor="RAM"
-
-elif [ $SWAPPINESS -gt 30 ] && [ $SWAPPINESS -le 100 ] ; then
-	SwapFavor="SWAP"
-
-elif [ $SWAPPINESS -gt 100 ] || [ $SWAPPINESS -lt 0 ]; then
-	echo -e "Swappiness error: not in range 0 - 100. Current: $SWAPPINESS)"; exit 1
-
-else
-	echo -e "Unexpected swappiness error: $SWAPPINESS \nExiting"; exit 1
-fi
-
-
-if [ $CACHE_PRESSURE -le 30 ] && [ $CACHE_PRESSURE -ge 0 ] ; then
-   cacheFavor="More RAM for cache"
-
-elif [ $CACHE_PRESSURE -gt 30 ] && [ $CACHE_PRESSURE -le 200 ] ; then
-	cacheFavor="Less RAM for cache"
-
-elif [ $CACHE_PRESSURE -gt 200 ] || [ $CACHE_PRESSURE -lt 0 ]; then
-	echo -e "CACHE_PRESSURE error: not in range 0 - 200. Current: $CACHE_PRESSURE)"; exit 1
-
-else
-	echo -e "Unexpected CACHE_PRESSURE error: $CACHE_PRESSURE \nExiting" ; exit 1
-fi
-
-###########################################################################################
 
 
 safetyUpdateCheck(){
@@ -60,7 +22,7 @@ safetyUpdateCheck(){
 
 
 
-#### Installs one package at a time on purpose, failures are recorded
+#### Installs one package at a time on purpose, dependencies are checked for each package and failures are recorded
 installLoop(){
     local kind="$1"
     local -n pkgList="$2"
@@ -106,6 +68,7 @@ installLoop(){
 }
 
 
+
 purgeLoop(){
 	local kind="$1"
 	local -n pkgList="$2"
@@ -145,6 +108,7 @@ purgeLoop(){
 }
 
 
+
 kindLogger(){ 
     local logBody="${1:-}"
 
@@ -153,17 +117,19 @@ kindLogger(){
     echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] $logBody" ; 
 } 
 
+
+
 ###########################################################################################
 
 
 #### Check if available disk space is enough (based on an estimate over the last run)
 AVG_GB_NEEDED=40
 avail=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
-[ "${avail:-0}" -ge "$AVG_GB_NEEDED" ] || { kindLogger "Need "$AVG_GB_NEEDED"GB free on /, have ${avail}GB"; exit 1; }
+[ "${avail:-0}" -ge "$AVG_GB_NEEDED" ] || { kindLogger "ERROR - Need "$AVG_GB_NEEDED"GB free on /, have ${avail}GB"; exit 1; }
 
 
 kindLogger "Checking internet connectivity, the script will abort if the systems results offline."
-timeout 10 getent hosts archive.ubuntu.com >/dev/null || { kindLogger "No network. Aborting."; exit 1; }
+timeout 10 getent hosts archive.ubuntu.com >/dev/null || { kindLogger "ERROR - No network. Aborting."; exit 1; }
 
 
 
@@ -174,9 +140,11 @@ echo -e "\n\n
 
 	+--------------------------+
 
-	> "$SWAP"GB swap memory will be created
-	> "Swap favor:  "$SwapFavor" - "$cacheFavor" "
-	> The system will automatically reboot at the end \n\n"
+    > An average of "$AVG_GB_NEEDED"GB gonna be used
+    > The system passed the network check, online status confirmed
+    > A big set of apt and flatpak apps will be installed
+    > Cinnamon* will be purged along with most gnome pre-installed apps
+	> The system will automatically reboot at the end \n"
 
 read -r -p "Press Enter to continue..."
 kindLogger "Continuing..."
@@ -196,22 +164,7 @@ kindLogger "Setup complete"
 
 kindLogger "Starting gnome install, expect prompts"
 
-{   
-    echo -e "\n\n
-	+---------------------------------+ 
-
-			START INSTALL GNOME
-
-	+---------------------------------+\n\n"
-	sudo apt-get install gnome -y
-	echo -e "\n\n
-	+---------------------------------+ 
-
-			END   INSTALL GNOME
-
-	+---------------------------------+\n\n"
-
-} >> "$pathFile" 2>&1 
+sudo apt-get install gnome -y || { kindLogger "ERROR - Gnome installation failed, exiting" ; exit 1; } 
 
 
 
@@ -238,7 +191,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 			START UPDATE, FULL UPGRADE AND CHECK INSTALLS
 
 	+-----------------------------------------------------------+\n\n\n"
-	safetyUpdateCheck
+	safetyUpdateCheck || { kindLogger "ERROR - first updater failed, aborting before continuing" ; return 1 ; }
 	echo -e "\n\n\n
 	+---------------------------------------------------------+ 
 
@@ -247,52 +200,10 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 	+---------------------------------------------------------+\n\n\n"
 
 
-	##################################################################
-	##################################################################
-
-	echo -e "\n\n\n
-	+-----------------------------------+ 
-
-			START SWAP ALLOCATION
-
-	+-----------------------------------+\n\n\n"
-
-	sudo swapon --show
-	free -h
-	df -h
-	sudo fallocate -l "$SWAP"G /swapspace
-	ls -lh /swapspace
-	sudo chmod 600 /swapspace
-	ls -lh /swapspace
-	sudo mkswap /swapspace
-	sudo swapon /swapspace
-	sudo swapon --show
-	free -h
-	sudo cp /etc/fstab /etc/"$start_time"_fstab.bak
-	echo '/swapspace none swap sw 0 0' | sudo tee -a /etc/fstab
-	cat /proc/sys/vm/swappiness
-
-	printf 'vm.swappiness=%s\nvm.vfs_cache_pressure=%s\n' "$SWAPPINESS" "$CACHE_PRESSURE" \
-	| sudo tee /etc/sysctl.d/99-local-vm.conf >/dev/null
-	sudo sysctl --system
-
-	printf 'vm.swappiness=%s\nvm.vfs_cache_pressure=%s\n' "$SWAPPINESS" "$CACHE_PRESSURE" \
-    | sudo tee /etc/sysctl.d/99-local-vm.conf >/dev/null
-	sudo sysctl --system
-
-	swapCheck=$(sudo swapon --show)
-	echo -e "Swap status check: $swapCheck"
-
-	echo -e "\n\n\n
-	+---------------------------------+ 
-
-			END SWAP ALLOCATION
-
-	+---------------------------------+\n\n\n"
-
 
 	##################################################################
 	##################################################################
+
 
 
 	echo -e "\n\n\n
@@ -363,10 +274,10 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 
 
 	kindLogger "Wine architecture safety setup for i386"
-	sudo dpkg --add-architecture i386 && sudo apt update
+	sudo dpkg --add-architecture i386 && sudo apt update || { kindLogger "ERROR - wine architecture" ; return 1; } 
 
 
-	kindLogger "\nEngaging installLoop: apt"
+	kindLogger "Engaging installLoop: apt"
 
 	installLoop apt appPackages
 
@@ -380,8 +291,11 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 			+----------------------------------------+\n\n\n"
 
 
+
 	##################################################################
 	##################################################################
+
+
 
 	echo -e "\n\n\n
 			+--------------------------------+ 
@@ -431,7 +345,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 	)
 
 	kindLogger "Flathub remote check"
-	sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 
+	sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || { kindLogger "ERROR - Flatpak 'remote-add flathub' failed, exiting"; return 1; }
 
 
 	kindLogger "\nEngaging installLoop: flatpak"
@@ -449,8 +363,10 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 				+------------------------------+\n\n\n"
 
 
+
 	##################################################################
 	##################################################################
+
 
 
 	echo -e "\n\n\n
@@ -461,7 +377,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 				+--------------------------------------------+\n\n\n"
 
 
-	sudo apt purge "cinnamon*" -y 
+	sudo apt purge "cinnamon*" -y || { kindLogger "ERROR - apt purge cinnamon" ; return 1; }
 
 	appToPurge=(
 			"thunderbird*" 
@@ -531,7 +447,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 
 	purgeLoop apt appToPurge
 
-	sudo apt-get install nemo -y #### It gets removed from the cinnamon purge
+	sudo apt-get install nemo -y  || { kindLogger "ERROR - nemo install failed" ; return 1; } #### It gets removed from the cinnamon purge
 
 	echo -e "\n\n\n
 				+------------------------------------------+ 
@@ -541,11 +457,13 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 				+------------------------------------------+\n\n\n"
 
 
+
 	###############################################################
 
 	##########		DON'T ADD CODE AFTER THIS		  ##########
 
 	###############################################################
+
 
 
 	echo -e "\n\n\n
@@ -554,7 +472,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 			START FINAL UPDATE, UPGRADE, CHECKS && CLEANUP
 
 	+------------------------------------------------------------+\n\n\n"
-	safetyUpdateCheck
+    safetyUpdateCheck || { kindLogger "ERROR - second updater triggered an error"; }
 	echo -e "\n\n\n
 	+----------------------------------------------------------+ 
 
@@ -595,7 +513,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 } >> "$pathFile" 2>&1 
 
 
-sync #### Synchronize cached writes to persistent storage
+sync || { kindLogger "ERROR - Sync failed" ; } #### Synchronize cached writes to persistent storage
 
 
 if [ "${#failedApt[@]}" -eq 0 ] && [ "${#failedFlatpak[@]}" -eq 0 ]; then
@@ -622,4 +540,3 @@ else
 	
 	[ "$a" = y ] && reboot
 fi
-
