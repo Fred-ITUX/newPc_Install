@@ -224,6 +224,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		jq									  #### lightweight, flexible command-line JSON processor
 		docker.io 
 		docker-compose
+        nmap                                    #### Network scanner
 
 		#### Utilities
 		flatpak
