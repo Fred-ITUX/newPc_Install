@@ -225,6 +225,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		docker.io 
 		docker-compose
         nmap                                    #### Network scanner
+        inotify-tools                           #### Event driven file monitor
 
 		#### Utilities
 		flatpak

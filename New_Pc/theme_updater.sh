@@ -77,12 +77,12 @@ setTheme	"icon"	  	"icon"  	"Papirus-Dark"
 setTheme	"icon"	  	"cursor"	"breeze_cursors"
 setTheme	"theme"	 	"gtk"	   	"Adwaita-dark"
 
-kindLogger "setTheme function executed"
-
 
 # gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
 # gsettings set org.gnome.desktop.interface cursor-theme "breeze_cursors"
 # gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+
+kindLogger "setTheme function executed"
 
 
 
