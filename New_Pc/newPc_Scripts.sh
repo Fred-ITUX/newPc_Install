@@ -381,6 +381,7 @@ nemoSetup(){
 
 
 flatpakOverrides(){
+    #### RESET ALL --        flatpak override --user --reset
 
     #### GPU acceleration
     sysLogger i "Flatpak override setup"
