@@ -337,4 +337,25 @@ stringNormalizeNoBlanks(){
 }
 
 
+fileNewLineStrip(){ 
+    #### Collapses multile newlines into 2
+    local file="${1:-}"
+    if [[ -n "$file" ]]; then
+        sed -zi 's/\n[[:blank:]]*\n\([[:blank:]]*\n\)*/\n\n/g' "$file"    
+    else sysLogger e "Usage: fileNewLineStrip <file>" 
+    fi
+}
+
+
+fileNewLineStripComlete(){ 
+    #### Collapses multile newlines
+    local file="${1:-}"
+    if [[ -n "$file" ]]; then
+        sed -zi 's/\n[[:blank:]]*\n\([[:blank:]]*\n\)*/\n/g' "$file"    
+    else sysLogger e "Usage: fileNewLineStripComlete <file>" 
+    fi
+}
+
+
+
 ################################################################################################

@@ -200,6 +200,10 @@ sysUPD(){
 
     py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
 
+    #### Collapses multiple newlines into 2 to keep spacing
+    fileNewLineStrip "$strtp_full"
+    fileNewLineStrip "$completeLog"
+
     cat "$completeLog" >> "$outputLog"
 } 
 
