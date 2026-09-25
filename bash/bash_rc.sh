@@ -89,9 +89,4 @@ else
 	alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
 	alias editing="$LXscripts/Startup_Routine/Sessions.sh editing && kden"
 
-	#### Converters
-	alias convImg="py $PYscripts/FileModder/image_converter.py"
-	alias convWav="py $PYscripts/FileModder/wav_converter.py"
-	alias convMkv="py $PYscripts/FileModder/mkv_converter.py"
-	alias convMetric="py $PYscripts/measure_unit_converter.py"
 fi
