@@ -32,7 +32,8 @@ bashUpd(){
 
 shutdown_routine(){
     "$LXscripts/Shortcuts/night_light.sh" off
-    echo "$(date +"%Y-%m-%d");$(uptime | cut -d ',' -f 1 | awk '{print $3, $4}')" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
+
+    echo "$(date +"%Y-%m-%d");$(uptimeHMS)" >> "$PYscripts/UptimePlot/"$(date +%Y)"_uptime.csv"
     
     if [ -f "$HOME/.bash_history" ]; then rm "$HOME/.bash_history"; fi
     killp "15" "brave" &

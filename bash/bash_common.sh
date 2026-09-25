@@ -258,6 +258,25 @@ kindLogger(){
 } 
 
 
+fileReader(){
+    local file="${1:-}"
+    local value
+
+    #### POSIX bash built-in function to read file without forking to cat
+    if [ -r "$file" ]; then value=$(<"$file")
+    else value="?"; fi
+
+    echo "$value"
+}
+
+
+uptimeHMS() { #### Uptime since boot as hh:mm:ss (hours are NOT capped at 24, e.g. 27:03:10)
+    local upSec
+    read -r upSec _ < /proc/uptime      #### "97390.42 381122.10" -> first field = seconds since boot
+    upSec=${upSec%.*}                   #### drop the decimals, bash only does integer math
+    printf '%02d:%02d:%02d\n' $(( upSec / 3600 )) $(( upSec % 3600 / 60 )) $(( upSec % 60 ))
+}
+
 ##################################################
 
 

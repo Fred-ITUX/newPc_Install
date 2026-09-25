@@ -318,9 +318,9 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		app/com.mattjakeman.ExtensionManager/x86_64/stable		  #### GNOME - Extension Manager
 		app/com.vscodium.codium/x86_64/stable					   #### VS Codium
 		com.nextcloud.desktopclient.nextcloud					   #### Nextcloud desktop client
-		app/com.usebottles.bottles/x86_64/stable					#### Bottles - WINE client
-		app/net.christianbeier.Gromit-MPX/x86_64/stable			 #### draw on screen
-		page.codeberg.libre_menu_editor.LibreMenuEditor			 #### app info and editor
+		# app/com.usebottles.bottles/x86_64/stable					#### Bottles - WINE client
+		# app/net.christianbeier.Gromit-MPX/x86_64/stable			 #### draw on screen
+		# page.codeberg.libre_menu_editor.LibreMenuEditor			 #### app info and editor
 		app/com.github.hluk.copyq/x86_64/stable					 #### Clipboard manager
 		
 		#### Editing
@@ -334,8 +334,10 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		app/org.kde.okular/x86_64/stable							#### Pdf reader / highlight
 		app/com.discordapp.Discord/x86_64/stable
 		app/org.keepassxc.KeePassXC/x86_64/stable				   #### Database DB
-		org.libreoffice.LibreOffice 
+		# org.libreoffice.LibreOffice 
 		org.onlyoffice.desktopeditors/x86_64/stable				 
+        app/org.kde.kdenlive/x86_64/stable                         #### Video and audio editor
+
 		
 		#### Gaming
 		com.valvesoftware.Steam 

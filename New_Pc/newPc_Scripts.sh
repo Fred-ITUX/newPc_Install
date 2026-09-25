@@ -383,15 +383,20 @@ nemoSetup(){
 flatpakOverrides(){
     #### RESET ALL --        flatpak override --user --reset
 
+    fOverGPU(){
+        flatpak override --user --device=dri "$1"
+    }
+
     #### GPU acceleration
     sysLogger i "Flatpak override setup"
-    flatpak override --user --device=dri com.google.Chrome
-    flatpak override --user --device=dri com.brave.Browser
-    flatpak override --user --device=dri com.valvesoftware.Steam
-    flatpak override --user --device=dri com.discordapp.Discord 
-    flatpak override --user --device=dri org.gimp.GIMP
-    flatpak override --user --device=dri org.audacityteam.Audacity
-    flatpak override --user --device=dri com.obsproject.Studio
+    fOverGPU com.google.Chrome
+    fOverGPU com.brave.Browser
+    fOverGPU com.valvesoftware.Steam
+    fOverGPU com.discordapp.Discord 
+    fOverGPU org.gimp.GIMP
+    fOverGPU org.audacityteam.Audacity
+    fOverGPU com.obsproject.Studio
+    fOverGPU org.kde.kdenlive
 
     #### Steam SSD whitelist (for external storing)
     flatpak override --user --filesystem=/media/federico/SSD1TB com.valvesoftware.Steam
@@ -466,6 +471,7 @@ scriptLauncher(){
 
 
 ######################################################################################
+
 
 
 swapSetup(){
@@ -552,6 +558,46 @@ swapSetup(){
 
 
 
+######################################################################################
+
+
+
+bluetoothProfilePurge(){
+    #### Removes the Bluetooth HSP/HFP (handsfree) profile: headsets can only connect as A2DP.
+    #### Writes a persistent WirePlumber user config. Idempotent: a no-op once the config is in place.
+
+    wpVersion="$(wireplumber --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
+
+    case "$wpVersion" in
+        0.4)
+            confFile="$HOME/.config/wireplumber/bluetooth.lua.d/51-disable-handsfree.lua"
+            confText='bluez_monitor.properties["bluez5.roles"] = "[ a2dp_sink a2dp_source ]"
+    bluez_monitor.properties["bluez5.hfphsp-backend"] = "none"'
+            ;;
+        0.5)
+            confFile="$HOME/.config/wireplumber/wireplumber.conf.d/51-disable-handsfree.conf"
+            confText='monitor.bluez.properties = {
+    bluez5.roles = [ a2dp_sink a2dp_source ]
+    bluez5.hfphsp-backend = "none"
+    }'
+            ;;
+        *)
+            echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
+            exit 1
+            ;;
+    esac
+
+    #### Already applied: nothing to do
+    [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && exit 0
+
+    mkdir -p "$(dirname "$confFile")" || exit 1
+    printf '%s\n' "$confText" > "$confFile" || exit 1
+
+    #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
+    systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Handsfree disabled: restart the session to apply"
+}
+
+
 
 ######################################################################################
 
@@ -574,6 +620,7 @@ mainLauncher(){
         deamonsPurge
         scriptLauncher
         swapSetup
+        bluetoothProfilePurge
     )
 
     for func in "${functions[@]}"; do
@@ -610,4 +657,4 @@ GH_gitConfig(){
 
     sysLogger i "Git 'gh' config terminated"
 }
-GH_gitConfig ||  || { sysLogger e "GH_gitConfig failed" ; }
+GH_gitConfig || { sysLogger e "GH_gitConfig failed" ; }
