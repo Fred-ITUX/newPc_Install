@@ -190,10 +190,14 @@ py(){
 
 
 raiseAlarm(){
-    local logCheck="${1:-}"
-    if [ -f "$logCheck" ]; then gedit "$logCheck" > /dev/null 2>&1 & fi
-    vlc "$logCheckerAlarm" --gain 0.3 > /dev/null 2>&1 &
+    local errorBody="${1:-}"
+    notify-send -u critical -i dialog-error -a "raiseAlarm" "🚨 $errorBody" > /dev/null 2>&1 &
+
+    #### local logCheck="${1:-}"
+    #### if [ -f "$logCheck" ]; then gedit "$logCheck" > /dev/null 2>&1 & fi
+    #### vlc "$logCheckerAlarm" --gain 0.3 > /dev/null 2>&1 &
 }
+
 
 
 sysLogger(){
