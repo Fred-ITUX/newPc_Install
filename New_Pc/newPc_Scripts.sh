@@ -561,25 +561,142 @@ swapSetup(){
 ######################################################################################
 
 
+#### All these device-config scripts are better explained here: `Linux/docu/Audio/2026_09_26/2026_09_26-audio_config_scripts.md`
 
-bluetoothProfilePurge(){
-    #### Removes the Bluetooth HSP/HFP (handsfree) profile: headsets can only connect as A2DP.
+
+#### Completely purges the handsfree profiles (sound + mic with worse audio quality)
+#### This breaks the report of the battery in with bluez that will not see it anymore
+# bluetoothProfilePurge(){
+#     #### Removes the Bluetooth HSP/HFP (handsfree) profile: headsets can only connect as A2DP.
+#     #### Writes a persistent WirePlumber user config. Idempotent: a no-op once the config is in place.
+
+#     wpVersion="$(wireplumber --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
+
+#     case "$wpVersion" in
+#         0.4)
+#             confFile="$HOME/.config/wireplumber/bluetooth.lua.d/51-disable-handsfree.lua"
+#             confText='bluez_monitor.properties["bluez5.roles"] = "[ a2dp_sink a2dp_source ]"
+#     bluez_monitor.properties["bluez5.hfphsp-backend"] = "none"'
+#             ;;
+#         0.5)
+#             confFile="$HOME/.config/wireplumber/wireplumber.conf.d/51-disable-handsfree.conf"
+#             confText='monitor.bluez.properties = {
+#     bluez5.roles = [ a2dp_sink a2dp_source ]
+#     bluez5.hfphsp-backend = "none"
+#     }'
+#             ;;
+#         *)
+#             echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
+#             exit 1
+#             ;;
+#     esac
+
+#     #### Already applied: nothing to do
+#     [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && exit 0
+
+#     mkdir -p "$(dirname "$confFile")" || exit 1
+#     printf '%s\n' "$confText" > "$confFile" || exit 1
+
+#     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
+#     systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Handsfree disabled: restart the session to apply"
+# }
+
+
+
+#### Locked in config that prevents any automatic switching to tha handsfree profile
+bluetoothProfileAntiSwitch(){
+    #### Keeps Bluetooth headsets on A2DP: WirePlumber never switches to, nor restores, the HSP/HFP profile.
+    #### HSP/HFP stays registered on purpose: its control channel is what carries the headset battery level.
     #### Writes a persistent WirePlumber user config. Idempotent: a no-op once the config is in place.
 
     wpVersion="$(wireplumber --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
 
     case "$wpVersion" in
         0.4)
-            confFile="$HOME/.config/wireplumber/bluetooth.lua.d/51-disable-handsfree.lua"
-            confText='bluez_monitor.properties["bluez5.roles"] = "[ a2dp_sink a2dp_source ]"
-    bluez_monitor.properties["bluez5.hfphsp-backend"] = "none"'
+            confFile="$HOME/.config/wireplumber/policy.lua.d/51-bt-no-headset-switch.lua"
+            oldConf="$HOME/.config/wireplumber/bluetooth.lua.d/51-disable-handsfree.lua"
+            confText='bluetooth_policy.policy["media-role.use-headset-profile"] = false
+    bluetooth_policy.policy["use-persistent-storage"] = false'
             ;;
         0.5)
-            confFile="$HOME/.config/wireplumber/wireplumber.conf.d/51-disable-handsfree.conf"
-            confText='monitor.bluez.properties = {
-    bluez5.roles = [ a2dp_sink a2dp_source ]
-    bluez5.hfphsp-backend = "none"
+            confFile="$HOME/.config/wireplumber/wireplumber.conf.d/51-bt-no-headset-switch.conf"
+            oldConf="$HOME/.config/wireplumber/wireplumber.conf.d/51-disable-handsfree.conf"
+            confText='wireplumber.settings = {
+    bluetooth.autoswitch-to-headset-profile = false
+    bluetooth.use-persistent-storage = false
     }'
+            ;;
+        *)
+            echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
+            exit 1
+            ;;
+    esac
+
+    #### Already applied: nothing to do
+    [ ! -e "$oldConf" ] && [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && exit 0
+
+    #### Previous config removed HSP/HFP entirely, and battery reporting with it
+    rm -f "$oldConf"
+
+    mkdir -p "$(dirname "$confFile")" || exit 1
+    printf '%s\n' "$confText" > "$confFile" || exit 1
+
+    #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
+    systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Config written: restart the session to apply"
+
+}
+
+
+
+#### Hides unwanted audio devices from PipeWire (desktop "federico" only: names are hardware-specific).
+wireplumberAudioDeviceBlacklist(){
+    ####   Kept:     Bluetooth headset, onboard jack output, USB microphone (Q9-1)
+    ####   Disabled: GPU HDMI audio, webcam microphone, onboard S/PDIF output, onboard analog input
+    #### Writes a persistent WirePlumber user config. Idempotent: a no-op once the config is in place.
+
+    wpVersion="$(wireplumber --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
+
+    case "$wpVersion" in
+        0.4)
+            confFile="$HOME/.config/wireplumber/main.lua.d/52-audio-blacklist.lua"
+            confText='-- Whole cards: GPU HDMI audio (monitor has no speakers), webcam microphone
+    table.insert(alsa_monitor.rules, {
+    matches = {
+        { { "device.name", "equals", "alsa_card.pci-0000_06_00.1" } },
+        { { "device.name", "equals", "alsa_card.usb-Sonix_Technology_Co.__Ltd._JOYACCESS-02" } },
+    },
+    apply_properties = { ["device.disabled"] = true },
+    })
+
+    -- Single nodes on the onboard card: S/PDIF output, analog input (jack output stays)
+    table.insert(alsa_monitor.rules, {
+    matches = {
+        { { "node.name", "equals", "alsa_output.pci-0000_08_00.4.iec958-stereo" } },
+        { { "node.name", "equals", "alsa_input.pci-0000_08_00.4.analog-stereo" } },
+    },
+    apply_properties = { ["node.disabled"] = true },
+    })'
+            ;;
+        0.5)
+            confFile="$HOME/.config/wireplumber/wireplumber.conf.d/52-audio-blacklist.conf"
+            confText='monitor.alsa.rules = [
+    {
+        ## Whole cards: GPU HDMI audio (monitor has no speakers), webcam microphone
+        matches = [
+        { device.name = "alsa_card.pci-0000_06_00.1" }
+        { device.name = "alsa_card.usb-Sonix_Technology_Co.__Ltd._JOYACCESS-02" }
+        ]
+        actions = { update-props = { device.disabled = true } }
+    }
+    {
+        ## Single nodes on the onboard card: S/PDIF output, analog input (jack output stays)
+        matches = [
+        { node.name = "alsa_output.pci-0000_08_00.4.iec958-stereo" }
+        { node.name = "alsa_input.pci-0000_08_00.4.analog-stereo" }
+        ]
+        actions = { update-props = { node.disabled = true } }
+    }
+    ]'
             ;;
         *)
             echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
@@ -594,8 +711,10 @@ bluetoothProfilePurge(){
     printf '%s\n' "$confText" > "$confFile" || exit 1
 
     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
-    systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Handsfree disabled: restart the session to apply"
+    systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Config written: restart the session to apply"
 }
+
+
 
 
 
@@ -620,7 +739,9 @@ mainLauncher(){
         deamonsPurge
         scriptLauncher
         swapSetup
-        bluetoothProfilePurge
+        # bluetoothProfilePurge
+        bluetoothProfileAntiSwitch
+        wireplumberAudioDeviceBlacklist
     )
 
     for func in "${functions[@]}"; do

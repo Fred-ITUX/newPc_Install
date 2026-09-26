@@ -460,3 +460,16 @@ getFileInfo(){
 }
 
 ##################################################
+
+wireplumberDevicesExport(){
+    export LC_ALL=C
+
+    echo "=== CARDS ==="
+    pactl list cards | awk '/^Card #/ {print "---"} /^\tName: / {print} /^\t\tdevice\.description = / {print} /^\tActive Profile: / {print}'
+    echo "=== SINKS ==="
+    pactl list sinks | awk '/^\tName: / {n=$2} /^\tDescription: / {sub(/^\tDescription: /, ""); print n "  |  " $0}'
+    echo "=== SOURCES ==="
+    pactl list sources | awk '/^\tName: / {n=$2} /^\tDescription: / {sub(/^\tDescription: /, ""); if (n !~ /\.monitor$/) print n "  |  " $0}'
+}
+
+##################################################

@@ -33,8 +33,6 @@ ufw_log_check="$LXlogs/ufw_log_check.log"
 
 repoPushLog="$LXlogs/startup_repo_push.log"
 
-logCheckerAlarm="$HOME/Nextcloud/Linux/Stuff/alarm.mp3"
-
 ################################################################################################
 
 
@@ -100,6 +98,7 @@ check_day_type(){
     if [ "$dayToCheck" != "Saturday" ] && [ "$dayToCheck" != "Sunday" ]; then typeDay="weekday" ; else typeDay="weekend" ; fi 
 }
 
+dateFolder(){ mkdir $(date "+%Y_%m_%d"); }
 
 ##################################################
 
@@ -193,9 +192,10 @@ raiseAlarm(){
     local errorBody="${1:-}"
     notify-send -u critical -i dialog-error -a "raiseAlarm" "🚨 $errorBody" > /dev/null 2>&1 &
 
-    #### local logCheck="${1:-}"
-    #### if [ -f "$logCheck" ]; then gedit "$logCheck" > /dev/null 2>&1 & fi
-    #### vlc "$logCheckerAlarm" --gain 0.3 > /dev/null 2>&1 &
+    #### Ntfy app, key generated using `echo "alarm-$(openssl rand -hex 12)" > "$HOME/Nextcloud/Linux/docu/Ntfy/cfg_ntfy_topic.txt"`
+    curl -s -m 10 -H "Title: 🚨 Error on $(hostname)" -H "Priority: urgent" \
+        -d "${errorBody:-No other info provided} - check the desktop" \
+        "https://ntfy.sh/$(< "$HOME/Nextcloud/Linux/docu/Ntfy/cfg_ntfy_topic.txt")" > /dev/null 2>&1 &
 }
 
 
@@ -280,6 +280,77 @@ uptimeHMS() { #### Uptime since boot as hh:mm:ss (hours are NOT capped at 24, e.
     upSec=${upSec%.*}                   #### drop the decimals, bash only does integer math
     printf '%02d:%02d:%02d\n' $(( upSec / 3600 )) $(( upSec % 3600 / 60 )) $(( upSec % 60 ))
 }
+
+
+
+atomicWrite(){
+    #### Takes the wante filename, the path and the body and applies the `atomic write` process
+    local fileName="${1:-}"
+    local destination="${2:-XDG_RUNTIME_DIR}" 
+    local body="${3:-Empty file}"
+
+    if [ -z "$fileName" ]; then sysLogger e "No file name provided"; return 1; fi
+
+    local tempFile="${XDG_RUNTIME_DIR}/tmp_"$fileName".XXXXXX"
+
+    local destFile=""$destination"/"$fileName""
+
+    mktemp "$tempFile" || { sysLogger e  "Failed to create temp file "$tempFile""; return 1; }
+
+    echo "$body" > "$tempFile" || { sysLogger e "Failed to write into "$tempFile"" ; return 1; }
+
+    if [ -r "$tempFile" ]; then
+        mv "$tempFile" "$destFile" || { sysLogger e "File created but failed to move "$tempFile" to "$destFile""; return 1; }
+    else
+        sysLogger e "Failed to move "$tempFile" to "$destFile""; return 1
+    fi
+}
+
+
+sysInfoCache(){ #### Caches system info to avoid multiple executions of the same functions
+    local user osName hostPc lxPath pyPath
+    local body=() 
+
+    userCheck  || { echo "userCheck failed" ; return 1;  }
+    get_osname || { echo "get_osname failed" ; return 1;  }
+
+    hostPc="$pc"
+    osName="$osname"
+    user=$(whoami)
+    
+    local lines=( 
+        "hostPc="$hostPc"" 
+        "hostMain="$hostMain"" 
+        "osName="$osName"" 
+        "user="$user"" 
+        "lxPath="$LXscripts""
+        "pyPath="$PYscripts"" 
+        "pid_log_file="$pid_log_file""
+        )
+    
+    local functionsToCache=( 
+        "fileReader"
+        "sysLogger"
+        "get_formatted_date"
+        "get_date_comparison"
+        "get_file_date"
+        "get_logger_date"
+        "raiseAlarm"
+        )
+
+    for line in "${lines[@]}"; do 
+        body+=$( echo -e "\n$line\n" )  
+    done
+
+
+    for func in "${functionsToCache[@]}"; do
+        body+=$( echo -e "\n\n$(typeset -fp $func)\n\n" )  
+    done
+
+    atomicWrite "sysInfo.cache" "${XDG_RUNTIME_DIR}/" "$body" || { echo "ERROR - atomicWrite failed" ; return 1 ; }
+}
+
+
 
 ##################################################
 
