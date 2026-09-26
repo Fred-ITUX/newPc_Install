@@ -476,3 +476,27 @@ wireplumberDevicesExport(){
 }
 
 ##################################################
+
+lockedBgFunction(){
+    local lockName="${1:-}"
+    local func="${2:-}"
+
+    if [ -z "$lockName" ]; then PID_sysLogger e "No lock name provided: $lockName"; return 1; fi
+    if [ -z "$func" ]; then PID_sysLogger e "No function provided: $func"; return 1; fi
+
+    lockManager "$lockName" || return 1
+
+    PID_debugLogger "Launching function "$func" in background"
+
+    "$func" &
+    local pid=$!
+    
+    if ps -p "$pid"; then
+        PID_sysLogger i "$func started with PID=$pid"
+    
+    else 
+        PID_sysLogger e "$func tried to start with PID=$pid"
+    fi
+}
+
+##################################################

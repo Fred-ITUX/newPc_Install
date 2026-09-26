@@ -351,6 +351,14 @@ sysInfoCache(){ #### Caches system info to avoid multiple executions of the same
 }
 
 
+lockManager(){
+    local lockName="${1:-}"
+
+    if [ -z "$lockName" ]; then PID_sysLogger e "No lock passed"; return 1; fi
+    mkdir "$lockName" || { PID_sysLogger e "Lock already present: $lockName"; return 1; }
+}
+
+
 
 ##################################################
 
