@@ -189,15 +189,15 @@ py(){
 
 
 raiseAlarm(){
+    local sysInfoCache="${XDG_RUNTIME_DIR}/sysInfo.cache"
     local errorBody="${1:-}"
     notify-send -u critical -i dialog-error -a "raiseAlarm" "🚨 $errorBody" > /dev/null 2>&1 &
 
     #### Ntfy app, key generated using `echo "alarm-$(openssl rand -hex 12)" > "$HOME/Nextcloud/Linux/docu/Ntfy/cfg_ntfy_topic.txt"`
-    curl -s -m 10 -H "Title: 🚨 Error on $(hostname)" -H "Priority: urgent" \
+    curl -s -m 10 -H "Title: 🚨 Error from "$hostPc"@"$osName"" -H "Priority: urgent" \
         -d "${errorBody:-No other info provided} - check the desktop" \
         "https://ntfy.sh/$(< "$HOME/Nextcloud/Linux/docu/Ntfy/cfg_ntfy_topic.txt")" > /dev/null 2>&1 &
 }
-
 
 
 sysLogger(){

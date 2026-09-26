@@ -30,6 +30,9 @@ sudoers_file="/etc/sudoers.d/10-${user}-nopasswd"
 
 
 
+#### Resolve the real user's home and run the installer as that user, escalating per-command
+userHome=$(getent passwd "$user" | cut -d: -f6)
+
 
 cat <<EOF
 The script is about to:
@@ -66,8 +69,6 @@ apt update || { kindLogger "Apt update failed, not continuing with stale package
 apt install git -y || { kindLogger "Git install failed. No point in keeping execution, exiting"; exit 1; }
 
 
-#### Resolve the real user's home and run the installer as that user, escalating per-command
-userHome=$(getent passwd "$user" | cut -d: -f6)
 
 [ -d "$userHome" ] || { kindLogger "No home dir for $user" >&2; exit 1; }
 

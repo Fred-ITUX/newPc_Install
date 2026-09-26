@@ -54,14 +54,16 @@ shutdown_routine(){
 
 shutdown(){
     shutdown_routine
-    sudo shutdown now
+    # gnome-session-quit --power-off --no-prompt
+    systemctl poweroff
 }
 
 
 reboot(){
     read -r -p 'To reboot press enter'
     shutdown_routine
-    sudo reboot now
+    systemctl reboot
+    # gnome-session-quit --reboot --no-prompt
 }
 
 
@@ -97,32 +99,33 @@ sysUPD(){
 
     UPD_fix(){
         echo -e "\n• Fix broken pkg: \n"
-        sudo dpkg --configure -a 
-        sudo apt-get --fix-broken install -y 
+        sudo -n /usr/bin/dpkg --configure -a
+        sudo -n /usr/bin/apt-get --fix-broken install -y
     } > "$fixPkg"
 
 
     UPD_updater(){
         echo -e "\n• Update: \n"
-        sudo apt-get --fix-missing -q update
+        sudo -n /usr/bin/apt-get --fix-missing -q update
     } > "$update"
 
 
     UPD_upgrade(){
         echo -e "\n• Upgrade: \n"
-        sudo apt-get dist-upgrade -y #### full-upgrade
+        sudo -n /usr/bin/apt-get dist-upgrade -y
     } > "$upgrade"
 
 
     UPD_flatpak(){
         echo -e "\n• Flatpak update: \n" 
-        sudo flatpak update -y
+        flatpak update -y
     } > "$flatpakUpdt"
 
 
     UPD_cleanup(){
         echo -e "\n• Autoremove: \n"
-        sudo apt-get autoremove -y ; sudo apt-get clean
+        sudo -n /usr/bin/apt-get autoremove -y
+        sudo -n /usr/bin/apt-get clean
     } > "$cleanup"
 
 
