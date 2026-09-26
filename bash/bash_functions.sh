@@ -54,7 +54,6 @@ shutdown_routine(){
 
 shutdown(){
     shutdown_routine
-    # gnome-session-quit --power-off --no-prompt
     systemctl poweroff
 }
 
@@ -63,7 +62,6 @@ reboot(){
     read -r -p 'To reboot press enter'
     shutdown_routine
     systemctl reboot
-    # gnome-session-quit --reboot --no-prompt
 }
 
 

@@ -26,9 +26,6 @@ user="$SUDO_USER"
 
 id -- "$user" >/dev/null 2>&1 || { kindLogger "No such user: $user" >&2; exit 1; }
 
-sudoers_file="/etc/sudoers.d/10-${user}-nopasswd"
-
-
 
 #### Resolve the real user's home and run the installer as that user, escalating per-command
 userHome=$(getent passwd "$user" | cut -d: -f6)
@@ -36,29 +33,15 @@ userHome=$(getent passwd "$user" | cut -d: -f6)
 
 cat <<EOF
 The script is about to:
-  • grant $user passwordless sudo for ALL commands (permanent)
-  • clone Fred-ITUX/newPc_Install into $userHome
-  • run newPc_Install.sh, which installs ~50 apt + 35 flatpak packages,
-    purges ~65 packages, creates a swapfile, and REBOOTS
+  • clone 'Fred-ITUX/newPc_Install' into $userHome
+  • run 'newPc_Install.sh', which:
+    > installs ~50 apt packages
+    > installs ~35 flatpak
+    > purges ~65 packages 
+    and REBOOTS the system automatically at the end
 EOF
 read -r -p "Type 'yes' to proceed: " ans
 [ "$ans" = yes ] || exit 1
-
-
-
-
-#### Check a candidate file in isolation, then install atomically
-tmp=$(mktemp) || exit 1
-
-printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$user" > "$tmp"
-
-if visudo -cf "$tmp"; then
-    install -m 0440 -o root -g root "$tmp" "$sudoers_file"
-else
-    kindLogger "Refusing to install invalid sudoers rule" >&2; rm -f "$tmp"; exit 1
-fi
-
-rm -f "$tmp"
 
 
 timeout 10 getent hosts github.com >/dev/null || { kindLogger "No network / DNS. Aborting" >&2; exit 1; }
