@@ -261,7 +261,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		ffmpeg
 		mediainfo 
 		mkvtoolnix 
-		mpv 
+		# mpv                                   #### Alternative media viewer
 
 		#### Gaming
 		steam-devices
@@ -539,7 +539,8 @@ else
 	if [ "$sendReboot" != "y" ]; then
 		reboot	
 
-	else echo -e "Not rebooting"
+	else 
+        echo -e "Not rebooting"
 	fi
 	
 	[ "$a" = y ] && reboot

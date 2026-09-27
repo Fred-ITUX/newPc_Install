@@ -190,14 +190,46 @@ py(){
 
 raiseAlarm(){
     local sysInfoCache="${XDG_RUNTIME_DIR}/sysInfo.cache"
-    local errorBody="${1:-}"
-    notify-send -u critical -i dialog-error -a "raiseAlarm" "🚨 $errorBody" > /dev/null 2>&1 &
+    local configFile="$HOME/Nextcloud/Linux/docu/Ntfy/cfg_ntfy_topic.txt" #### key generated using `echo "alarm-$(openssl rand -hex 12)" > "$HOME/Nextcloud/Linux/docu/Ntfy/cfg_ntfy_topic.txt"`
+    
+    local body="${1:-No other info provided}"
+    local prio="Priority: urgent"
+    local ntfyForward=false
 
-    #### Ntfy app, key generated using `echo "alarm-$(openssl rand -hex 12)" > "$HOME/Nextcloud/Linux/docu/Ntfy/cfg_ntfy_topic.txt"`
-    curl -s -m 10 -H "Title: 🚨 Error from $hostPc@$osName" -H "Priority: urgent" \
-        -d "${errorBody:-No other info provided}" \
-        "https://ntfy.sh/$(< "$HOME/Nextcloud/Linux/docu/Ntfy/cfg_ntfy_topic.txt")" > /dev/null 2>&1 &
+    local host os title
+
+
+    if [ -s "$configFile" ]; then ntfyForward=true; fi
+
+
+    if [ -s "$sysInfoCache" ]; then
+        source "$sysInfoCache" || { echo "ERROR - sourcing file "$sysInfoCache" failed.";  }
+    else
+        if [ -f "$HOME/.bash_common" ]; then 
+            source "$HOME/.bash_common"; 
+        
+        else 
+            echo "[CRITICAL ERROR] Bash module not found: "$HOME/.bash_common"" 
+        fi
+    fi
+
+    host="${hostPc:-No host}"
+    os="${osName:-No os}"
+
+
+    # title="Title: 🚨 Error from $host@$os"
+    title="🚨 Error from $host@$os"
+
+
+    notify-send -u critical -i dialog-error -a "$title" "🚨 $body" > /dev/null 2>&1 &
+
+
+    #### Forward to Ntfy app only if the config is present
+    if $ntfyForward; then
+        curl -s -m 10 -H "$title" -H "$prio" -d "$body" "https://ntfy.sh/$(< "$configFile")" > /dev/null 2>&1 &
+    fi
 }
+
 
 
 sysLogger(){
@@ -284,12 +316,12 @@ uptimeHMS() { #### Uptime since boot as hh:mm:ss (hours are NOT capped at 24, e.
 
 
 atomicWrite(){
-    #### Takes the wante filename, the path and the body and applies the `atomic write` process
+    #### Takes the wanted filename, the path and the body and applies the `atomic write` process
     local fileName="${1:-}"
     local destination="${2:-XDG_RUNTIME_DIR}" 
-    local body="${3:-Empty file}"
+    local body="${3:-}"
 
-    if [ -z "$fileName" ]; then sysLogger e "No file name provided"; return 1; fi
+    if [ -z "$fileName" ]; then echo -e "Usage: atomicWrite <fileName :- aborts if none provided>\n\t<destination :- defaults to XDG_RUNTIME_DIR>\n\t<body :- defaults to NULL>"; return 1; fi
 
     local tempFile="${XDG_RUNTIME_DIR}/tmp_"$fileName".XXXXXX"
 
