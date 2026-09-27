@@ -2,6 +2,19 @@
 set -uo pipefail
 
 
+user=${SUDO_USER:-$(whoami)}
+
+[ "${SUDO_USER:-}" ] || { echo "$user, run via sudo as your normal user, not as root" >&2; exit 1; }
+
+id -- "$user" >/dev/null 2>&1 || { echo "No such user: $user" >&2; exit 1; }
+
+
+#### Resolve the real user's home
+userHome=$(getent passwd "$user" | cut -d: -f6)
+
+HOME="$userHome"
+
+
 nextcloudCheck(){
     shopt -s nullglob dotglob
 
@@ -12,7 +25,7 @@ nextcloudCheck(){
             if (( $# > 0 )); then echo -e "Nextcloud path found "$HOME/Nextcloud""
             else echo "$HOME/Nextcloud is empty, aborting"; return 1; fi
 
-        read -p "Press enter to continue" 
+        read -p "Press enter to continue " 
     
     else    
         echo -e "Run only after Nextcloud setup..."
@@ -30,13 +43,11 @@ brokenEnv=false
 if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
 
 if $brokenEnv; then
-    echo -e "[CRITICAL ERROR] Enviroment degraded, functions disabled"
+    echo "[CRITICAL ERROR] Enviroment degraded, functions disabled"
     return 1
 fi;
 
 
-
-[ "$EUID" -ne 0 ] || { sysLogger e "Run as normal user, not root." >&2; exit 1; }
 
 
 ######################################################################################
