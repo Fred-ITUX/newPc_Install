@@ -9,6 +9,7 @@
 
 ###############################################################
 
+if [ -f "$(dirname "$0")/configs.sh" ]; then source "$(dirname "$0")/configs.sh"; else echo "[CRITICAL ERROR] Could not load "$(dirname "$0")/configs" module"; exit 1 ; fi
 
 nextcloudCheck(){
     shopt -s nullglob dotglob
