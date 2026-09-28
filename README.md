@@ -77,13 +77,21 @@ cloneRepo || { echo "[ERROR] function terminated with an error"; }
 ## One launch setup
 
 ```bash 
-if [ -f "$HOME/Github/newPc_Install/newPc/setup.sh" ]; then sudo "$HOME/Github/newPc_Install/newPc/setup.sh"; else echo "Script not found: "$HOME/Github/newPc_Install/newPc/setup.sh""; fi 
+if [ -f "$HOME/Github/newPc_Install/newPc/setup.sh" ] && [ -f "$HOME/Github/newPc_Install/newPc/newPc_Install.sh" ] ; then 
+    sudo "$HOME/Github/newPc_Install/newPc/setup.sh" "$HOME/Github/newPc_Install/newPc/newPc_Install.sh"; 
+else 
+    echo "Script(s) not found: \n"$HOME/Github/newPc_Install/newPc/setup.sh" \n"$HOME/Github/newPc_Install/newPc/newPc_Install.sh""
+fi 
 ```
 
 
 > After the initial setup terminated
 
 ```bash
-if [ -f "$HOME/Github/newPc_Install/newPc/setup.sh" ]; then sudo "$HOME/Github/newPc_Install/newPc/setup.sh" "newPc_Scripts.sh"; else echo "Script not found: "$HOME/Github/newPc_Install/newPc/setup.sh""; fi 
+if [ -f "$HOME/Github/newPc_Install/newPc/setup.sh" ] && [ -f "$HOME/Github/newPc_Install/newPc/newPc_Scripts.sh" ]  ; then
+    sudo "$HOME/Github/newPc_Install/newPc/setup.sh" "newPc_Scripts.sh"; 
+else 
+    echo "Script(s) not found: \n$HOME/Github/newPc_Install/newPc/setup.sh \n"$HOME/Github/newPc_Install/newPc/newPc_Scripts.sh"\n"
+fi 
 ```
 

@@ -8,7 +8,11 @@ repo="https://github.com/Fred-ITUX/newPc_Install"
 echo -e "\n\t > Starting "$(date "+%A %F %H:%M:%S")""
 
 
-runningScript="${1:-"newPc_Install.sh"}"
+runningScript="${1:-}"
+
+if [ -z "$runningScript" ]; then
+    echo "No scripts to execute given, exiting"; exit 1
+fi
 
 user=${SUDO_USER:-$(whoami)}
 
