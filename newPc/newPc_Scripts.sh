@@ -44,8 +44,6 @@ nextcloudCheck(){
 
             if (( $# > 0 )); then sysLogger i "Nextcloud path found "$HOME/Nextcloud""
             else sysLogger e "$HOME/Nextcloud is empty, aborting"; return 1; fi
-
-        read -p "Press enter to continue..." 
     
     else    
         sysLogger e "Run only after Nextcloud setup..."
@@ -825,10 +823,10 @@ mainLauncher
 
 sysLogger i "Main execution complete" 
 
-#### Give the user full daccess to the log
-sudo chown -R "${SUDO_USER:-$(whoami)}:${SUDO_USER:-$(whoami)}" "$HOME/Nextcloud/Linux/log/newPc_history"
 
-sysLogger i "Owned all files under ""$HOME/Nextcloud/Linux/log/newPc_history""" 
+sysLogger i "Giving the user full access to the log"
+
+sudo chown -R "${SUDO_USER:-$(whoami)}:${SUDO_USER:-$(whoami)}" "$HOME/Nextcloud/Linux/log/newPc_history" || { sysLogger e "chown error on "$HOME/Nextcloud/Linux/log/newPc_history"" ; }
 
 
 ######################################################################################
@@ -838,11 +836,8 @@ sysLogger i "Owned all files under ""$HOME/Nextcloud/Linux/log/newPc_history"""
 GH_gitConfig(){
     sysLogger i "Git 'gh' config started, expect prompts"
 
-    sysLogger i "Checking internet connectivity, the script will abort if the system results offline."
-    timeout 10 getent hosts archive.ubuntu.com > /dev/null || { sysLogger e "No network. Aborting."; return 1; }
-
-
     sysLogger i "Attempting GIT login using 'gh'"
+
     if ! command gh > /dev/null ; then sysLogger e "'gh' command not found"
     else gh auth login --hostname github.com --git-protocol https --web
     fi
