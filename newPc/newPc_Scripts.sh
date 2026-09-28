@@ -27,7 +27,7 @@ sysLogger(){
     esac
 
     
-    echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody"
+    echo -e "[$logType] {$caller} $(date "+%Y-%m-%d %H:%M:%S") -> $logBody"
 }
 
 
