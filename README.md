@@ -50,6 +50,7 @@ cloneRepo(){
     
 
     else
+        mkdir -p ""$userHome"/Github"
         echo "Cloning the repo:  "$repoPath"/"$repo""
         git clone --depth 1 "$repo" "$repoPath"  || { echo "[ERROR] failed to clone the repo" ; return 1; }
         
