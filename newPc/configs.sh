@@ -3,11 +3,11 @@ set -uo pipefail
 
 local_user="${SUDO_USER:-$(whoami)}"
 
-
+userHome=
 export XDG_RUNTIME_DIR="/run/user/$(id -u "$local_user")"
-export HOME="$(getent passwd "$local_user" | cut -d: -f6)"
+HOME="$(getent passwd "$local_user" | cut -d: -f6)"
 
-
+userHome="$HOME"
 
 #########################################################################
 
