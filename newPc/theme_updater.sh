@@ -30,12 +30,12 @@ setTheme() {
 
 
 #### Make sure the folder exists
-iconDir="$HOME/.local/share/icons"
-themeDir="$HOME/.local/share/themes"
-fontDir="$HOME/.local/share/fonts"
+iconDir="$userHome/.local/share/icons"
+themeDir="$userHome/.local/share/themes"
+fontDir="$userHome/.local/share/fonts"
 asUser mkdir -p "$iconDir" "$themeDir" "$fontDir"
 
-gtkConfigFolder="$HOME/.config"
+gtkConfigFolder="$userHome/.config"
 
 
 # sudo apt install -y adwaita gnome-themes-extra gnome-icon-theme hicolor-icon-theme humanity-icon-theme
@@ -61,12 +61,12 @@ sysLogger i "Creating symlinks into .local/share/ for flatpak ovverrides"
 
 symLink(){
 	sysLogger i "Creating symlking only if they do not already exist and if they are valid"
-	local papirusDark="$HOME/.local/share/icons/Papirus-Dark"
-	local breezeCursors="$HOME/.local/share/icons/breeze_cursors"
-	local adwaita="$HOME/.local/share/icons/Adwaita"
-	local adwaitaDark="$HOME/.local/share/themes/Adwaita-dark"
-	local dejavu="$HOME/.local/share/fonts/dejavu"
-	local comicNeue="$HOME/.local/share/fonts/comic-neue"
+	local papirusDark="$userHome/.local/share/icons/Papirus-Dark"
+	local breezeCursors="$userHome/.local/share/icons/breeze_cursors"
+	local adwaita="$userHome/.local/share/icons/Adwaita"
+	local adwaitaDark="$userHome/.local/share/themes/Adwaita-dark"
+	local dejavu="$userHome/.local/share/fonts/dejavu"
+	local comicNeue="$userHome/.local/share/fonts/comic-neue"
 
 	if [ ! -e "$papirusDark" ] && [ ! -L "$papirusDark" ]; then asUser ln -s /usr/share/icons/Papirus-Dark "$papirusDark"; fi
 	if [ ! -e "$breezeCursors" ] && [ ! -L "$breezeCursors" ]; then asUser ln -s /usr/share/icons/breeze_cursors "$breezeCursors"; fi
@@ -76,15 +76,15 @@ symLink(){
 	if [ ! -e "$comicNeue" ] && [ ! -L "$comicNeue" ]; then asUser ln -s /usr/share/fonts/truetype/comic-neue "$comicNeue"; fi
 }
 
-symLink
+symLink || { sysLogger e "Symlink creation failed" ; exit 1; }
 
 #### Automate setup - themes
 sysLogger i "Enaging setTheme function"
 
 ####		type		gSet		name
-setTheme	"icon"	  	"icon"  	"Papirus-Dark"
-setTheme	"icon"	  	"cursor"	"breeze_cursors"
-setTheme	"theme"	 	"gtk"	   	"Adwaita-dark"
+setTheme	"icon"	  	"icon"  	"Papirus-Dark" || { sysLogger e "setTheme failed in for Papirus-Dark" ; exit 1; }
+setTheme	"icon"	  	"cursor"	"breeze_cursors"  || { sysLogger e "setTheme failed in for breeze_cursors" ; exit 1; }
+setTheme	"theme"	 	"gtk"	   	"Adwaita-dark" || { sysLogger e "setTheme failed in for Adwaita-dark" ; exit 1; }
 
 
 # gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
@@ -115,12 +115,12 @@ atomicWrite "gtk.css" "$gtkConfigFolder/gtk-4.0" "$terminalPadding"
 
 
 sysLogger i "Force dark mode to avoid gtk compatibility issues"
-echo -e "[Settings]\ngtk-application-prefer-dark-theme = true" > "$gtkConfigFolder/gtk-3.0/settings.ini"
-echo -e "[Settings]\ngtk-application-prefer-dark-theme = true" > "$gtkConfigFolder/gtk-4.0/settings.ini"
+atomicWrite "settings.ini" "$gtkConfigFolder/gtk-3.0" "$(printf '[Settings]\ngtk-application-prefer-dark-theme = true')"
+atomicWrite "settings.ini" "$gtkConfigFolder/gtk-4.0" "$(printf '[Settings]\ngtk-application-prefer-dark-theme = true')"
 
 
 sysLogger i "Set the background to a solid black across theme types"
-# gsettings set org.gnome.desktop.background picture-uri-dark "$HOME/Nextcloud/Linux/SysThemes/Themes/black_Bg.png"
+# gsettings set org.gnome.desktop.background picture-uri-dark "$userHome/Nextcloud/Linux/SysThemes/Themes/black_Bg.png"
 asUser gsettings set org.gnome.desktop.background picture-uri	  ''
 asUser gsettings set org.gnome.desktop.background picture-uri-dark ''
 asUser gsettings set org.gnome.desktop.background primary-color	'#000000'

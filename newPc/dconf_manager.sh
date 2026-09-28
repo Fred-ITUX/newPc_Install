@@ -12,9 +12,11 @@
 #### Enable test suite for the loader
 DEBUG="${DEBUG:-false}"     ####    true     false
 
+userHome="${userHome:-$HOME}"
+
 dateStamp="$(date "+%Y_%m_%d")"
 
-newPcPath="$HOME/Nextcloud/Linux/log/newPc_history"
+newPcPath="$userHome/Nextcloud/Linux/log/newPc_history"
 
 
 dump_tempLog="${userRuntime:-$XDG_RUNTIME_DIR}/tmp_dump_setup_dconf.log"
@@ -33,7 +35,7 @@ setup_dconf_dump(){
 
     local dumpFolder="${userRuntime:-$XDG_RUNTIME_DIR}/setup_dconf_dump/$dateStamp"
 
-    local destinationPath="$HOME/Nextcloud/Linux/scripts/newPc/dconf_dump"
+    local destinationPath="$userHome/Nextcloud/Linux/scripts/newPc/dconf_dump"
 
     local finalFolder="$destinationPath/$dateStamp"
 
@@ -92,7 +94,7 @@ setup_dconf_restore(){
 
     if $DEBUG; then sysLogger DEBUG "DEBUG=$DEBUG. Testing suite active."; fi
 
-    dumpPath="$HOME/Nextcloud/Linux/scripts/newPc/dconf_dump"
+    dumpPath="$userHome/Nextcloud/Linux/scripts/newPc/dconf_dump"
 
     newest=$(find "$dumpPath" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
          grep -E '^[0-9]{4}_[0-9]{2}_[0-9]{2}$' |
@@ -153,15 +155,15 @@ setup_dconf_restore(){
             sysLogger i "Started loading "$filename""
 
             case "$filename" in
-                gnome_extensions.conf) dconf load /org/gnome/shell/extensions/ < "$file" || { sysLogger e "load failed for /org/gnome/shell/extensions/ " ; return 1;  } ;;
+                gnome_extensions.conf) asUser dconf load /org/gnome/shell/extensions/ < "$file" || { sysLogger e "load failed for /org/gnome/shell/extensions/ " ; return 1;  } ;;
 
-                media-keys.conf) dconf load /org/gnome/settings-daemon/plugins/media-keys/ < "$file" || { sysLogger e "load failed for /org/gnome/settings-daemon/plugins/media-keys/" ; return 1;  };;
+                media-keys.conf) asUser dconf load /org/gnome/settings-daemon/plugins/media-keys/ < "$file" || { sysLogger e "load failed for /org/gnome/settings-daemon/plugins/media-keys/" ; return 1;  };;
 
-                mutter-keybindings.conf) dconf load /org/gnome/mutter/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/mutter/keybindings/" ; return 1;  } ;;
+                mutter-keybindings.conf) asUser dconf load /org/gnome/mutter/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/mutter/keybindings/" ; return 1;  } ;;
 
-                shell-keybindings.conf) dconf load /org/gnome/shell/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/shell/keybindings/" ; return 1;  } ;;
+                shell-keybindings.conf) asUser dconf load /org/gnome/shell/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/shell/keybindings/" ; return 1;  } ;;
 
-                wm-keybindings.conf) dconf load /org/gnome/desktop/wm/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/desktop/wm/keybindings/" ; return 1;  } ;;
+                wm-keybindings.conf) asUser dconf load /org/gnome/desktop/wm/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/desktop/wm/keybindings/" ; return 1;  } ;;
 
                 *) sysLogger e "Ignoring unknown dconf backup: $filename" ;;
             esac
@@ -181,7 +183,7 @@ setup_dconf_restore(){
 launcher_setup_dconf_dump(){
     mkdir -p "$newPcPath"
     
-    setup_dconf_dump || { sysLogger e "Function 'setup_dconf_dump' terminated with an error"; return 1; }
+    setup_dconf_dump || { sysLogger e "Function 'setup_dconf_dump' terminated with an error";  }
     
     mv "$dump_tempLog" "$dump_dconfLog" || { sysLogger e "Could not move \n"$dump_tempLog" \nto \n"$dump_dconfLog"" ; return 1;  }
     
@@ -193,7 +195,7 @@ launcher_setup_dconf_dump(){
 launcher_setup_dconf_restore(){
     asUser mkdir -p "$newPcPath"
     
-    setup_dconf_restore || { sysLogger e "Function 'setup_dconf_restore' terminated with an error"; return 1; }
+    setup_dconf_restore || { sysLogger e "Function 'setup_dconf_restore' terminated with an error";  }
     
     asUser mv "$restore_tempLog" "$restore_dconfLog" || { sysLogger e "Could not move \n"$restore_tempLog" \nto \n"$restore_dconfLog"" ; return 1;  }
     

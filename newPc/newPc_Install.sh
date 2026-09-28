@@ -12,7 +12,9 @@ StartDiskSpace=$(df -h)
 diskSpace_before=$(df -BG / | awk 'NR==2 {gsub("G","",$4); print $4}')
 
 
-pathFile="$HOME/newPc_$start_time.log"
+# pathFile="$HOME/newPc_$start_time.log"
+pathFile="$userHome/newPc_"$start_time".log"
+
 
 
 ###########################################################################################
@@ -188,7 +190,7 @@ kindLogger "Continuing..."
 
 
 
-touch "$pathFile"
+asUser touch "$pathFile"
 
 if [ ! -f "$pathFile" ]; then
 	kindLogger "File creation failed $pathFile\nAvoiding deploy without a log, aborting."; exit 1
@@ -228,7 +230,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 			START UPDATE, FULL UPGRADE AND CHECK INSTALLS
 
 	+-----------------------------------------------------------+\n\n\n"
-	safetyUpdateCheck || { kindLogger "ERROR - first updater failed, aborting before continuing" ; return 1 ; }
+	safetyUpdateCheck || { kindLogger "ERROR - first updater failed, aborting before continuing" ; }
 	echo -e "\n\n\n
 	+---------------------------------------------------------+ 
 
@@ -313,12 +315,12 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 
 
 	kindLogger "Wine architecture safety setup for i386"
-	sudo dpkg --add-architecture i386 && sudo apt update || { kindLogger "ERROR - wine architecture" ; return 1; } 
+	sudo dpkg --add-architecture i386 && sudo apt update || { kindLogger "ERROR - wine architecture" ; } 
 
 
 	kindLogger "Engaging installLoop: apt"
 
-	installLoop apt appPackages
+	installLoop apt appPackages; aptFailures=$?
 
 
 
@@ -387,13 +389,13 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 	)
 
 	kindLogger "Flathub remote check"
-	sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || { kindLogger "ERROR - Flatpak 'remote-add flathub' failed, exiting"; return 1; }
+	sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || { kindLogger "ERROR - Flatpak 'remote-add flathub' failed, exiting"; }
 
 
 	kindLogger "\nEngaging installLoop: flatpak"
 
-	installLoop flatpak flatpakAppPackages
-
+	# installLoop flatpak flatpakAppPackages
+    installLoop flatpak flatpakAppPackages; flatpakFailures=$?
 
 
 
@@ -419,7 +421,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 				+--------------------------------------------+\n\n\n"
 
 
-	sudo apt purge "cinnamon*" -y || { kindLogger "ERROR - apt purge cinnamon" ; return 1; }
+	sudo apt purge "cinnamon*" -y || { kindLogger "ERROR - apt purge cinnamon" ;  }
 
 	appToPurge=(
 			"thunderbird*" 
@@ -489,7 +491,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 
 	purgeLoop apt appToPurge
 
-	sudo apt-get install nemo -y  || { kindLogger "ERROR - nemo install failed" ; return 1; } #### It gets removed from the cinnamon purge
+	sudo apt-get install nemo -y  || { kindLogger "ERROR - nemo install failed" ;} #### It gets removed from the cinnamon purge
 
 	echo -e "\n\n\n
 				+------------------------------------------+ 
@@ -567,7 +569,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 sync || { kindLogger "ERROR - Sync failed" ; } #### Synchronize cached writes to persistent storage
 
 
-if [ "${#failedApt[@]}" -eq 0 ] && [ "${#failedFlatpak[@]}" -eq 0 ]; then
+if [ "${aptFailures:-1}" -eq 0 ] && [ "${flatpakFailures:-1}" -eq 0 ]; then
 
 	autoRebootDelay=15
 	while ((autoRebootDelay >= 0)); do
@@ -583,12 +585,11 @@ else
     echo "Completed with failures — review $pathFile"
     read -r -p "Reboot anyway? y/n " sendReboot; 
 	
-	if [ "$sendReboot" != "y" ]; then
+	if [ "$sendReboot" = "y" ]; then
 		reboot	
 
 	else 
         echo -e "Not rebooting"
 	fi
 	
-	[ "$a" = y ] && reboot
 fi

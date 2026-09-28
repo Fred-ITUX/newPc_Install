@@ -78,7 +78,9 @@ newpcHistory(){
 
     asUser mkdir -p "$dest" || { sysLogger e "failed to create folder "$dest""; return 1;}
     
-    sudo find /root -maxdepth 1 -name 'newPC_*.txt' -exec cp -- {} "$dest/" \;
+    # sudo find /root -maxdepth 1 -name 'newPC_*.txt' -exec cp -- {} "$dest/" \;
+    sudo find "$userHome" -maxdepth 1 -name 'newPc_*.log' -exec cp -- {} "$dest/" \;
+
     chown -R "$realUser:$realGroup" "$dest"
 }
 
@@ -197,7 +199,11 @@ tearFix(){
 
 grubSetup(){
     sysLogger i "GRUB USB not working after waking up (sleep / hybernation / suspend)"
+
+    #### In case of a 2nd run   
+    grep -q 'usbcore.autosuspend=-1' "$grub_line_path" && { sysLogger i "GRUB already configured"; return 0; }
     
+
     local grub_line_path="/etc/default/grub"
     local grub_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
     local mod_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.autosuspend=-1 zswap.enabled=0"'
@@ -225,42 +231,42 @@ GNOME_global_settings(){
     sysLogger i "GNOME tweaks block"
 
     #### Remove recents from gnome settings
-    gsettings set org.gnome.desktop.privacy remember-recent-files false
+    asUser gsettings set org.gnome.desktop.privacy remember-recent-files false
 
     #### Disable gnome animation to make it smoother
-    gsettings set org.gnome.desktop.interface enable-animations false
+    asUser gsettings set org.gnome.desktop.interface enable-animations false
 
     #### Disable app not responding pop-up (default 5000)
-    gsettings set org.gnome.mutter check-alive-timeout 0
+    asUser gsettings set org.gnome.mutter check-alive-timeout 0
 
     #### Disable automatic suspend / blank
-    gsettings set org.gnome.desktop.session idle-delay 0
-    gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
-    gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type 'nothing'
+    asUser gsettings set org.gnome.desktop.session idle-delay 0
+    asUser gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+    asUser gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type 'nothing'
 
     #### Multitasking / workspaces setup
-    gsettings set org.gnome.mutter dynamic-workspaces false
-    gsettings set org.gnome.desktop.wm.preferences num-workspaces 4
-    gsettings set org.gnome.mutter workspaces-only-on-primary false
-    gsettings set org.gnome.shell.app-switcher current-workspace-only false
+    asUser gsettings set org.gnome.mutter dynamic-workspaces false
+    asUser gsettings set org.gnome.desktop.wm.preferences num-workspaces 4
+    asUser gsettings set org.gnome.mutter workspaces-only-on-primary false
+    asUser gsettings set org.gnome.shell.app-switcher current-workspace-only false
 
     # #### Disable edge tiling --- keep true for fullscreen shortcut
-    # gsettings set org.gnome.mutter edge-tiling false
+    # asUser gsettings set org.gnome.mutter edge-tiling false
 
     # #### Keep Super Key for overview / search 
-    # gsettings set org.gnome.mutter overlay-key 'Super_L'
+    # asUser gsettings set org.gnome.mutter overlay-key 'Super_L'
 
     #### Night light setup
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic false
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
-    gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
-    # gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 2500 #### 1000~10000
+    asUser gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic false
+    asUser gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
+    asUser gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
+    # asUser gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 2500 #### 1000~10000
 
 
     ####            Terminal customization
 
     #### Get default key value & set the cursor to underline
-    # local PROFILE=$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
+    # local PROFILE=$(asUser gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
     local PROFILE=$(asUser gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
 
     if [ -z "$PROFILE" ]; then
@@ -268,23 +274,23 @@ GNOME_global_settings(){
         return 1
     fi
 
-    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-shape 'underline'
+    asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-shape 'underline'
 
-    # gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" use-transparent-background true
-    # gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" background-transparency-percent 30
+    # asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" use-transparent-background true
+    # asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" background-transparency-percent 30
 
-    # gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" use-transparent-background false
+    # asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" use-transparent-background false
 
 
-    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-blink-mode off
+    asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-blink-mode off
 
-    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-rows 26 #### default 24
+    asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-rows 26 #### default 24
 
-    gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-columns 90 #### default 80
+    asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-columns 90 #### default 80
 
 
     #### Check for all available customization options
-    #### gsettings list-keys "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/"
+    #### asUser gsettings list-keys "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/"
 
 
     sysLogger i "Disabling gnome tracker (home folder indexing)"
@@ -454,7 +460,6 @@ deamonsPurge(){
     local deamonsToDisable=(
         "NetworkManager-wait-online.service"    #### Wait for network
         "avahi-daemon.service"                  #### Local network discovery
-        # "clamav-daemon.service"                 #### Keep clamav disabled by default (on-demand activation)
         "cups.service"                          #### Disable CUPS (printer deamon)
         "cups.socket"
         )
@@ -470,7 +475,7 @@ deamonsPurge(){
     done
 
     sysLogger i "Extra step, purging 'cups' (printer deamon)"
-    sudo apt purge cups -y
+    sudo apt-get purge cups -y
 }
 
 
@@ -557,9 +562,9 @@ swapSetup(){
 	sudo swapon --show
 	free -h
 	df -h
-	sudo fallocate -l "$SWAP"G /swapspace || { sysLogger e "fallocate in swap allocation failed" ; return 1; }
+	sudo fallocate -l "$SWAP"G /swapspace || { sysLogger e "fallocate failed in swap allocation" ; return 1; }
 	ls -lh /swapspace
-	sudo chmod 600 /swapspace
+	sudo chmod 600 /swapspace || { sysLogger e "chmod failed in swap allocation" ; return 1; }
 	ls -lh /swapspace
 	sudo mkswap /swapspace
 	sudo swapon /swapspace
@@ -743,11 +748,14 @@ wireplumberAudioDeviceBlacklist(){
     #### Already applied: nothing to do
     [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && return 0
 
-    mkdir -p "$(dirname "$confFile")" || return 1
-    printf '%s\n' "$confText" > "$confFile" || return 1
+    # mkdir -p "$(dirname "$confFile")" || return 1
+    # printf '%s\n' "$confText" > "$confFile" || return 1
+
+    atomicWrite "$(basename "$confFile")" "$(dirname "$confFile")" "$confText" || { sysLogger e "wireplumberAudioDeviceBlacklist: config write failed" ; return 1; }
+
 
     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
-    systemctl --user restart wireplumber 2>/dev/null || sysLogger i "Config written: restart the session to apply"
+    asUser systemctl --user restart wireplumber 2>/dev/null || sysLogger i "Config written: restart the session to apply"
 }
 
 
@@ -802,11 +810,6 @@ sysLogger i "All functions compiled, launching main now"
 mainLauncher
 
 sysLogger i "Main execution complete" 
-
-
-sysLogger i "{REDUNTANT CHOWN} -- Giving the user full access to the log"
-
-sudo chown -R "${SUDO_USER:-$(whoami)}:${SUDO_USER:-$(whoami)}" "$userHome/Nextcloud/Linux/log/newPc_history" || { sysLogger e "chown error on "$userHome/Nextcloud/Linux/log/newPc_history"" ; }
 
 
 ######################################################################################
