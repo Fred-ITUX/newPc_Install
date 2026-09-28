@@ -18,14 +18,14 @@ fi
 nextcloudCheck(){
     shopt -s nullglob dotglob
 
-    sysLogger i "Checking for Nextcloud/ folder presence: ""$HOME"/Nextcloud""
+    sysLogger i "Checking for Nextcloud/ folder presence: ""$userHome"/Nextcloud""
 
-    set -- "$HOME/Nextcloud"/*
+    set -- "$userHome/Nextcloud"/*
 
-    if [ -d "$HOME/Nextcloud" ]; then
+    if [ -d "$userHome/Nextcloud" ]; then
 
-            if (( $# > 0 )); then sysLogger i "Nextcloud path found "$HOME/Nextcloud""
-            else sysLogger e "$HOME/Nextcloud is empty, aborting"; return 1; fi
+            if (( $# > 0 )); then sysLogger i "Nextcloud path found "$userHome/Nextcloud""
+            else sysLogger e "$userHome/Nextcloud is empty, aborting"; return 1; fi
     
     else    
         sysLogger e "Run only after Nextcloud setup..."
@@ -54,7 +54,7 @@ asUser touch "$log"                 || { sysLogger e "File creation failed: $log
 exec > >(tee -a "$log") 2>&1
 
 
-EXTRA_LXscripts="$HOME/Nextcloud/Linux/scripts"
+EXTRA_LXscripts="$userHome/Nextcloud/Linux/scripts"
 
 if [ ! -d "$EXTRA_LXscripts"  ]; then sysLogger e "master path not found $EXTRA_LXscripts \nAborting execution"; exit 1; fi
 
@@ -72,7 +72,7 @@ sysLogger i "All the .sh scripts under "$EXTRA_LXscripts" are now executables"
 
 
 newpcHistory(){
-    local dest="$HOME/Nextcloud/Linux/log/newPc_history"
+    local dest="$userHome/Nextcloud/Linux/log/newPc_history"
 
     sysLogger i "Saving 'newPc' log for history"
 
@@ -90,7 +90,7 @@ newpcHistory(){
 
 startupBootstrap(){
     local fileEntry 
-    local autostartPath="$HOME/.config/autostart"
+    local autostartPath="$userHome/.config/autostart"
     local autostartFile=""$autostartPath"/startup_routine.desktop"
 
     sysLogger i "Setup startup routine start at boot"
@@ -315,7 +315,7 @@ GNOME_performance(){
 
     sysLogger i  "Reduce GNOME stalls"
 
-    limitConfPath="$HOME/.config/systemd/user.conf.d"
+    limitConfPath="$userHome/.config/systemd/user.conf.d"
     limitConf="[Manager]
     DefaultLimitNOFILE=1048576
     DefaultTasksMax=32768"
@@ -342,7 +342,7 @@ GNOME_performance(){
 dconfSetup(){
     sysLogger i "Starting dconf setup using the last dump available"
 
-    local dconfScript="$HOME/Nextcloud/Linux/scripts/newPc/dconf_manager.sh"
+    local dconfScript="$userHome/Nextcloud/Linux/scripts/newPc/dconf_manager.sh"
     
     if [ -f "$dconfScript" ]; then
         source "$dconfScript" || { sysLogger e "Failed to source the script "$dconfScript", exiting" ; return 1; }
@@ -362,7 +362,7 @@ dconfSetup(){
 themeSetup(){
     sysLogger i "Starting theme setup"
 
-    local themeScript="$HOME/Nextcloud/Linux/scripts/newPc/theme_updater.sh"
+    local themeScript="$userHome/Nextcloud/Linux/scripts/newPc/theme_updater.sh"
     
     if [ -f "$themeScript" ]; then
         sysLogger i "Correctly read the script "$themeScript""
@@ -390,7 +390,7 @@ nemoSetup(){
     sudo chown root:sambashare /var/lib/samba/usershares
     sudo chmod 1770 /var/lib/samba/usershares
 
-    nemoScripts="$HOME/.local/share/nemo/scripts"
+    nemoScripts="$userHome/.local/share/nemo/scripts"
 
     if [ ! -d "$nemoScripts" ]; then
         sysLogger w "Folder "$nemoScripts" did not exist, creating"
@@ -403,7 +403,7 @@ nemoSetup(){
         asUser cp "$EXTRA_LXscripts/Other/NEMO_mediainfo.sh" "$nemoScripts"
     fi
 
-    if [ ! -s "$HOME/.local/share/nemo/scripts/NEMO_mediainfo.sh" ]; then
+    if [ ! -s "$userHome/.local/share/nemo/scripts/NEMO_mediainfo.sh" ]; then
         sysLogger e "nemoSetup mediainfo Copy failed"
     fi
 }
@@ -437,9 +437,9 @@ flatpakOverrides(){
     asUser flatpak override --user --filesystem=/media/federico/SSD1TB com.usebottles.bottles
 
     #### Allow all flatpak to see and use fonts and themes
-    asUser flatpak override --user --filesystem="$HOME/.local/share/icons":ro  
-    asUser flatpak override --user --filesystem="$HOME/.local/share/themes":ro  
-    asUser flatpak override --user --filesystem="$HOME/.local/share/fonts":ro  
+    asUser flatpak override --user --filesystem="$userHome/.local/share/icons":ro  
+    asUser flatpak override --user --filesystem="$userHome/.local/share/themes":ro  
+    asUser flatpak override --user --filesystem="$userHome/.local/share/fonts":ro  
 }
 
 
@@ -605,12 +605,12 @@ swapSetup(){
 
 #     case "$wpVersion" in
 #         0.4)
-#             confFile="$HOME/.config/wireplumber/bluetooth.lua.d/51-disable-handsfree.lua"
+#             confFile="$userHome/.config/wireplumber/bluetooth.lua.d/51-disable-handsfree.lua"
 #             confText='bluez_monitor.properties["bluez5.roles"] = "[ a2dp_sink a2dp_source ]"
 #     bluez_monitor.properties["bluez5.hfphsp-backend"] = "none"'
 #             ;;
 #         0.5)
-#             confFile="$HOME/.config/wireplumber/wireplumber.conf.d/51-disable-handsfree.conf"
+#             confFile="$userHome/.config/wireplumber/wireplumber.conf.d/51-disable-handsfree.conf"
 #             confText='monitor.bluez.properties = {
 #     bluez5.roles = [ a2dp_sink a2dp_source ]
 #     bluez5.hfphsp-backend = "none"
@@ -645,14 +645,14 @@ bluetoothProfileAntiSwitch(){
 
     case "$wpVersion" in
         0.4)
-            confFile="$HOME/.config/wireplumber/policy.lua.d/51-bt-no-headset-switch.lua"
-            oldConf="$HOME/.config/wireplumber/bluetooth.lua.d/51-disable-handsfree.lua"
+            confFile="$userHome/.config/wireplumber/policy.lua.d/51-bt-no-headset-switch.lua"
+            oldConf="$userHome/.config/wireplumber/bluetooth.lua.d/51-disable-handsfree.lua"
             confText='bluetooth_policy.policy["media-role.use-headset-profile"] = false
     bluetooth_policy.policy["use-persistent-storage"] = false'
             ;;
         0.5)
-            confFile="$HOME/.config/wireplumber/wireplumber.conf.d/51-bt-no-headset-switch.conf"
-            oldConf="$HOME/.config/wireplumber/wireplumber.conf.d/51-disable-handsfree.conf"
+            confFile="$userHome/.config/wireplumber/wireplumber.conf.d/51-bt-no-headset-switch.conf"
+            oldConf="$userHome/.config/wireplumber/wireplumber.conf.d/51-disable-handsfree.conf"
             confText='wireplumber.settings = {
     bluetooth.autoswitch-to-headset-profile = false
     bluetooth.use-persistent-storage = false
@@ -694,7 +694,7 @@ wireplumberAudioDeviceBlacklist(){
 
     case "$wpVersion" in
         0.4)
-            confFile="$HOME/.config/wireplumber/main.lua.d/52-audio-blacklist.lua"
+            confFile="$userHome/.config/wireplumber/main.lua.d/52-audio-blacklist.lua"
             confText='-- Whole cards: GPU HDMI audio (monitor has no speakers), webcam microphone
     table.insert(alsa_monitor.rules, {
     matches = {
@@ -714,7 +714,7 @@ wireplumberAudioDeviceBlacklist(){
     })'
             ;;
         0.5)
-            confFile="$HOME/.config/wireplumber/wireplumber.conf.d/52-audio-blacklist.conf"
+            confFile="$userHome/.config/wireplumber/wireplumber.conf.d/52-audio-blacklist.conf"
             confText='monitor.alsa.rules = [
     {
         ## Whole cards: GPU HDMI audio (monitor has no speakers), webcam microphone
@@ -806,7 +806,7 @@ sysLogger i "Main execution complete"
 
 sysLogger i "{REDUNTANT CHOWN} -- Giving the user full access to the log"
 
-sudo chown -R "${SUDO_USER:-$(whoami)}:${SUDO_USER:-$(whoami)}" "$HOME/Nextcloud/Linux/log/newPc_history" || { sysLogger e "chown error on "$HOME/Nextcloud/Linux/log/newPc_history"" ; }
+sudo chown -R "${SUDO_USER:-$(whoami)}:${SUDO_USER:-$(whoami)}" "$userHome/Nextcloud/Linux/log/newPc_history" || { sysLogger e "chown error on "$userHome/Nextcloud/Linux/log/newPc_history"" ; }
 
 
 ######################################################################################
