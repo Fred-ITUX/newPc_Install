@@ -7,22 +7,23 @@ set -uo pipefail
 nextcloudCheck(){
     shopt -s nullglob dotglob
 
-    echo -e "Checking for Nextcloud/ folder presence: ""$HOME"/Nextcloud""
+    echo -e "\nChecking for Nextcloud/ folder presence: ""$HOME"/Nextcloud""
 
     set -- "$HOME/Nextcloud"/*
 
     if [ -d "$HOME/Nextcloud" ]; then
 
             if (( $# > 0 )); then echo -e "Nextcloud path found "$HOME/Nextcloud""
-            else echo "$HOME/Nextcloud is empty, aborting"; return 1; fi
+            else echo "[ERROR] $HOME/Nextcloud is empty, aborting"; return 1; fi
 
-        read -p "Press enter to continue " 
+        read -p "Press enter to continue..." 
     
     else    
-        echo -e "Run only after Nextcloud setup..."
+        echo -e "\n[ERROR] Run only after Nextcloud setup..."
         return 1
     fi
 
+    echo -e "\nNextcloud check completed\n"
     shopt -u nullglob dotglob 
 }
 nextcloudCheck || { echo -e "Nextcloud check failed, aborting execution" ; exit 1; }
@@ -45,18 +46,16 @@ envUpdate(){
         #### echo -e "\nwould copy "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" "
         #### echo -e "would source "$HOME"/."$module"\n"
 
-        cp "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" 
-        source "$HOME"/."$module"
+        cp "$LXscripts"/bash/""$module".sh" "$HOME"/."$module"  || { echo "[ERROR] Copy failed $module" ; brokenEnv=true ;return 1; } 
+        source "$HOME"/."$module" || { echo "[ERROR] Sourcing failed $module" ; brokenEnv=true ;return 1; }
 
     done
     
 }
 
+echo -e "\nUpdating env"
+
 envUpdate || { echo "[ERROR] envUpdate failed, bash modules sourcing failed"; brokenEnv=true; }
-
-
-if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
-if [ -s "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
 
 
 if $brokenEnv; then
@@ -820,6 +819,9 @@ mainLauncher(){
     done 
 
 } >> "$log"
+
+echo "[INFO] All functions compiled, launching main now"
+
 mainLauncher
 
 sysLogger i "Main execution complete" 
@@ -834,18 +836,18 @@ sysLogger i "Owned all files under ""$HOME/Nextcloud/Linux/log/newPc_history"""
 
 
 
-# GH_gitConfig(){
-#     sysLogger i "Git 'gh' config started, expect prompts"
+GH_gitConfig(){
+    sysLogger i "Git 'gh' config started, expect prompts"
 
-#     sysLogger i "Checking internet connectivity, the script will abort if the system results offline."
-#     timeout 10 getent hosts archive.ubuntu.com > /dev/null || { sysLogger e "No network. Aborting."; return 1; }
+    sysLogger i "Checking internet connectivity, the script will abort if the system results offline."
+    timeout 10 getent hosts archive.ubuntu.com > /dev/null || { sysLogger e "No network. Aborting."; return 1; }
 
 
-#     sysLogger i "Attempting GIT login using 'gh'"
-#     if ! command gh > /dev/null ; then sysLogger e "'gh' command not found"
-#     else gh auth login --hostname github.com --git-protocol https --web
-#     fi
+    sysLogger i "Attempting GIT login using 'gh'"
+    if ! command gh > /dev/null ; then sysLogger e "'gh' command not found"
+    else gh auth login --hostname github.com --git-protocol https --web
+    fi
 
-#     sysLogger i "Git 'gh' config terminated"
-# }
-# GH_gitConfig || { sysLogger e "GH_gitConfig failed" ; }
+    sysLogger i "Git 'gh' config terminated"
+}
+GH_gitConfig || { sysLogger e "GH_gitConfig failed" ; }
