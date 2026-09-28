@@ -21,7 +21,7 @@ cloneRepo(){
 
 
     #### Clone repo script && script exec
-    repoPath=""$userHome"/Github/newPc_Install"
+    repoPath=""$HOME"/Github/newPc_Install"
 
     if [ -d "$repoPath" ]; then
         echo -e "[WARNING]: folder "$repoPath" already present. \n\nChoose what to do now? \n\t'yes'\t> use it as is \n\t'no'\t> stop execution  \n\t'pull'\t> update the local folder \n\t'rm'\t> purge the current folder and re-clone\n"
@@ -50,7 +50,7 @@ cloneRepo(){
     
 
     else
-        mkdir -p ""$userHome"/Github"
+        mkdir -p ""$HOME"/Github"
         echo "Cloning the repo:  "$repoPath"/"$repo""
         git clone --depth 1 "$repo" "$repoPath"  || { echo "[ERROR] failed to clone the repo" ; return 1; }
         
