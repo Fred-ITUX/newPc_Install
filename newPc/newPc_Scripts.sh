@@ -31,6 +31,33 @@ sysLogger(){
 }
 
 
+
+
+atomicWrite(){
+    #### Takes the wanted filename, the path and the body and applies the `atomic write` process
+    local fileName="${1:-}"
+    local destination="${2:-XDG_RUNTIME_DIR}" 
+    local body="${3:-}"
+
+    if [ -z "$fileName" ]; then echo -e "Usage: atomicWrite <fileName :- aborts if none provided>\n\t<destination :- defaults to XDG_RUNTIME_DIR>\n\t<body :- defaults to NULL>"; return 1; fi
+
+    local tempFile="${XDG_RUNTIME_DIR}/tmp_"$fileName".XXXXXX"
+
+    local destFile=""$destination"/"$fileName""
+
+    mktemp "$tempFile" || { sysLogger e  "Failed to create temp file "$tempFile""; return 1; }
+
+    echo "$body" > "$tempFile" || { sysLogger e "Failed to write into "$tempFile"" ; return 1; }
+
+    if [ -r "$tempFile" ]; then
+        mv "$tempFile" "$destFile" || { sysLogger e "File created but failed to move "$tempFile" to "$destFile""; return 1; }
+    else
+        sysLogger e "Failed to move "$tempFile" to "$destFile""; return 1
+    fi
+}
+
+
+
 #########################################################################
 
 nextcloudCheck(){

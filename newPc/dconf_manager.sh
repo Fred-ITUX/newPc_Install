@@ -9,8 +9,9 @@
 
 ###############################################################
 
-
-
+local_user="${SUDO_USER:-$(whoami)}"
+export XDG_RUNTIME_DIR="/run/user/$(id -u "$local_user")"
+export HOME="$(getent passwd "$local_user" | cut -d: -f6)"
 
 
 #### Enable test suite for the loader
