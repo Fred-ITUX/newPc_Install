@@ -61,11 +61,17 @@ cloneRepo(){
 
     echo -e "\n > Function terminated correctly\n"
 }
+```
 
+### Execute
+
+```bash
 cloneRepo || { echo "[ERROR] function terminated with an error"; }
 ```
 
+
 <br>
+
 
 ## One launch setup
 
