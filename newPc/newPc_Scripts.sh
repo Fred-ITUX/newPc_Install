@@ -4,64 +4,62 @@ set -uo pipefail
 #### This script is NOT intended to be launched manually without configuring the enviroment beforehand
 
 
+
+
+
+#########################################################################
+
+sysLogger(){
+    local logType="${1:-}"
+    local logBody="${2:-}"
+    local caller="${FUNCNAME[1]:-MAIN}"
+    local DEBUG="${DEBUG:-false}" 
+
+    logType=$( echo "$logType" | tr '[:lower:]' '[:upper:]' )
+    
+    case "$logType" in
+        W) logType="WARNING" ;;
+        I) logType="INFO" ;;
+        E) logType="ERROR" ;;
+        D|DEBUG) if $DEBUG; then logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}"; else return 0 ; fi ;;
+
+        *) sysLogger e "Type '$logType' is not a valid log type"; return 1 ;;
+    esac
+
+    
+    echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody"
+}
+
+
+#########################################################################
+
 nextcloudCheck(){
     shopt -s nullglob dotglob
 
-    echo -e "\nChecking for Nextcloud/ folder presence: ""$HOME"/Nextcloud""
+    sysLogger i "Checking for Nextcloud/ folder presence: ""$HOME"/Nextcloud""
 
     set -- "$HOME/Nextcloud"/*
 
     if [ -d "$HOME/Nextcloud" ]; then
 
-            if (( $# > 0 )); then echo -e "Nextcloud path found "$HOME/Nextcloud""
-            else echo "[ERROR] $HOME/Nextcloud is empty, aborting"; return 1; fi
+            if (( $# > 0 )); then sysLogger i "Nextcloud path found "$HOME/Nextcloud""
+            else sysLogger e "$HOME/Nextcloud is empty, aborting"; return 1; fi
 
         read -p "Press enter to continue..." 
     
     else    
-        echo -e "\n[ERROR] Run only after Nextcloud setup..."
+        sysLogger e "Run only after Nextcloud setup..."
         return 1
     fi
 
-    echo -e "\nNextcloud check completed\n"
+    sysLogger i "Nextcloud check completed\n"
     shopt -u nullglob dotglob 
 }
-nextcloudCheck || { echo -e "Nextcloud check failed, aborting execution" ; exit 1; }
+nextcloudCheck || { sysLogger e "Nextcloud check failed, aborting execution" ; exit 1; }
 
 
 
-brokenEnv=false
 
-envUpdate(){
-    local LXscripts="$HOME/Nextcloud/Linux/scripts"
-
-    local modules=(
-        "bashrc"
-        "bash_functions"
-        "bash_common"
-    )
-
-    for module in "${modules[@]}"; do
-        [[ -f "$LXscripts/bash/"$module".sh" ]] || { echo "[ERROR] Module not found, skipping "$LXscripts/bash/"$module".sh""; continue; }
-
-        echo -e "\nCopy "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" "
-        cp "$LXscripts"/bash/""$module".sh" "$HOME"/."$module"  || { echo "[ERROR] Copy failed $module" ; brokenEnv=true ;return 1; } 
-
-        echo -e "Source "$HOME"/."$module"\n"
-        source "$HOME"/."$module" || { echo "[ERROR] Sourcing failed $module" ; brokenEnv=true ;return 1; }
-
-    done
-    
-}
-
-echo -e "\nUpdating env"
-
-envUpdate || { echo "[ERROR] envUpdate failed, bash modules sourcing failed"; brokenEnv=true; }
-
-
-if $brokenEnv; then
-    echo "[CRITICAL ERROR] Enviroment degraded, exiting"; exit 1
-fi
 
 
 ######################################################################################
@@ -393,12 +391,12 @@ themeSetup(){
     local themeScript="$HOME/Nextcloud/Linux/scripts/newPc/theme_updater.sh"
     
     if [ -f "$themeScript" ]; then
-        kindLogger "Correctly read the script "$themeScript""
+        sysLogger i "Correctly read the script "$themeScript""
     else
-        kindLogger "No script: "$themeScript""; return 1
+        sysLogger i "No script: "$themeScript""; return 1
     fi
 
-    "$themeScript" || { kindLogger "ERROR: themeScript returned an error" ; return 1; }
+    "$themeScript" || { sysLogger e "themeScript returned an error" ; return 1; }
 
 
     sysLogger i "Done theme setup"
@@ -554,10 +552,10 @@ swapSetup(){
         swapFavor="SWAP"
 
     elif [ $SWAPPINESS -gt 100 ] || [ $SWAPPINESS -lt 0 ]; then
-        echo -e "Swappiness error: not in range 0 - 100. Current: $SWAPPINESS)"; return 1
+        sysLogger e "Swappiness error: not in range 0 - 100. Current: $SWAPPINESS)"; return 1
 
     else
-        echo -e "Unexpected swappiness error: $SWAPPINESS \nExiting"; return 1
+        sysLogger e  "Unexpected swappiness error: $SWAPPINESS \nExiting"; return 1
     fi
 
 
@@ -568,10 +566,10 @@ swapSetup(){
         cacheFavor="Less RAM for cache"
 
     elif [ $CACHE_PRESSURE -gt 200 ] || [ $CACHE_PRESSURE -lt 0 ]; then
-        echo -e "CACHE_PRESSURE error: not in range 0 - 200. Current: $CACHE_PRESSURE)"; return 1
+        sysLogger e "CACHE_PRESSURE error: not in range 0 - 200. Current: $CACHE_PRESSURE)"; return 1
 
     else
-        echo -e "Unexpected CACHE_PRESSURE error: $CACHE_PRESSURE \nExiting" ; return 1
+        sysLogger e "Unexpected CACHE_PRESSURE error: $CACHE_PRESSURE \nExiting" ; return 1
     fi
 
     sysLogger i "SWAP config: 
@@ -687,7 +685,7 @@ bluetoothProfileAntiSwitch(){
     }'
             ;;
         *)
-            echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
+            sysLogger e "Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
             return 1
             ;;
     esac
@@ -702,7 +700,7 @@ bluetoothProfileAntiSwitch(){
     printf '%s\n' "$confText" > "$confFile" || { sysLogger e "bluetoothProfileAntiSwitch failed on 'printf '%s\n''" ; return 1; }
 
     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
-    systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Config written: restart the session to apply"
+    systemctl --user restart wireplumber 2>/dev/null || sysLogger i "Config written: restart the session to apply"
 
 }
 
@@ -759,7 +757,7 @@ wireplumberAudioDeviceBlacklist(){
     ]'
             ;;
         *)
-            echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
+            echsysLogger e "Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
             return 1
             ;;
     esac
@@ -771,7 +769,7 @@ wireplumberAudioDeviceBlacklist(){
     printf '%s\n' "$confText" > "$confFile" || return 1
 
     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
-    systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Config written: restart the session to apply"
+    systemctl --user restart wireplumber 2>/dev/null || sysLogger i "Config written: restart the session to apply"
 }
 
 
@@ -821,7 +819,7 @@ mainLauncher(){
 
 } >> "$log"
 
-echo "[INFO] All functions compiled, launching main now"
+sysLogger i "All functions compiled, launching main now"
 
 mainLauncher
 
