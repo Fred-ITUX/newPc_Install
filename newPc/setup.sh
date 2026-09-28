@@ -1,5 +1,5 @@
 #!/bin/bash
-set -uo
+set -uo pipefail
 
 echo -e "\n\t > Starting "$(date "+%A %F %H:%M:%S")""
 
