@@ -158,18 +158,18 @@ kindLogger(){
 
 
 #### Check if available disk space is enough (based on an estimate over the last run)
-AVG_GB_NEEDED=30
+AVG_GB_NEEDED=20
 avail=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
 [ "${avail:-0}" -ge "$AVG_GB_NEEDED" ] || { kindLogger "ERROR - Need "$AVG_GB_NEEDED"GB free on /, have ${avail}GB"; exit 1; }
 
 
 
 echo -e "\n\n
-\t\t	+--------------------------+ 
-\t\t
-\t\t			REQUIREMENTS
-\t\t
-\t\t	+--------------------------+
+	+--------------------------+ 
+
+			REQUIREMENTS
+
+	+--------------------------+
 
     > An average of "$AVG_GB_NEEDED"GB gonna be used
     > The system passed the network check, online status confirmed
