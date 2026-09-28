@@ -1,9 +1,20 @@
 #!/bin/bash
 if [ -f "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo "[CRITICAL ERROR] Bash module not found: "$HOME/.bash_common"" ; exit 1; fi
 
-set -euo pipefail
+set -uo pipefail
 
 ###############################################################
+
+
+#### This script is NOT intended to be run manually
+#### It should be sourced and launched by newPc_Scripts.sh
+
+
+###############################################################
+
+
+
+
 
 #### Enable test suite for the loader
 # DEBUG=true

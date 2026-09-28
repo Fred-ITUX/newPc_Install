@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 kindLogger(){ 
     local logBody="${1:-}"

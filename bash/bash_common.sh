@@ -87,7 +87,7 @@ get_formatted_date(){ date "+%a %b %d %Y %H:%M:%S" ; } #### python %a %b %d %Y %
 get_date_comparison(){ date "+%a %b %d" ; }
 
 
-get_file_date(){ date "+%Y-%m-%d_%H-%M-%S" ; }    #### python %Y-%m-%d_%H-%M-%S
+get_file_date(){ date "+%Y_%m_%d-%H_%M_%S" ; }    #### python %Y-%m-%d_%H-%M-%S
 
 
 get_logger_date(){ date "+%Y-%m-%d %H:%M:%S" ; } #### date "+%F %T"
@@ -231,24 +231,24 @@ raiseAlarm(){
 }
 
 
-
 sysLogger(){
     local logType="${1:-}"
     local logBody="${2:-}"
     local caller="${FUNCNAME[1]:-MAIN}"
-    logType=$( echo -e "$logType" | tr '[:lower:]' '[:upper:]' )
+    local DEBUG="${DEBUG:-false}" 
+
+    logType=$( echo "$logType" | tr '[:lower:]' '[:upper:]' )
     
-    declare -a options=('W' 'I' 'E' 'DEBUG')
-
-    if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1; fi
-
     case "$logType" in
         W) logType="WARNING" ;;
         I) logType="INFO" ;;
         E) logType="ERROR" ;;
-        DEBUG) logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}" ;;
+        D|DEBUG) if $DEBUG; then logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}"; else return 0 ; fi ;;
+
+        *) echo "[ERROR] Type '$logType' is not a valid log type"; return 1 ;;
     esac
 
+    
     echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody"
 }
 
@@ -455,6 +455,18 @@ stringNormalizeUpp(){
         echo "$string"
 
     else echo -e "Usage VAR=\$( stringNormalizeUpp \$STRING )"; fi
+}
+
+
+stringNoBlanks(){
+    local string="${1:-}"
+
+    if [ -n "$string" ]; then
+        string=$( stringFullStrip "$string" )
+        string=$( echo "$string" | tr ' ' '_' )
+        echo "$string"
+
+    else echo -e "Usage VAR=\$( stringNoBlanks \$STRING )"; fi
 }
 
 

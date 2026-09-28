@@ -3,8 +3,10 @@
 start_time=$(date '+%d-%m-%Y___%H-%M-%S')
 
 StartDiskSpace=$(df -h)
+diskSpace_before=$(df -BG / | awk 'NR==2 {gsub("G","",$4); print $4}')
 
-pathFile="$HOME/newPC_$start_time.txt"
+
+pathFile="$HOME/newPc_$start_time.log"
 
 
 ###########################################################################################
@@ -56,14 +58,30 @@ installLoop(){
     done
 
 
-    {
-        echo -e "\n\n\t+-------------------------------------------+"
-        echo -e "\t  $kind: $(( total - ${#failed[@]} ))/$total installed, ${#failed[@]} failed"
-        if [ "${#failed[@]}" -gt 0 ]; then printf '\t[FAILED] %s\n' "${failed[@]}"; fi
-        echo -e "\t+-------------------------------------------+\n"
-    } 
 
-	kindLogger "Loop executed"
+	#### Retain all summaries to print them in one block at the end
+    summary+=$(
+        printf '\n\n\t+----------------------------------------------+\n\n'
+        printf '\t\t  %s: %d/%d installed, %d failed\n' \
+            "$kind" \
+            "$(( total - ${#failed[@]} ))" \
+            "$total" \
+            "${#failed[@]}"
+        if [ "${#failed[@]}" -gt 0 ]; then
+            printf '\t\t[FAILED] %s\n' "${failed[@]}"
+        fi
+        printf '\n\t+----------------------------------------------+\n\n'
+    )
+
+    #### Uncomment to print the block at the end of the install loop
+    #### {
+    ####     echo -e "\n\n\t+-------------------------------------------+"
+    ####     echo -e "\t  $kind: $(( total - ${#failed[@]} ))/$total installed, ${#failed[@]} failed"
+    ####     if [ "${#failed[@]}" -gt 0 ]; then printf '\t[FAILED] %s\n' "${failed[@]}"; fi
+    ####     echo -e "\t+-------------------------------------------+\n"
+    #### } 
+
+	kindLogger "Loop executed for kind "$kind""
     return "${#failed[@]}"
 }
 
@@ -96,12 +114,29 @@ purgeLoop(){
 	done
 
 
-	{
-		echo -e "\n\n\t+-------------------------------------------+"
-		echo -e "\t  $kind: $(( total - ${#failed[@]} ))/$total purged, ${#failed[@]} failed"
-		if [ "${#failed[@]}" -gt 0 ]; then printf '\t[FAILED] %s\n' "${failed[@]}"; fi
-		echo -e "\t+-------------------------------------------+\n"
-	} 
+
+	#### Retain all summaries to print them in one block at the end
+    summary+=$(
+        printf '\n\n\t+----------------------------------------------+\n\n'
+        printf '\t\t  %s: %d/%d installed, %d failed\n' \
+            "$kind" \
+            "$(( total - ${#failed[@]} ))" \
+            "$total" \
+            "${#failed[@]}"
+        if [ "${#failed[@]}" -gt 0 ]; then
+            printf '\t\t[FAILED] %s\n' "${failed[@]}"
+        fi
+        printf '\n\t+----------------------------------------------+\n\n'
+    )
+
+    #### Uncomment to print the block at the end of the purge loop
+	#### {
+	#### 	echo -e "\n\n\t+-------------------------------------------+"
+	#### 	echo -e "\t  $kind: $(( total - ${#failed[@]} ))/$total purged, ${#failed[@]} failed"
+	#### 	if [ "${#failed[@]}" -gt 0 ]; then printf '\t[FAILED] %s\n' "${failed[@]}"; fi
+	#### 	echo -e "\t+-------------------------------------------+\n"
+	#### } 
+
 
 	kindLogger "Loop executed"
 	return "${#failed[@]}"
@@ -123,7 +158,7 @@ kindLogger(){
 
 
 #### Check if available disk space is enough (based on an estimate over the last run)
-AVG_GB_NEEDED=40
+AVG_GB_NEEDED=30
 avail=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
 [ "${avail:-0}" -ge "$AVG_GB_NEEDED" ] || { kindLogger "ERROR - Need "$AVG_GB_NEEDED"GB free on /, have ${avail}GB"; exit 1; }
 
@@ -261,7 +296,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		ffmpeg
 		mediainfo 
 		mkvtoolnix 
-		# mpv                                   #### Alternative media viewer
+		#### mpv                                   #### Alternative media viewer
 
 		#### Gaming
 		steam-devices
@@ -318,9 +353,9 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		app/com.mattjakeman.ExtensionManager/x86_64/stable		  #### GNOME - Extension Manager
 		app/com.vscodium.codium/x86_64/stable					   #### VS Codium
 		com.nextcloud.desktopclient.nextcloud					   #### Nextcloud desktop client
-		# app/com.usebottles.bottles/x86_64/stable					#### Bottles - WINE client
-		# app/net.christianbeier.Gromit-MPX/x86_64/stable			 #### draw on screen
-		# page.codeberg.libre_menu_editor.LibreMenuEditor			 #### app info and editor
+		#### app/com.usebottles.bottles/x86_64/stable					#### Bottles - WINE client
+		#### app/net.christianbeier.Gromit-MPX/x86_64/stable			 #### draw on screen
+		#### page.codeberg.libre_menu_editor.LibreMenuEditor			 #### app info and editor
 		app/com.github.hluk.copyq/x86_64/stable					 #### Clipboard manager
 		
 		#### Editing
@@ -328,13 +363,13 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		org.audacityteam.Audacity								   #### Audacity
 		org.nomacs.ImageLounge									  #### Photo viewer / light editor
 		org.gimp.GIMP/x86_64/stable								 #### Gimp
-		# app/org.musescore.MuseScore/x86_64/stable				   #### music sheet editor
+		#### app/org.musescore.MuseScore/x86_64/stable				   #### music sheet editor
 		
 		#### Apps	
 		app/org.kde.okular/x86_64/stable							#### Pdf reader / highlight
 		app/com.discordapp.Discord/x86_64/stable
 		app/org.keepassxc.KeePassXC/x86_64/stable				   #### Database DB
-		# org.libreoffice.LibreOffice 
+		#### org.libreoffice.LibreOffice 
 		org.onlyoffice.desktopeditors/x86_64/stable				 
         app/org.kde.kdenlive/x86_64/stable                         #### Video and audio editor
 
@@ -342,10 +377,10 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		#### Gaming
 		com.valvesoftware.Steam 
 		com.valvesoftware.Steam.CompatibilityTool.Proton-GE
-		# net.pcsx2.PCSX2											 #### Ps2
-		# org.ppsspp.PPSSPP										   #### PsP
-		# net.kuribo64.melonDS/x86_64/stable						  #### Ds
-		# app/io.mgba.mGBA/x86_64/stable							  #### Gba
+		#### net.pcsx2.PCSX2											 #### Ps2
+		#### org.ppsspp.PPSSPP										   #### PsP
+		#### net.kuribo64.melonDS/x86_64/stable						  #### Ds
+		#### app/io.mgba.mGBA/x86_64/stable							  #### Gba
 	)
 
 	kindLogger "Flathub remote check"
@@ -492,12 +527,15 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 						END CODE
 
 				+----------------------+\n\n\n"
+    
+    echo "${summary[@]}"
 
 
 	end_time=$(date '+%d-%m-%Y___%H-%M-%S')
 	
 
 	EndDiskSpace=$(df -h)
+	diskSpace_after=$(df -BG / | awk 'NR==2 {gsub("G","",$4); print $4}')
 
 
 	echo -e "\n\n
@@ -507,11 +545,17 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 
 					+------------------+\n\n"
 
-	echo -e "Start time:\t$start_time"
-	echo -e "End time  :\t$end_time"
+	echo -e "> Start time:\t$start_time"
+	echo -e "> End time  :\t$end_time"
 
 	echo -e "\n\nStart disk space:\n$StartDiskSpace"
 	echo -e "End disk space	  :\n$EndDiskSpace \n\n"
+
+
+	echo "diskSpace_before: ${diskSpace_before} GB"
+	echo "diskSpace_after:  ${diskSpace_after} GB"
+	echo "diskSpace_used:   $((diskSpace_before - diskSpace_after)) GB"
+
 
 
 } >> "$pathFile" 2>&1 
@@ -522,7 +566,7 @@ sync || { kindLogger "ERROR - Sync failed" ; } #### Synchronize cached writes to
 
 if [ "${#failedApt[@]}" -eq 0 ] && [ "${#failedFlatpak[@]}" -eq 0 ]; then
 
-	autoRebootDelay=10
+	autoRebootDelay=15
 	while ((autoRebootDelay >= 0)); do
 
 		printf "\rAll operations succeeded, rebooting in "%02d"s" "$autoRebootDelay"

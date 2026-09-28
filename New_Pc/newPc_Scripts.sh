@@ -1,6 +1,11 @@
 #!/bin/bash
 set -uo pipefail
 
+#### Give access to cache folder to all scripts
+export XDG_RUNTIME_DIR="/run/user/$(id -u "${SUDO_USER:-$(whoami)}")"
+
+#### Run this script using -- give correct path to sudo
+#### sudo "$(getent passwd "${SUDO_USER:-$(whoami)}" | cut -d: -f6)/Nextcloud/Linux/scripts/New_Pc/newPc_Scripts.sh"
 
 user=${SUDO_USER:-$(whoami)}
 
@@ -43,9 +48,8 @@ brokenEnv=false
 if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
 
 if $brokenEnv; then
-    echo "[CRITICAL ERROR] Enviroment degraded, functions disabled"
-    return 1
-fi;
+    echo "[CRITICAL ERROR] Enviroment degraded, exiting"; exit 1
+fi
 
 
 
@@ -58,7 +62,6 @@ log="$HOME/Nextcloud/Linux/log/newPc_history/newPc_Scripts_$(date +%F_%H-%M-%S).
 
 mkdir -p "$(dirname "$log")" || { sysLogger e "Folder creation failed: "$(dirname "$log")"" ; exit 1; }
 exec > >(tee -a "$log") 2>&1 || { sysLogger e "File creation failed: "$log"" ; exit 1; }
-
 
 
 EXTRA_LXscripts="$HOME/Nextcloud/Linux/scripts"
@@ -126,57 +129,16 @@ startupBootstrap(){
 
 
 
-GNOME_performance(){
-    local limitConfPath; local limitConf
-    
-    sysLogger i  "Increase files processes - allows more open handles if needed, doesn't use more RAM (standard 1024)"
-    echo -e "* soft nofile 1048576\n* hard nofile 1048576" | sudo tee /etc/security/limits.d/99-nofile.conf
-
-
-    sysLogger i  "Reduce GNOME stalls"
-
-    limitConfPath="$HOME/.config/systemd/user.conf.d"
-    limitConf="[Manager]
-    DefaultLimitNOFILE=1048576
-    DefaultTasksMax=32768"
-
-    mkdir -p "$limitConfPath"
-
-    if [ ! -d "$limitConfPath" ]; then
-        sysLogger e "failed creation of the folder "$limitConfPath""
-    fi
-
-
-    echo "$limitConf" > "$limitConfPath/limits.conf"
-
-
-    if [ -s "$limitConfPath/limits.conf" ]; then
-        sysLogger i  "User conf applied to "$limitConfPath/limits.conf""
-    else sysLogger e "user conf failed to apply to "$limitConfPath/limits.conf""
-    fi
-}
-
-
-
-
-######################################################################################
-
-
-
 userGroupCheck(){
-    local groups=("docker" "video" "render"); local answer
+    #### docker group removed
+    local groups=("video" "render"); local answer
 
     for group in "${groups[@]}"; do
 
         getent group "$group" >/dev/null || { 
             
-            read -p "Group '$group' not found, do you want to create it? y/n: " answer
-            
-            if [ "$answer" == 'y' ]; then
-                sysLogger i  "Creating group "$group"" 
-                sudo groupadd "$group" 
-            else sysLogger i  "Not creating group "$group""
-            fi 
+            sysLogger i  "Creating group "$group"" 
+            sudo groupadd "$group" 
         } 
 
         if id -nG "$USER" | grep -qw "$group"; then
@@ -265,6 +227,8 @@ grubSetup(){
 ######################################################################################
 
 
+#### Style, UI and enviroment setup
+
 
 GNOME_global_settings(){
     sysLogger i "GNOME tweaks block"
@@ -292,8 +256,8 @@ GNOME_global_settings(){
     # #### Disable edge tiling --- keep true for fullscreen shortcut
     # gsettings set org.gnome.mutter edge-tiling false
 
-    #### Keep Super Key for overview / search
-    gsettings set org.gnome.mutter overlay-key 'Super_L'
+    # #### Keep Super Key for overview / search 
+    # gsettings set org.gnome.mutter overlay-key 'Super_L'
 
     #### Night light setup
     gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic false
@@ -332,11 +296,14 @@ GNOME_global_settings(){
 
 
     sysLogger i "Disabling gnome tracker (home folder indexing)"
-    systemctl --user mask tracker-miner-fs-3.service
-    systemctl --user mask tracker-extract-3.service
-    systemctl --user mask tracker-writeback-3.service
-    tracker3 reset -s -r
+    suMask(){
+        sudo -u "${SUDO_USER:-$(whoami)}" XDG_RUNTIME_DIR="/run/user/$(id -u "${SUDO_USER:-$(whoami)}")" systemctl --user mask "$1"
+    }
 
+    suMask tracker-miner-fs-3.service
+    suMask tracker-extract-3.service
+    suMask tracker-writeback-3.service
+    tracker3 reset -s -r
 
     #### Remove useless Ubuntu sessions options from login
     if [ -f "/usr/share/xsessions/ubuntu*.desktop" ]; then
@@ -353,6 +320,80 @@ GNOME_global_settings(){
     # echo "MUTTER_DEBUG_TRIPLE_BUFFER=1
     # CLUTTER_PAINT=disable-clipped-redraws:disable-culling" | sudo tee  ~/.config/environment.d/gnome-performance.conf
 }
+
+
+
+GNOME_performance(){
+    local limitConfPath; local limitConf
+    
+    sysLogger i  "Increase files processes - allows more open handles if needed, doesn't use more RAM (standard 1024)"
+    echo -e "* soft nofile 1048576\n* hard nofile 1048576" | sudo tee /etc/security/limits.d/99-nofile.conf
+
+
+    sysLogger i  "Reduce GNOME stalls"
+
+    limitConfPath="$HOME/.config/systemd/user.conf.d"
+    limitConf="[Manager]
+    DefaultLimitNOFILE=1048576
+    DefaultTasksMax=32768"
+
+    mkdir -p "$limitConfPath"
+
+    if [ ! -d "$limitConfPath" ]; then
+        sysLogger e "failed creation of the folder "$limitConfPath""
+    fi
+
+
+    echo "$limitConf" > "$limitConfPath/limits.conf"
+
+
+    if [ -s "$limitConfPath/limits.conf" ]; then
+        sysLogger i  "User conf applied to "$limitConfPath/limits.conf""
+    else sysLogger e "user conf failed to apply to "$limitConfPath/limits.conf""
+    fi
+}
+
+
+
+
+dconfSetup(){
+    sysLogger i "Starting dconf setup using the last dump available"
+
+    local dconfScript="$HOME/Nextcloud/Linux/scripts/New_Pc/dconf_manager.sh"
+    
+    if [ -f "$dconfScript" ]; then
+        source "$dconfScript" || { sysLogger e "Failed to source the script "$dconfScript", exiting" ; return 1; }
+        sysLogger i "Correctly sourced the script "$dconfScript""
+    else
+        sysLogger e "No script: "$dconfScript""; return 1
+    fi
+
+    sysLogger w "The dconf script sets '-e' which can cause the script to crash"
+
+    launcher_setup_dconf_restore || { sysLogger e "ERROR: launcher_setup_dconf_restore returned an error" ; return 1; }
+
+    sysLogger i "Done dconf setup"
+}
+
+
+
+themeSetup(){
+    sysLogger i "Starting theme setup"
+
+    local themeScript="$HOME/Nextcloud/Linux/scripts/New_Pc/theme_updater.sh"
+    
+    if [ -f "$themeScript" ]; then
+        kindLogger "Correctly read the script "$themeScript""
+    else
+        kindLogger "No script: "$themeScript""; return 1
+    fi
+
+    "$themeScript" || { kindLogger "ERROR: themeScript returned an error" ; return 1; }
+
+
+    sysLogger i "Done theme setup"
+}
+
 
 
 
@@ -455,29 +496,26 @@ deamonsPurge(){
 ######################################################################################
 
 
+#### If 
+# scriptLauncher(){
 
-scriptLauncher(){
+#     local scripts=(
+#         #### "$EXTRA_LXscripts/New_Pc/theme_updater.sh"
+#     )
 
-    local scripts=(
-        "$EXTRA_LXscripts/New_Pc/theme_updater.sh"
-        "$EXTRA_LXscripts/Github/01_cloning.sh"
-        "$EXTRA_LXscripts/New_Pc/gnome_shortcut_dump/load-shortcuts.sh"
-        "$EXTRA_LXscripts/New_Pc/gnome_extensions_settings_dump/02_ext_set_restore.sh"
-    )
+#     for script in "${scripts[@]}"; do
 
-    for script in "${scripts[@]}"; do
+#         if [ -s "$script" ]; then
+#             sysLogger i "Launching "$script"\n"
+#             "$script" || sysLogger e "execution failed for "$script"\n"     
 
-        if [ -s "$script" ]; then
-            sysLogger i "Launching "$script"\n"
-            "$script" || sysLogger e "execution failed for "$script"\n"     
+#         else sysLogger e "failed to launch "$script"\n"
+#         fi
 
-        else sysLogger e "failed to launch "$script"\n"
-        fi
-
-    done 
+#     done 
 
 
-}
+# }
 
 
 
@@ -598,19 +636,20 @@ swapSetup(){
 #             ;;
 #         *)
 #             echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
-#             exit 1
+#             return 1
 #             ;;
 #     esac
 
 #     #### Already applied: nothing to do
-#     [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && exit 0
+#     [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && return 0
 
-#     mkdir -p "$(dirname "$confFile")" || exit 1
-#     printf '%s\n' "$confText" > "$confFile" || exit 1
+#     mkdir -p "$(dirname "$confFile")" || return 1
+#     printf '%s\n' "$confText" > "$confFile" || return 1
 
 #     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
 #     systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Handsfree disabled: restart the session to apply"
 # }
+
 
 
 
@@ -639,18 +678,18 @@ bluetoothProfileAntiSwitch(){
             ;;
         *)
             echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
-            exit 1
+            return 1
             ;;
     esac
 
     #### Already applied: nothing to do
-    [ ! -e "$oldConf" ] && [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && exit 0
+    [ ! -e "$oldConf" ] && [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && return 0
 
     #### Previous config removed HSP/HFP entirely, and battery reporting with it
     rm -f "$oldConf"
 
-    mkdir -p "$(dirname "$confFile")" || exit 1
-    printf '%s\n' "$confText" > "$confFile" || exit 1
+    mkdir -p "$(dirname "$confFile")" ||       { sysLogger e "bluetoothProfileAntiSwitch failed on 'mkdir -p'" ; return 1; }
+    printf '%s\n' "$confText" > "$confFile" || { sysLogger e "bluetoothProfileAntiSwitch failed on 'printf '%s\n''" ; return 1; }
 
     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
     systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Config written: restart the session to apply"
@@ -711,19 +750,20 @@ wireplumberAudioDeviceBlacklist(){
             ;;
         *)
             echo "[CRITICAL ERROR] Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
-            exit 1
+            return 1
             ;;
     esac
 
     #### Already applied: nothing to do
-    [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && exit 0
+    [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && return 0
 
-    mkdir -p "$(dirname "$confFile")" || exit 1
-    printf '%s\n' "$confText" > "$confFile" || exit 1
+    mkdir -p "$(dirname "$confFile")" || return 1
+    printf '%s\n' "$confText" > "$confFile" || return 1
 
     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
     systemctl --user restart wireplumber 2>/dev/null || echo "[INFO] Config written: restart the session to apply"
 }
+
 
 
 
@@ -740,17 +780,19 @@ mainLauncher(){
         newpcHistory
         startupBootstrap
         GNOME_performance
+        GNOME_global_settings
+        themeSetup
+        dconfSetup
         userGroupCheck
         firewallSetup
         tearFix
         grubSetup
-        GNOME_global_settings
         nemoSetup
         flatpakOverrides
         deamonsPurge
-        scriptLauncher
+        #### scriptLauncher #### currently all external scripts have their own function
         swapSetup
-        # bluetoothProfilePurge
+        #### bluetoothProfilePurge
         bluetoothProfileAntiSwitch
         wireplumberAudioDeviceBlacklist
     )
@@ -758,6 +800,7 @@ mainLauncher(){
     for func in "${functions[@]}"; do
         sysLogger i "Launching function: "$func""
         "$func" || { sysLogger e "$func failed" ; failedRuns+=("$func"); }
+
     done
 
     sysLogger i "Function mainLauncher terminated"
@@ -766,27 +809,33 @@ mainLauncher(){
         sysLogger e "Run failed - $failed"
     done 
 
-} >> "$log" 2>&1 
+} >> "$log"
 mainLauncher
 
+sysLogger i "Main execution complete" 
+
+#### Give the user full daccess to the log
+sudo chown -R "${SUDO_USER:-$(whoami)}:${SUDO_USER:-$(whoami)}" "$HOME/Nextcloud/Linux/log/newPc_history"
+
+sysLogger i "Owned all files under ""$HOME/Nextcloud/Linux/log/newPc_history""" 
 
 
 ######################################################################################
 
 
 
-GH_gitConfig(){
-    sysLogger i "Git 'gh' config started, expect prompts"
+# GH_gitConfig(){
+#     sysLogger i "Git 'gh' config started, expect prompts"
 
-    sysLogger i "Checking internet connectivity, the script will abort if the system results offline."
-    timeout 10 getent hosts archive.ubuntu.com > /dev/null || { sysLogger e "No network. Aborting."; return 1; }
+#     sysLogger i "Checking internet connectivity, the script will abort if the system results offline."
+#     timeout 10 getent hosts archive.ubuntu.com > /dev/null || { sysLogger e "No network. Aborting."; return 1; }
 
 
-    sysLogger i "Attempting GIT login using 'gh'"
-    if ! command gh > /dev/null ; then sysLogger e "'gh' command not found"
-    else gh auth login --hostname github.com --git-protocol https --web
-    fi
+#     sysLogger i "Attempting GIT login using 'gh'"
+#     if ! command gh > /dev/null ; then sysLogger e "'gh' command not found"
+#     else gh auth login --hostname github.com --git-protocol https --web
+#     fi
 
-    sysLogger i "Git 'gh' config terminated"
-}
-GH_gitConfig || { sysLogger e "GH_gitConfig failed" ; }
+#     sysLogger i "Git 'gh' config terminated"
+# }
+# GH_gitConfig || { sysLogger e "GH_gitConfig failed" ; }
