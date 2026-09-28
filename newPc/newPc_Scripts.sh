@@ -34,7 +34,7 @@ brokenEnv=false
 if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
 if [ -f "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
 
-softBashUpd(){
+bashUpd(){
     if [ -z "$LXscripts" ]; then local LXscripts="$HOME/Nextcloud/Linux/scripts"; fi
 
     local modules=(
@@ -53,8 +53,7 @@ softBashUpd(){
 
     done
     
-    #### Does not exec bash
-    #### exec bash
+    exec bash
 }
 
 bashUpd || { echo "[ERROR] Bash modules sourcing failed"; brokenEnv=true; }
