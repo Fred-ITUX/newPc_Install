@@ -2,14 +2,15 @@
 
 ###############################################################
 
-
 #### This script is NOT intended to be run manually
 #### It should be sourced and launched by setup.sh
 
-
 ###############################################################
 
-if [ -f "$(dirname "$0")/configs.sh" ]; then source "$(dirname "$0")/configs.sh"; else echo "[CRITICAL ERROR] Could not load "$(dirname "$0")/configs" module"; exit 1 ; fi
+#### Must be launched by setup.sh: it provides the environment and the helper functions
+if [ "$EUID" -ne 0 ] || [ -z "${realUser:-}" ] || ! declare -F asUser >/dev/null; then
+    echo "[CRITICAL ERROR] Launch through setup.sh: sudo ./setup.sh $(basename "$0")" >&2; exit 1
+fi
 
 
 #### Fix required when running the script using sudo
@@ -17,21 +18,11 @@ setTheme() {
     local type="$1"
     local gSet="$2"
     local name="$3"
-    local user="${SUDO_USER:-$(whoami)}"
-    local uid
-    uid=$(id -u "$user")
 
     case "$type" in
-        icon|cursor|theme)
-            sudo -u "$user" \
-                XDG_RUNTIME_DIR="/run/user/$uid" \
-                DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" \
-                gsettings set org.gnome.desktop.interface "${gSet}-theme" "$name"
-            ;;
-        *)
-            sysLogger e "Invalid theme type: $type"
-            return 1
-            ;;
+        icon|cursor|theme) asUser gsettings set org.gnome.desktop.interface "${gSet}-theme" "$name" ;;
+
+        *) sysLogger e "Invalid theme type: $type"; return 1 ;;
     esac
 }
 
@@ -42,7 +33,7 @@ setTheme() {
 iconDir="$HOME/.local/share/icons"
 themeDir="$HOME/.local/share/themes"
 fontDir="$HOME/.local/share/fonts"
-mkdir -p "$iconDir" "$themeDir" "$fontDir"
+asUser mkdir -p "$iconDir" "$themeDir" "$fontDir"
 
 gtkConfigFolder="$HOME/.config"
 
@@ -77,12 +68,12 @@ symLink(){
 	local dejavu="$HOME/.local/share/fonts/dejavu"
 	local comicNeue="$HOME/.local/share/fonts/comic-neue"
 
-	if [ ! -e "$papirusDark" ] && [ ! -L "$papirusDark" ]; then ln -s /usr/share/icons/Papirus-Dark "$papirusDark"; fi
-	if [ ! -e "$breezeCursors" ] && [ ! -L "$breezeCursors" ]; then ln -s /usr/share/icons/breeze_cursors "$breezeCursors"; fi
-	if [ ! -e "$adwaita" ] && [ ! -L "$adwaita" ]; then ln -s /usr/share/icons/Adwaita "$adwaita"; fi
-	if [ ! -e "$adwaitaDark" ] && [ ! -L "$adwaitaDark" ]; then ln -s /usr/share/themes/Adwaita-dark "$adwaitaDark"; fi
-	if [ ! -e "$dejavu" ] && [ ! -L "$dejavu" ]; then ln -s /usr/share/fonts/truetype/dejavu "$dejavu"; fi
-	if [ ! -e "$comicNeue" ] && [ ! -L "$comicNeue" ]; then ln -s /usr/share/fonts/truetype/comic-neue "$comicNeue"; fi
+	if [ ! -e "$papirusDark" ] && [ ! -L "$papirusDark" ]; then asUser ln -s /usr/share/icons/Papirus-Dark "$papirusDark"; fi
+	if [ ! -e "$breezeCursors" ] && [ ! -L "$breezeCursors" ]; then asUser ln -s /usr/share/icons/breeze_cursors "$breezeCursors"; fi
+	if [ ! -e "$adwaita" ] && [ ! -L "$adwaita" ]; then asUser ln -s /usr/share/icons/Adwaita "$adwaita"; fi
+	if [ ! -e "$adwaitaDark" ] && [ ! -L "$adwaitaDark" ]; then asUser ln -s /usr/share/themes/Adwaita-dark "$adwaitaDark"; fi
+	if [ ! -e "$dejavu" ] && [ ! -L "$dejavu" ]; then asUser ln -s /usr/share/fonts/truetype/dejavu "$dejavu"; fi
+	if [ ! -e "$comicNeue" ] && [ ! -L "$comicNeue" ]; then asUser ln -s /usr/share/fonts/truetype/comic-neue "$comicNeue"; fi
 }
 
 symLink
@@ -108,9 +99,6 @@ sysLogger i "setTheme function executed"
 
 sysLogger i "Creating $gtkConfigFolder for both gtk 3 and 4"
 
-mkdir -p "$gtkConfigFolder/gtk-4.0" 
-mkdir -p "$gtkConfigFolder/gtk-3.0" 
-
 
 sysLogger i "Creating and setting terminal padding"
 read -r -d '' terminalPadding <<'EOF'
@@ -122,8 +110,8 @@ vte-terminal {
 }
 EOF
 
-echo "$terminalPadding" > "$gtkConfigFolder/gtk-3.0/gtk.css"
-echo "$terminalPadding" > "$gtkConfigFolder/gtk-4.0/gtk.css"
+atomicWrite "gtk.css" "$gtkConfigFolder/gtk-3.0" "$terminalPadding"
+atomicWrite "gtk.css" "$gtkConfigFolder/gtk-4.0" "$terminalPadding"
 
 
 sysLogger i "Force dark mode to avoid gtk compatibility issues"
@@ -133,10 +121,10 @@ echo -e "[Settings]\ngtk-application-prefer-dark-theme = true" > "$gtkConfigFold
 
 sysLogger i "Set the background to a solid black across theme types"
 # gsettings set org.gnome.desktop.background picture-uri-dark "$HOME/Nextcloud/Linux/SysThemes/Themes/black_Bg.png"
-gsettings set org.gnome.desktop.background picture-uri	  ''
-gsettings set org.gnome.desktop.background picture-uri-dark ''
-gsettings set org.gnome.desktop.background primary-color	'#000000'
-gsettings set org.gnome.desktop.background color-shading-type 'solid'   
+asUser gsettings set org.gnome.desktop.background picture-uri	  ''
+asUser gsettings set org.gnome.desktop.background picture-uri-dark ''
+asUser gsettings set org.gnome.desktop.background primary-color	'#000000'
+asUser gsettings set org.gnome.desktop.background color-shading-type 'solid'   
 
 
 #### Automate setup
@@ -150,13 +138,13 @@ mono = $mono
 editors = $editors"
 
 
-fc-cache -fv > /dev/null
+asUser fc-cache -fv > /dev/null
 
 #### Main font GNOME Shell uses
-gsettings set org.gnome.desktop.interface font-name "$interface 11"
+asUser gsettings set org.gnome.desktop.interface font-name "$interface 11"
 
 #### Gedit , LibreOffice (if they respect GTK rules)
-gsettings set org.gnome.desktop.interface document-font-name "$mono 12"
+asUser gsettings set org.gnome.desktop.interface document-font-name "$mono 12"
 
 #### Anything requiring a mono-spaced font (GNOME Terminal, code editors...)
-gsettings set org.gnome.desktop.interface monospace-font-name "$editors 12"
+asUser gsettings set org.gnome.desktop.interface monospace-font-name "$editors 12"

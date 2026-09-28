@@ -9,25 +9,20 @@
 
 ###############################################################
 
-local_user="${SUDO_USER:-$(whoami)}"
-export XDG_RUNTIME_DIR="/run/user/$(id -u "$local_user")"
-export HOME="$(getent passwd "$local_user" | cut -d: -f6)"
-
-
 #### Enable test suite for the loader
-DEBUG=true
+DEBUG="${DEBUG:-false}"     ####    true     false
 
 dateStamp="$(date "+%Y_%m_%d")"
 
 newPcPath="$HOME/Nextcloud/Linux/log/newPc_history"
 
 
-dump_tempLog="${XDG_RUNTIME_DIR}/tmp_dump_setup_dconf.log"
+dump_tempLog="${userRuntime:-$XDG_RUNTIME_DIR}/tmp_dump_setup_dconf.log"
 dump_dconfLog="$newPcPath/"$dateStamp"_dump_setup_dconf.log"
 
 
 
-restore_tempLog="${XDG_RUNTIME_DIR}/tmp_restore_setup_dconf.log"
+restore_tempLog="${userRuntime:-$XDG_RUNTIME_DIR}/tmp_restore_setup_dconf.log"
 restore_dconfLog="$newPcPath/"$dateStamp"_restore_setup_dconf.log"
 
 
@@ -36,9 +31,9 @@ setup_dconf_dump(){
 
     local dateStamp="$(date "+%Y_%m_%d")"
 
-    local dumpFolder="${XDG_RUNTIME_DIR}/setup_dconf_dump/$dateStamp"
+    local dumpFolder="${userRuntime:-$XDG_RUNTIME_DIR}/setup_dconf_dump/$dateStamp"
 
-    local destinationPath="$HOME/Nextcloud/Linux/scripts/New_Pc/dconf_dump"
+    local destinationPath="$HOME/Nextcloud/Linux/scripts/newPc/dconf_dump"
 
     local finalFolder="$destinationPath/$dateStamp"
 
@@ -97,12 +92,14 @@ setup_dconf_restore(){
 
     if $DEBUG; then sysLogger DEBUG "DEBUG=$DEBUG. Testing suite active."; fi
 
-    dumpPath="$HOME/Nextcloud/Linux/scripts/New_Pc/dconf_dump"
+    dumpPath="$HOME/Nextcloud/Linux/scripts/newPc/dconf_dump"
 
     newest=$(find "$dumpPath" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
          grep -E '^[0-9]{4}_[0-9]{2}_[0-9]{2}$' |
          sort |
          tail -n1)
+
+    [ -n "$newest" ] || { sysLogger e "No dated dump folder found in $dumpPath"; return 1; }
 
 
     newPath="$dumpPath/$newest"
@@ -179,20 +176,29 @@ setup_dconf_restore(){
 
 
 
+
+#### Dump side: setup_dconf_dump runs from your normal session, not through setup.sh, so asUser / atomicWrite won't exist there. 
 launcher_setup_dconf_dump(){
     mkdir -p "$newPcPath"
-    setup_dconf_dump || { sysLogger e "Function 'setup_dconf_dump' terminated with an error"; }
+    
+    setup_dconf_dump || { sysLogger e "Function 'setup_dconf_dump' terminated with an error"; return 1; }
+    
     mv "$dump_tempLog" "$dump_dconfLog" || { sysLogger e "Could not move \n"$dump_tempLog" \nto \n"$dump_dconfLog"" ; return 1;  }
+    
     sysLogger i "Correctly dumped all configs. Check the log here: "$dump_dconfLog""
 }
 
 
 
 launcher_setup_dconf_restore(){
-    mkdir -p "$newPcPath"
-    setup_dconf_restore || { sysLogger e "Function 'setup_dconf_restore' terminated with an error";  }
-    mv "$restore_tempLog" "$restore_dconfLog" || { sysLogger e "Could not move \n"$restore_tempLog" \nto \n"$restore_dconfLog"" ; return 1;  }
+    asUser mkdir -p "$newPcPath"
+    
+    setup_dconf_restore || { sysLogger e "Function 'setup_dconf_restore' terminated with an error"; return 1; }
+    
+    asUser mv "$restore_tempLog" "$restore_dconfLog" || { sysLogger e "Could not move \n"$restore_tempLog" \nto \n"$restore_dconfLog"" ; return 1;  }
+    
     sysLogger i "Correctly loaded all configs. Check the log here: "$restore_dconfLog""
+    
     sysLogger i "Is required to reboot the system to show changes"
 }
 

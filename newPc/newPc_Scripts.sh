@@ -9,7 +9,11 @@
 
 ###############################################################
 
-if [ -f "$(dirname "$0")/configs.sh" ]; then source "$(dirname "$0")/configs.sh"; else echo "[CRITICAL ERROR] Could not load "$(dirname "$0")/configs" module"; exit 1 ; fi
+#### Must be launched by setup.sh: it provides the environment and the helper functions
+if [ "$EUID" -ne 0 ] || [ -z "${realUser:-}" ] || ! declare -F asUser >/dev/null; then
+    echo "[CRITICAL ERROR] Launch through setup.sh: sudo ./setup.sh $(basename "$0")" >&2; exit 1
+fi
+
 
 nextcloudCheck(){
     shopt -s nullglob dotglob
@@ -42,10 +46,12 @@ nextcloudCheck || { sysLogger e "Nextcloud check failed, aborting execution" ; e
 
 failedRuns=()
 
-log="$HOME/Nextcloud/Linux/log/newPc_history/newPc_Scripts_$(date +%F_%H-%M-%S).log"
 
-mkdir -p "$(dirname "$log")" || { sysLogger e "Folder creation failed: "$(dirname "$log")"" ; exit 1; }
-exec > >(tee -a "$log") 2>&1 || { sysLogger e "File creation failed: "$log"" ; exit 1; }
+log="$userHome/Nextcloud/Linux/log/newPc_history/newPc_Scripts_$(date +%F_%H-%M-%S).log"
+
+asUser mkdir -p "$(dirname "$log")" || { sysLogger e "Folder creation failed: $(dirname "$log")" ; exit 1; }
+asUser touch "$log"                 || { sysLogger e "File creation failed: $log" ; exit 1; }
+exec > >(tee -a "$log") 2>&1
 
 
 EXTRA_LXscripts="$HOME/Nextcloud/Linux/scripts"
@@ -70,10 +76,10 @@ newpcHistory(){
 
     sysLogger i "Saving 'newPc' log for history"
 
-    mkdir -p "$dest" || { sysLogger e "failed to create folder "$dest""; return 1;}
+    asUser mkdir -p "$dest" || { sysLogger e "failed to create folder "$dest""; return 1;}
     
     sudo find /root -maxdepth 1 -name 'newPC_*.txt' -exec cp -- {} "$dest/" \;
-    sudo chown -R "$USER:$USER" "$dest"
+    chown -R "$realUser:$realGroup" "$dest"
 }
 
 
@@ -88,18 +94,19 @@ startupBootstrap(){
     local autostartFile=""$autostartPath"/startup_routine.desktop"
 
     sysLogger i "Setup startup routine start at boot"
-    mkdir -p "$autostartPath" || { sysLogger e "unexpected failure during folder creation, aborting"; return 1; }
+    # mkdir -p "$autostartPath" || { sysLogger e "unexpected failure during folder creation, aborting"; return 1; }
 
     fileEntry="[Desktop Entry]
     Type=Application
-    Exec=/home/federico/Nextcloud/Linux/scripts/Startup_Routine/startup_routine.sh
+    Exec="$userHome"/Nextcloud/Linux/scripts/Startup_Routine/startup_routine.sh
     Hidden=false
     NoDisplay=false
     X-GNOME-Autostart-enabled=true
     Name=Startup Routine
     Comment=Run my startup script"
 
-    echo "$fileEntry" > "$autostartFile" || { sysLogger e "write failed, current file status: \n$(cat "$autostartFile")"; return 1; }
+    atomicWrite "startup_routine.desktop" "$autostartPath" "$fileEntry"
+    # echo "$fileEntry" > "$autostartFile" || { sysLogger e "write failed, current file status: \n$(cat "$autostartFile")"; return 1; }
 
     if [ -s "$autostartFile" ]; then
         sysLogger i  "Routine installed"
@@ -125,11 +132,11 @@ userGroupCheck(){
             sudo groupadd "$group" 
         } 
 
-        if id -nG "$USER" | grep -qw "$group"; then
-            sysLogger i "$USER belongs to $group"
+        if id -nG "$realUser" | grep -qw "$group"; then
+            sysLogger i ""$realUser" belongs to $group"
         else
-            sysLogger e "$USER does NOT belong to $group"
-            sudo usermod -aG "$group" "$USER"
+            sysLogger e ""$realUser" does NOT belong to $group"
+            sudo usermod -aG "$group" "$realUser"
         fi
     done   
 }
@@ -253,7 +260,8 @@ GNOME_global_settings(){
     ####            Terminal customization
 
     #### Get default key value & set the cursor to underline
-    local PROFILE=$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
+    # local PROFILE=$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
+    local PROFILE=$(asUser gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
 
     if [ -z "$PROFILE" ]; then
         sysLogger e "Gnome terminal profile missing: "$PROFILE", aborting"
@@ -280,23 +288,14 @@ GNOME_global_settings(){
 
 
     sysLogger i "Disabling gnome tracker (home folder indexing)"
-    suMask(){
-        sudo -u "${SUDO_USER:-$(whoami)}" XDG_RUNTIME_DIR="/run/user/$(id -u "${SUDO_USER:-$(whoami)}")" systemctl --user mask "$1"
-    }
+    asUser systemctl --user mask tracker-miner-fs-3.service tracker-extract-3.service tracker-writeback-3.service
+    asUser tracker3 reset -s -r
 
-    suMask tracker-miner-fs-3.service
-    suMask tracker-extract-3.service
-    suMask tracker-writeback-3.service
-    tracker3 reset -s -r
 
-    #### Remove useless Ubuntu sessions options from login
-    if [ -f "/usr/share/xsessions/ubuntu*.desktop" ]; then
-        sudo rm "/usr/share/xsessions/ubuntu*.desktop"    
-    fi
+    
+    sysLogger i "Removing useless Ubuntu sessions options from login" 
+    rm -f /usr/share/xsessions/ubuntu*.desktop /usr/share/wayland-sessions/ubuntu*.desktop   
 
-    if [ -f "/usr/share/wayland-sessions/ubuntu*.desktop" ]; then
-        sudo rm "/usr/share/wayland-sessions/ubuntu*.desktop"    
-    fi
 
 
     #### Enable gnome triple buffer rendering !!!! EXPERIMENTAL !!!!
@@ -321,15 +320,15 @@ GNOME_performance(){
     DefaultLimitNOFILE=1048576
     DefaultTasksMax=32768"
 
-    mkdir -p "$limitConfPath"
+    # mkdir -p "$limitConfPath"
 
-    if [ ! -d "$limitConfPath" ]; then
-        sysLogger e "failed creation of the folder "$limitConfPath""
-    fi
+    # if [ ! -d "$limitConfPath" ]; then
+    #     sysLogger e "failed creation of the folder "$limitConfPath""
+    # fi
 
 
-    echo "$limitConf" > "$limitConfPath/limits.conf"
-
+    # # echo "$limitConf" > "$limitConfPath/limits.conf"
+    atomicWrite "limits.conf" "$limitConfPath" "$limitConf"
 
     if [ -s "$limitConfPath/limits.conf" ]; then
         sysLogger i  "User conf applied to "$limitConfPath/limits.conf""
@@ -352,7 +351,6 @@ dconfSetup(){
         sysLogger e "No script: "$dconfScript""; return 1
     fi
 
-    sysLogger w "The dconf script sets '-e' which can cause the script to crash"
 
     launcher_setup_dconf_restore || { sysLogger e "ERROR: launcher_setup_dconf_restore returned an error" ; return 1; }
 
@@ -396,17 +394,17 @@ nemoSetup(){
 
     if [ ! -d "$nemoScripts" ]; then
         sysLogger w "Folder "$nemoScripts" did not exist, creating"
-        mkdir -p "$nemoScripts" || { sysLogger e "unexpected failure during folder creation, exiting"; return 1;} 
+        asUser mkdir -p "$nemoScripts" || { sysLogger e "unexpected failure during folder creation, exiting"; return 1;} 
     fi
 
 
     if [ -s "$EXTRA_LXscripts/Other/NEMO_mediainfo.sh" ]; then
         sysLogger i "Copying "$EXTRA_LXscripts/Other/NEMO_mediainfo.sh"  ->  "$nemoScripts""
-        cp "$EXTRA_LXscripts/Other/NEMO_mediainfo.sh" "$nemoScripts"
+        asUser cp "$EXTRA_LXscripts/Other/NEMO_mediainfo.sh" "$nemoScripts"
     fi
 
     if [ ! -s "$HOME/.local/share/nemo/scripts/NEMO_mediainfo.sh" ]; then
-        sysLogger e "copy failed"
+        sysLogger e "nemoSetup mediainfo Copy failed"
     fi
 }
 
@@ -420,9 +418,9 @@ flatpakOverrides(){
     #### RESET ALL --        flatpak override --user --reset
 
     fOverGPU(){
-        flatpak override --user --device=dri "$1"
+        asUser flatpak override --user --device=dri "$1"
     }
-
+    
     #### GPU acceleration
     sysLogger i "Flatpak override setup"
     fOverGPU com.google.Chrome
@@ -435,13 +433,13 @@ flatpakOverrides(){
     fOverGPU org.kde.kdenlive
 
     #### Steam SSD whitelist (for external storing)
-    flatpak override --user --filesystem=/media/federico/SSD1TB com.valvesoftware.Steam
-    flatpak override --user --filesystem=/media/federico/SSD1TB com.usebottles.bottles
+    asUser flatpak override --user --filesystem=/media/federico/SSD1TB com.valvesoftware.Steam
+    asUser flatpak override --user --filesystem=/media/federico/SSD1TB com.usebottles.bottles
 
     #### Allow all flatpak to see and use fonts and themes
-    flatpak override --user --filesystem="$HOME/.local/share/icons":ro  
-    flatpak override --user --filesystem="$HOME/.local/share/themes":ro  
-    flatpak override --user --filesystem="$HOME/.local/share/fonts":ro  
+    asUser flatpak override --user --filesystem="$HOME/.local/share/icons":ro  
+    asUser flatpak override --user --filesystem="$HOME/.local/share/themes":ro  
+    asUser flatpak override --user --filesystem="$HOME/.local/share/fonts":ro  
 }
 
 
@@ -456,7 +454,7 @@ deamonsPurge(){
     local deamonsToDisable=(
         "NetworkManager-wait-online.service"    #### Wait for network
         "avahi-daemon.service"                  #### Local network discovery
-        "clamav-daemon.service"                 #### Keep clamav disabled by default (on-demand activation)
+        # "clamav-daemon.service"                 #### Keep clamav disabled by default (on-demand activation)
         "cups.service"                          #### Disable CUPS (printer deamon)
         "cups.socket"
         )
@@ -559,7 +557,7 @@ swapSetup(){
 	sudo swapon --show
 	free -h
 	df -h
-	sudo fallocate -l "$SWAP"G /swapspace
+	sudo fallocate -l "$SWAP"G /swapspace || { sysLogger e "fallocate in swap allocation failed" ; return 1; }
 	ls -lh /swapspace
 	sudo chmod 600 /swapspace
 	ls -lh /swapspace
@@ -670,13 +668,17 @@ bluetoothProfileAntiSwitch(){
     [ ! -e "$oldConf" ] && [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && return 0
 
     #### Previous config removed HSP/HFP entirely, and battery reporting with it
-    rm -f "$oldConf"
+    asUser rm -f "$oldConf"
 
-    mkdir -p "$(dirname "$confFile")" ||       { sysLogger e "bluetoothProfileAntiSwitch failed on 'mkdir -p'" ; return 1; }
-    printf '%s\n' "$confText" > "$confFile" || { sysLogger e "bluetoothProfileAntiSwitch failed on 'printf '%s\n''" ; return 1; }
+
+    # mkdir -p "$(dirname "$confFile")" ||       { sysLogger e "bluetoothProfileAntiSwitch failed on 'mkdir -p'" ; return 1; }
+    # printf '%s\n' "$confText" > "$confFile" || { sysLogger e "bluetoothProfileAntiSwitch failed on 'printf '%s\n''" ; return 1; }
+
+    atomicWrite "$(basename "$confFile")" "$(dirname "$confFile")" "$confText" || { sysLogger e "bluetoothProfileAntiSwitch: config write failed" ; return 1; }
+
 
     #### Config is read when WirePlumber starts: restart it now, or it applies from the next session
-    systemctl --user restart wireplumber 2>/dev/null || sysLogger i "Config written: restart the session to apply"
+    asUser systemctl --user restart wireplumber 2>/dev/null || sysLogger i "Config written: restart the session to apply"
 
 }
 
@@ -733,7 +735,7 @@ wireplumberAudioDeviceBlacklist(){
     ]'
             ;;
         *)
-            echsysLogger e "Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
+            sysLogger e "Unsupported or missing WirePlumber version: '${wpVersion}'" >&2
             return 1
             ;;
     esac
@@ -793,7 +795,7 @@ mainLauncher(){
         sysLogger e "Run failed - $failed"
     done 
 
-} >> "$log"
+}
 
 sysLogger i "All functions compiled, launching main now"
 
@@ -802,7 +804,7 @@ mainLauncher
 sysLogger i "Main execution complete" 
 
 
-sysLogger i "Giving the user full access to the log"
+sysLogger i "{REDUNTANT CHOWN} -- Giving the user full access to the log"
 
 sudo chown -R "${SUDO_USER:-$(whoami)}:${SUDO_USER:-$(whoami)}" "$HOME/Nextcloud/Linux/log/newPc_history" || { sysLogger e "chown error on "$HOME/Nextcloud/Linux/log/newPc_history"" ; }
 
@@ -816,8 +818,10 @@ GH_gitConfig(){
 
     sysLogger i "Attempting GIT login using 'gh'"
 
-    if ! command gh > /dev/null ; then sysLogger e "'gh' command not found"
-    else gh auth login --hostname github.com --git-protocol https --web
+    if ! command -v gh > /dev/null ; then 
+        sysLogger e "'gh' command not found"
+    else 
+        asUser gh auth login --hostname github.com --git-protocol https --web
     fi
 
     sysLogger i "Git 'gh' config terminated"

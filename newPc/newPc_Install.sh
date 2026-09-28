@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#### Must be launched by setup.sh: it provides the environment and the helper functions
+if [ "$EUID" -ne 0 ] || [ -z "${realUser:-}" ] || ! declare -F asUser >/dev/null; then
+    echo "[CRITICAL ERROR] Launch through setup.sh: sudo ./setup.sh $(basename "$0")" >&2; exit 1
+fi
+
+
 start_time=$(date '+%d-%m-%Y___%H-%M-%S')
 
 StartDiskSpace=$(df -h)
