@@ -1,23 +1,7 @@
 #!/bin/bash
 set -uo pipefail
 
-#### Give access to cache folder to all scripts
-export XDG_RUNTIME_DIR="/run/user/$(id -u "${SUDO_USER:-$(whoami)}")"
-
-#### Run this script using -- give correct path to sudo
-#### sudo "$(getent passwd "${SUDO_USER:-$(whoami)}" | cut -d: -f6)/Nextcloud/Linux/scripts/newPc/newPc_Scripts.sh"
-
-user=${SUDO_USER:-$(whoami)}
-
-[ "${SUDO_USER:-}" ] || { echo "$user, run via sudo as your normal user, not as root" >&2; exit 1; }
-
-id -- "$user" >/dev/null 2>&1 || { echo "No such user: $user" >&2; exit 1; }
-
-
-#### Resolve the real user's home
-userHome=$(getent passwd "$user" | cut -d: -f6)
-
-HOME="$userHome"
+#### This script is NOT intended to be launched manually without configuring the enviroment beforehand
 
 
 nextcloudCheck(){
