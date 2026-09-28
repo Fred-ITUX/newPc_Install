@@ -84,10 +84,12 @@ if [ -d "$repoPath" ]; then
 
 else
     echo "Cloning the repo:  "$repoPath"/"$repo""
-    sudo -u "$user" git clone --depth 1 "$repo" "$repoPath"  || { echo "[ERROR] failed to clone the repo" ; exit 1; }
+    # sudo -u "$user" git clone --depth 1 "$repo" "$repoPath"  || { echo "[ERROR] failed to clone the repo" ; exit 1; }
+    git clone --depth 1 "$repo" "$repoPath"  || { echo "[ERROR] failed to clone the repo" ; exit 1; }
     
     echo "Adding exec to all .sh scripts in the repo folder"
-    sudo -u "$user" find "$repoPath" -type f -name '*.sh' -exec chmod +x {} +  || { echo "[ERROR] failed to grant exec to .sh scripts" ; exit 1; }
+    # sudo -u "$user" find "$repoPath" -type f -name '*.sh' -exec chmod +x {} +  || { echo "[ERROR] failed to grant exec to .sh scripts" ; exit 1; }
+    find "$repoPath" -type f -name '*.sh' -exec chmod +x {} +  || { echo "[ERROR] failed to grant exec to .sh scripts" ; exit 1; }
 
 fi
 
@@ -98,7 +100,8 @@ echo "Checking for script to run: "$runningScript""
 
 if [ -f ""$repoPath"/newPc/"$runningScript"" ]; then
     echo -e "\n\nScript found, executing now...\n"
-    sudo -u "$user" ""$repoPath"/newPc/"$runningScript""   || { echo "[ERROR] failed to execute ""$repoPath"/newPc/"$runningScript""" ; exit 1; }
+    # sudo -u "$user" ""$repoPath"/newPc/"$runningScript""   || { echo "[ERROR] failed to execute ""$repoPath"/newPc/"$runningScript""" ; exit 1; }
+    ""$repoPath"/newPc/"$runningScript""   || { echo "[ERROR] failed to execute ""$repoPath"/newPc/"$runningScript""" ; exit 1; }
 
 else
     echo "[ERROR] ""$repoPath"/newPc/"$runningScript"""
