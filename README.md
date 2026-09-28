@@ -190,9 +190,8 @@ runPcInstall(){
 
 ### Execute
 
-```bash
-runPcInstall || { echo "[ERROR] function terminated with an error"; } #### defaults to "newPc_Install.sh"
-runPcInstall ""newPc_Install.sh"" || { echo "[ERROR] function terminated with an error"; } 
+```bash 
+runPcInstall ""newPc_Install.sh"" || { echo "[ERROR] function terminated with an error"; } #### defaults to "newPc_Install.sh" eitherway 
 ```
 
 
