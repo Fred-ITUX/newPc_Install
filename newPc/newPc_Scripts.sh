@@ -31,8 +31,8 @@ nextcloudCheck || { echo -e "Nextcloud check failed, aborting execution" ; exit 
 
 brokenEnv=false
 
-bashUpd(){
-    if [ -z "$LXscripts" ]; then local LXscripts="$HOME/Nextcloud/Linux/scripts"; fi
+envUpdate(){
+    local LXscripts="$HOME/Nextcloud/Linux/scripts"
 
     local modules=(
         "bashrc"
@@ -53,7 +53,7 @@ bashUpd(){
     exec bash
 }
 
-bashUpd || { echo "[ERROR] Bash modules sourcing failed"; brokenEnv=true; }
+envUpdate || { echo "[ERROR] envUpdate failed, bash modules sourcing failed"; brokenEnv=true; }
 
 
 if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
