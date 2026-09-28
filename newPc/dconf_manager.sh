@@ -15,7 +15,7 @@ export HOME="$(getent passwd "$local_user" | cut -d: -f6)"
 
 
 #### Enable test suite for the loader
-# DEBUG=true
+DEBUG=true
 
 dateStamp="$(date "+%Y_%m_%d")"
 
@@ -45,27 +45,27 @@ setup_dconf_dump(){
 
 
     if [ -d "$finalFolder" ]; then
-        kindLogger "A folder appears to already be present under "$finalFolder". \nEither remove the folder or rename it."; return 1
+        sysLogger e "A folder appears to already be present under "$finalFolder". \nEither remove the folder or rename it."; return 1
     fi
 
 
-    mkdir -p "$destinationPath" || { kindLogger "Unexpected error during folder creation: "$destinationPath", exiting"; return 1 ; }
+    mkdir -p "$destinationPath" || { sysLogger e "Unexpected error during folder creation: "$destinationPath", exiting"; return 1 ; }
 
 
 
     if [ ! -d "$dumpFolder" ]; then
-        kindLogger "Creating folder $dumpFolder"
-        mkdir -p "$dumpFolder" || { kindLogger "Unexpected error during folder creation: "$dumpFolder", exiting"; return 1 ; }
+        sysLogger i "Creating folder $dumpFolder"
+        mkdir -p "$dumpFolder" || { sysLogger e "Unexpected error during folder creation: "$dumpFolder", exiting"; return 1 ; }
     else
-        kindLogger "Folder "$dumpFolder" already present, exiting"; return 1
+        sysLogger e "Folder "$dumpFolder" already present, exiting"; return 1
     fi
 
 
 
     if [ -d "$dumpFolder" ]; then
-        kindLogger "Folder created: "$dumpFolder""
+        sysLogger i "Folder created: "$dumpFolder""
     else
-        kindLogger "Folder creation failed "$dumpFolder", exiting"; return 1
+        sysLogger e "Folder creation failed "$dumpFolder", exiting"; return 1
     fi
 
 
@@ -86,7 +86,7 @@ setup_dconf_dump(){
 
     mv "$dumpFolder" "$destinationPath"
 
-    kindLogger "\nDump folder content: \n$(ls "$finalFolder")"
+    sysLogger i "\nDump folder content: \n$(ls "$finalFolder")"
 } > "$dump_tempLog"
 
 
@@ -95,7 +95,7 @@ setup_dconf_dump(){
 setup_dconf_restore(){
     local dumpPath newest newPath folderContents file filename
 
-    if $DEBUG; then kindLogger "DEUBG=$DEBUG. Testing suite active."; fi
+    if $DEBUG; then sysLogger DEBUG "DEBUG=$DEBUG. Testing suite active."; fi
 
     dumpPath="$HOME/Nextcloud/Linux/scripts/New_Pc/dconf_dump"
 
@@ -106,7 +106,7 @@ setup_dconf_restore(){
 
 
     newPath="$dumpPath/$newest"
-    kindLogger "Newest folder's date: "$newPath""
+    sysLogger i "Newest folder's date: "$newPath""
 
     folderContents=( "$newPath"/* )
 
@@ -123,7 +123,7 @@ setup_dconf_restore(){
             wm-keybindings.conf)
                 ;;
             *)
-                kindLogger "ERROR: Unknown dconf file: $(basename "$file")"
+                sysLogger e "Unknown dconf file: $(basename "$file")"
                 return 1
                 ;;
         esac
@@ -139,37 +139,37 @@ setup_dconf_restore(){
         if $DEBUG; then
 
             case "$filename" in
-                gnome_extensions.conf) kindLogger "Would load /org/gnome/shell/extensions/ < "$file" ";;
+                gnome_extensions.conf) sysLogger DEBUG "Would load /org/gnome/shell/extensions/ < "$file" ";;
 
-                media-keys.conf) kindLogger "Would load /org/gnome/settings-daemon/plugins/media-keys < "$file" " ;;
+                media-keys.conf) sysLogger DEBUG "Would load /org/gnome/settings-daemon/plugins/media-keys < "$file" " ;;
 
-                mutter-keybindings.conf) kindLogger "Would load /org/gnome/mutter/keybindings/ < "$file" " ;;
+                mutter-keybindings.conf) sysLogger DEBUG "Would load /org/gnome/mutter/keybindings/ < "$file" " ;;
 
-                shell-keybindings.conf) kindLogger "Would load /org/gnome/shell/keybindings/ < "$file" " ;;
+                shell-keybindings.conf) sysLogger DEBUG "Would load /org/gnome/shell/keybindings/ < "$file" " ;;
 
-                wm-keybindings.conf) kindLogger "Would load /org/gnome/desktop/wm/keybindings/ < "$file" " ;;
+                wm-keybindings.conf) sysLogger DEBUG "Would load /org/gnome/desktop/wm/keybindings/ < "$file" " ;;
 
-                *) kindLogger "Ignoring unknown dconf backup: $filename" ;;
+                *) sysLogger DEBUG "Ignoring unknown dconf backup: $filename" ;;
             esac
 
         else
-            kindLogger "Started loading "$filename""
+            sysLogger i "Started loading "$filename""
 
             case "$filename" in
-                gnome_extensions.conf) dconf load /org/gnome/shell/extensions/ < "$file" || { kindLogger "ERROR: load failed for /org/gnome/shell/extensions/ " ; return 1;  } ;;
+                gnome_extensions.conf) dconf load /org/gnome/shell/extensions/ < "$file" || { sysLogger e "load failed for /org/gnome/shell/extensions/ " ; return 1;  } ;;
 
-                media-keys.conf) dconf load /org/gnome/settings-daemon/plugins/media-keys/ < "$file" || { kindLogger "ERROR: load failed for /org/gnome/settings-daemon/plugins/media-keys/" ; return 1;  };;
+                media-keys.conf) dconf load /org/gnome/settings-daemon/plugins/media-keys/ < "$file" || { sysLogger e "load failed for /org/gnome/settings-daemon/plugins/media-keys/" ; return 1;  };;
 
-                mutter-keybindings.conf) dconf load /org/gnome/mutter/keybindings/ < "$file" || { kindLogger "ERROR: load failed for /org/gnome/mutter/keybindings/" ; return 1;  } ;;
+                mutter-keybindings.conf) dconf load /org/gnome/mutter/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/mutter/keybindings/" ; return 1;  } ;;
 
-                shell-keybindings.conf) dconf load /org/gnome/shell/keybindings/ < "$file" || { kindLogger "ERROR: load failed for /org/gnome/shell/keybindings/" ; return 1;  } ;;
+                shell-keybindings.conf) dconf load /org/gnome/shell/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/shell/keybindings/" ; return 1;  } ;;
 
-                wm-keybindings.conf) dconf load /org/gnome/desktop/wm/keybindings/ < "$file" || { kindLogger "ERROR: load failed for /org/gnome/desktop/wm/keybindings/" ; return 1;  } ;;
+                wm-keybindings.conf) dconf load /org/gnome/desktop/wm/keybindings/ < "$file" || { sysLogger e "load failed for /org/gnome/desktop/wm/keybindings/" ; return 1;  } ;;
 
-                *) kindLogger "Ignoring unknown dconf backup: $filename" ;;
+                *) sysLogger e "Ignoring unknown dconf backup: $filename" ;;
             esac
 
-            kindLogger "Finished loading "$filename""
+            sysLogger i "Finished loading "$filename""
         fi
 
 
@@ -181,19 +181,19 @@ setup_dconf_restore(){
 
 launcher_setup_dconf_dump(){
     mkdir -p "$newPcPath"
-    setup_dconf_dump || { kindLogger "Function 'setup_dconf_dump' terminated with an error"; }
-    mv "$dump_tempLog" "$dump_dconfLog" || { kindLogger "Could not move \n"$dump_tempLog" \nto \n"$dump_dconfLog"" ; return 1;  }
-    kindLogger "Correctly dumped all configs. Check the log here: "$dump_dconfLog""
+    setup_dconf_dump || { sysLogger e "Function 'setup_dconf_dump' terminated with an error"; }
+    mv "$dump_tempLog" "$dump_dconfLog" || { sysLogger e "Could not move \n"$dump_tempLog" \nto \n"$dump_dconfLog"" ; return 1;  }
+    sysLogger i "Correctly dumped all configs. Check the log here: "$dump_dconfLog""
 }
 
 
 
 launcher_setup_dconf_restore(){
     mkdir -p "$newPcPath"
-    setup_dconf_restore || { kindLogger "Function 'setup_dconf_restore' terminated with an error";  }
-    mv "$restore_tempLog" "$restore_dconfLog" || { kindLogger "Could not move \n"$restore_tempLog" \nto \n"$restore_dconfLog"" ; return 1;  }
-    kindLogger "Correctly loaded all configs. Check the log here: "$restore_dconfLog""
-    kindLogger "INFO: it is required to reboot the system to show changes"
+    setup_dconf_restore || { sysLogger e "Function 'setup_dconf_restore' terminated with an error";  }
+    mv "$restore_tempLog" "$restore_dconfLog" || { sysLogger e "Could not move \n"$restore_tempLog" \nto \n"$restore_dconfLog"" ; return 1;  }
+    sysLogger i "Correctly loaded all configs. Check the log here: "$restore_dconfLog""
+    sysLogger i "Is required to reboot the system to show changes"
 }
 
 
