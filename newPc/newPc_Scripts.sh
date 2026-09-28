@@ -31,9 +31,6 @@ nextcloudCheck || { echo -e "Nextcloud check failed, aborting execution" ; exit 
 
 brokenEnv=false
 
-if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
-if [ -f "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
-
 bashUpd(){
     if [ -z "$LXscripts" ]; then local LXscripts="$HOME/Nextcloud/Linux/scripts"; fi
 
@@ -57,6 +54,11 @@ bashUpd(){
 }
 
 bashUpd || { echo "[ERROR] Bash modules sourcing failed"; brokenEnv=true; }
+
+
+if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
+if [ -s "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
+
 
 if $brokenEnv; then
     echo "[CRITICAL ERROR] Enviroment degraded, exiting"; exit 1
