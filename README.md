@@ -80,7 +80,7 @@ cloneRepo || { echo "[ERROR] function terminated with an error"; }
 
 ```bash 
 if [ -f "$HOME/Github/newPc_Install/newPc/setup.sh" ] && [ -f "$HOME/Github/newPc_Install/newPc/newPc_Install.sh" ] ; then 
-    sudo "$HOME/Github/newPc_Install/newPc/setup.sh" "$HOME/Github/newPc_Install/newPc/newPc_Install.sh"; 
+    sudo "$HOME/Github/newPc_Install/newPc/setup.sh" "newPc_Install.sh"; 
 else 
     echo -e "Script(s) not found: \n"$HOME/Github/newPc_Install/newPc/setup.sh" \n"$HOME/Github/newPc_Install/newPc/newPc_Install.sh""
 fi 
@@ -92,7 +92,7 @@ fi
 
 ```bash
 if [ -f "$HOME/Github/newPc_Install/newPc/setup.sh" ] && [ -f "$HOME/Github/newPc_Install/newPc/newPc_Scripts.sh" ]  ; then
-    sudo "$HOME/Github/newPc_Install/newPc/setup.sh" "$HOME/Github/newPc_Install/newPc/newPc_Scripts.sh"; 
+    sudo "$HOME/Github/newPc_Install/newPc/setup.sh" "newPc_Scripts.sh"; 
 else 
     echo -e "Script(s) not found: \n$HOME/Github/newPc_Install/newPc/setup.sh \n"$HOME/Github/newPc_Install/newPc/newPc_Scripts.sh"\n"
 fi 
