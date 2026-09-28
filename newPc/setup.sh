@@ -1,12 +1,9 @@
 #!/bin/bash
-
 set -uo
-
-repo="https://github.com/Fred-ITUX/newPc_Install"
-
 
 echo -e "\n\t > Starting "$(date "+%A %F %H:%M:%S")""
 
+repo="https://github.com/Fred-ITUX/newPc_Install"
 
 runningScript="${1:-}"
 
