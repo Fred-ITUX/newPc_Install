@@ -1,11 +1,10 @@
 #!/bin/bash
-set -uo pipefail
 
 ###############################################################
 
 
 #### This script is NOT intended to be run manually
-#### It should be sourced and launched by newPc_Scripts.sh
+#### It should be sourced and launched by setup.sh
 
 
 ###############################################################

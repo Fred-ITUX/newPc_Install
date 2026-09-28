@@ -1,13 +1,13 @@
 #!/bin/bash
-set -uo pipefail
+
+###############################################################
 
 
+#### This script is NOT intended to be run manually
+#### It should be launched by setup.sh
 
-#########################################################################
 
-#### This script is NOT intended to be launched manually without configuring the enviroment beforehand
-
-#########################################################################
+###############################################################
 
 
 nextcloudCheck(){
