@@ -42,6 +42,7 @@ envUpdate(){
     )
 
     for module in "${modules[@]}"; do
+        [[ -f "$LXscripts/bash/"$module".sh" ]] || { echo "[ERROR] Module not found, skipping "$LXscripts/bash/"$module".sh""; continue; }
 
         echo -e "\nCopy "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" "
         cp "$LXscripts"/bash/""$module".sh" "$HOME"/."$module"  || { echo "[ERROR] Copy failed $module" ; brokenEnv=true ;return 1; } 
