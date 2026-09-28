@@ -365,6 +365,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		app/org.kde.okular/x86_64/stable							#### Pdf reader / highlight
 		app/com.discordapp.Discord/x86_64/stable
 		app/org.keepassxc.KeePassXC/x86_64/stable				   #### Database DB
+        app/org.cryptomator.Cryptomator/x86_64/stable               #### Document encrypt synced by Nextcloud
 		#### org.libreoffice.LibreOffice 
 		org.onlyoffice.desktopeditors/x86_64/stable				 
         app/org.kde.kdenlive/x86_64/stable                         #### Video and audio editor

@@ -391,6 +391,42 @@ lockManager(){
 }
 
 
+cp2(){
+    #### Replaces the old -- alias cp2="rsync -ah --progress"
+    userCheck || { echo "userCheck failed"; pc=''; hostMain=''; }
+    local cmd
+    local file="${1:-}" 
+    local copy="${2:-}"
+
+    if [ -z "$file" ] || [ -z "$copy" ]; then echo "Usage: cp2 <file> <copy>"; return 1; fi
+
+    if [ ! -d "$file" ] && [ ! -f "$file" ] ; then echo ""$file" does not exist"; return 1; fi
+
+    if [ "$pc" == "$hostMain" ]; then cmd=(rsync -a --progress); else cmd=(rsync -ah --progress); fi
+
+    "${cmd[@]}" "$file" "$copy"
+}
+
+
+zip2(){
+    #### Replaces the old -- alias zip2="7z a -mmt=8"
+    userCheck || { echo "userCheck failed"; pc=''; hostMain=''; }
+    local coreCount
+    
+    local targetArchive="${1:-}" 
+    local file="${2:-}"
+
+    if [ -z "$targetArchive" ] || [ -z "$file" ]; then echo "Usage: zip2 <archive.zip> <file>"; return 1; fi
+
+    if [ "$pc" == "$hostMain" ]; then coreCount="12"; else coreCount="4"; fi
+
+
+    #### If the archive provided does not have a valid extension defaults to .zip
+    if [[ "$targetArchive" != *.* || "$targetArchive" =~ \.[^.]{0,2}$ ]]; then targetArchive="${targetArchive%"."}"; targetArchive="${targetArchive}.zip"; fi
+
+    7z a -mmt="$coreCount" "$targetArchive" "$file"
+}
+
 
 ##################################################
 
