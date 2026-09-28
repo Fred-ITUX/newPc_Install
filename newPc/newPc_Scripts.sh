@@ -50,7 +50,6 @@ envUpdate(){
 
     done
     
-    exec bash
 }
 
 envUpdate || { echo "[ERROR] envUpdate failed, bash modules sourcing failed"; brokenEnv=true; }
