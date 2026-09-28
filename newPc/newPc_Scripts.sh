@@ -43,10 +43,10 @@ envUpdate(){
 
     for module in "${modules[@]}"; do
 
-        #### echo -e "\nwould copy "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" "
-        #### echo -e "would source "$HOME"/."$module"\n"
-
+        echo -e "\nCopy "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" "
         cp "$LXscripts"/bash/""$module".sh" "$HOME"/."$module"  || { echo "[ERROR] Copy failed $module" ; brokenEnv=true ;return 1; } 
+
+        echo -e "Source "$HOME"/."$module"\n"
         source "$HOME"/."$module" || { echo "[ERROR] Sourcing failed $module" ; brokenEnv=true ;return 1; }
 
     done
