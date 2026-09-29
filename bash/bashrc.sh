@@ -3,7 +3,7 @@
 # Exit for non-interactive shells
 case $- in
     *i*) ;;
-      *) exit 1 ;;
+      *) return ;;
 esac
 
 
