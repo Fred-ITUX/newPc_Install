@@ -6,7 +6,7 @@ if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "
 
 if $brokenEnv; then
     echo -e "[CRITICAL ERROR] Enviroment degraded, functions disabled"
-    exit 1
+    return 1
 fi;
 
 userCheck

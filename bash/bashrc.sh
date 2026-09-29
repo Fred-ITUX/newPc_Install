@@ -3,7 +3,7 @@
 # Exit for non-interactive shells
 case $- in
     *i*) ;;
-      *) return ;;
+      *) return ;; #### NEVER change it to an `exit`, bashrc gets sourced at GUI startup
 esac
 
 
