@@ -199,14 +199,14 @@ tearFix(){
 
 grubSetup(){
     sysLogger i "GRUB USB not working after waking up (sleep / hybernation / suspend)"
+    
+    local grub_line_path="/etc/default/grub"
+    local grub_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
+    local mod_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.autosuspend=-1 zswap.enabled=0"'
 
     #### In case of a 2nd run   
     grep -q 'usbcore.autosuspend=-1' "$grub_line_path" && { sysLogger i "GRUB already configured"; return 0; }
     
-
-    local grub_line_path="/etc/default/grub"
-    local grub_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
-    local mod_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.autosuspend=-1 zswap.enabled=0"'
 
     if grep -q "$grub_line" "$grub_line_path"; then
         sudo sed -i "s/^$grub_line/$mod_line/" "$grub_line_path"

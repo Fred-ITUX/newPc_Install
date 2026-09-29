@@ -126,7 +126,7 @@ purgeLoop(){
 	#### Retain all summaries to print them in one block at the end
     summary+=$(
         printf '\n\n\t+----------------------------------------------+\n\n'
-        printf '\t\t  %s: %d/%d installed, %d failed\n' \
+        printf '\t\t  %s: %d/%d purged, %d failed\n' \
             "$kind" \
             "$(( total - ${#failed[@]} ))" \
             "$total" \
@@ -230,7 +230,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 			START UPDATE, FULL UPGRADE AND CHECK INSTALLS
 
 	+-----------------------------------------------------------+\n\n\n"
-	safetyUpdateCheck || { kindLogger "ERROR - first updater failed, aborting before continuing" ; }
+	safetyUpdateCheck || { kindLogger "ERROR - first updater failed, aborting before continuing" ; exit 1; }
 	echo -e "\n\n\n
 	+---------------------------------------------------------+ 
 
@@ -389,7 +389,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 	)
 
 	kindLogger "Flathub remote check"
-	sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || { kindLogger "ERROR - Flatpak 'remote-add flathub' failed, exiting"; }
+	sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || { kindLogger "ERROR - Flatpak 'remote-add flathub' failed, exiting"; exit 1; }
 
 
 	kindLogger "\nEngaging installLoop: flatpak"

@@ -16,8 +16,7 @@ cloneRepo(){
 
 
     #### Install git if not already present
-    apt update || { echo "[ERROR] Apt update failed, not continuing with stale package index"; return 1; }
-    apt install git -y || { echo "[ERROR] Git install failed. No point in keeping execution, exiting"; return 1; }
+    command -v git >/dev/null || { sudo apt update && sudo apt install -y git; } || { echo "[ERROR] Git install failed"; return 1; }
 
 
     #### Clone repo script && script exec

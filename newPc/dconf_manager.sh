@@ -65,7 +65,7 @@ setup_dconf_dump(){
         sysLogger e "Folder creation failed "$dumpFolder", exiting"; return 1
     fi
 
-
+    #### Dumps should be done only on already configured and confirmed machines
     atomicWrite "media-keys.conf" "$dumpFolder" "$(dconf dump /org/gnome/settings-daemon/plugins/media-keys/)"
 
     atomicWrite "wm-keybindings.conf" "$dumpFolder" "$(dconf dump /org/gnome/desktop/wm/keybindings/)"
