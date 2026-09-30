@@ -2,10 +2,10 @@
 
 brokenEnv=false
 
-if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
+if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
 
 if $brokenEnv; then
-    echo -e "[CRITICAL ERROR] Enviroment degraded, functions disabled"
+    echo "[CRITICAL ERROR] Enviroment degraded, functions disabled"
     return 1
 fi;
 
