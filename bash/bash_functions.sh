@@ -424,7 +424,7 @@ pizza(){
     echo -e "$(date +"%Y-%m-%d")" >> "$PYscripts/PizzaPlot/pizza_data.csv"
     py "$PYscripts/PizzaPlot/pizza.py"
     echo -e "🍕 Pizza 🍕"
-    flatpak run org.nomacs.ImageLounge "$PYscripts/PizzaPlot/PizzaPlot.png" &
+    flatpak run org.nomacs.ImageLounge "$PYscripts/PizzaPlot/PizzaPlot.png" > /dev/null &
 }
 
 ##################################################
