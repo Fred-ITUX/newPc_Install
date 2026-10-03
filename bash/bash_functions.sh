@@ -225,6 +225,8 @@ updater(){
 ##################################################
 
 systemInfo(){
+    local infoArray
+
     get_wm(){
     if [ "$XDG_CURRENT_DESKTOP" == "GNOME" ]; then echo "Mutter"; elif [ "$XDG_CURRENT_DESKTOP" == "KDE" ]; then echo "KWin"
     else
@@ -271,8 +273,31 @@ systemInfo(){
         echo "$printOut"
     }
 
-    #### Bold title ---- New lines inserted to fold the function
-    echo -e "\033[1mSystem Info:\033[0m $(get_formatted_date) \nOS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \") \nKernel: $(uname -r) \nUptime: $(uptime -p | sed 's/up //') \nPackages: $(dpkg-query -f '.\n' -W 2>/dev/null | wc -l) \nFlatpak pkg: $(flatpak list  | wc -l) \nShell: $(get_shell_version) \nDE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_gnome_version) \nSession: ${XDG_SESSION_TYPE:-unknown} \nWM: $(get_wm) \nCompositor: $(get_compositor) \nTheme: $(get_gtk_theme) \nIcons: $(get_icon_theme) \nFont: $(get_font_name) \nCPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//') \nGPU: $(lspci | grep VGA | cut -d: -f3 | xargs) \nRAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}') \nSWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
+
+
+    infoArray=(
+        $'\033[1mSystem Info:\033[0m ' "$(get_formatted_date)"
+        "OS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \")"
+        "Kernel: $(uname -r)"
+        "Uptime: $(uptime -p | sed 's/up //')"
+        "Packages: $(dpkg-query -f '.\n' -W 2>/dev/null | wc -l)"
+        "Flatpak pkg: $(flatpak list | wc -l)"
+        "Shell: $(get_shell_version)"
+        "DE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_gnome_version)"
+        "Session: ${XDG_SESSION_TYPE:-unknown}"
+        "WM: $(get_wm)"
+        "Compositor: $(get_compositor)"
+        "Theme: $(get_gtk_theme)"
+        "Icons: $(get_icon_theme)"
+        "Font: $(get_font_name)"
+        "CPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//')"
+        "GPU: $(lspci | grep VGA | cut -d: -f3 | xargs)"
+        "RAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}')"
+        "SWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
+    )
+
+
+    printf '%s\n' "${infoArray[@]}"
 }
 
 ##################################################
@@ -309,7 +334,7 @@ BKP_home(){
     elif [ -n "$1" ] && [ -d "$1" ]; then
         local zipFile="$1/bkp_nextcloud_$(get_file_date).zip"
 
-        7z a -mmt=8 "$zipFile"  $HOME/.config $HOME/.gnupg $HOME/.linuxmint     $HOME/.local $HOME/.pki $HOME/.ssh    $HOME/.gtkrc-2.0 $HOME/.gtkrc-xfce $HOME/.lesshst    $HOME/.profile $HOME/.wget-hsts $HOME/.Xauthority $HOME/.xsession-errors   
+        7z a -mmt=8 "$zipFile"  ""$HOME"/.config" ""$HOME"/.gnupg" ""$HOME"/.linuxmint" ""$HOME"/.local" ""$HOME"/.pki" ""$HOME"/.ssh" ""$HOME"/.gtkrc-2.0" ""$HOME"/.gtkrc-xfce" ""$HOME"/.lesshst" ""$HOME"/.profile" ""$HOME"/.wget-hsts" ""$HOME"/.Xauthority" ""$HOME"/.xsession-errors"
         sysLogger i "Created $zipFile"
         
     else sysLogger e "Not a valid path: $1"; fi
@@ -421,9 +446,9 @@ minecraft(){
 ##################################################
 
 pizza(){
-    echo -e "$(date +"%Y-%m-%d")" >> "$PYscripts/PizzaPlot/pizza_data.csv"
+    echo "$(date +"%Y-%m-%d")" >> "$PYscripts/PizzaPlot/pizza_data.csv"
     py "$PYscripts/PizzaPlot/pizza.py"
-    echo -e "🍕 Pizza 🍕"
+    echo "🍕 Pizza 🍕"
     flatpak run org.nomacs.ImageLounge "$PYscripts/PizzaPlot/PizzaPlot.png" > /dev/null &
 }
 

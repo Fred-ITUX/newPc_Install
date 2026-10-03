@@ -173,21 +173,47 @@ firewallSetup(){
 
 
 tearFix(){
-    #### NOTE: The TearFree X11 config is inert on Wayland
-    local cnfgContent; local cnfgFile
+    #### NOTE: The TearFree X11 config is inhert on Wayland -- does not cause any issues as it is not used
+    #### Check GPU by vendor ID
+    ####    Intel:     8086
+    ####    NVIDIA:    10de
+    ####    AMD/ATI:   1002
+    local cnfgContent=(
+        'Section "Device"'
+        '   Identifier  "AMD Graphics"'
+        '   Driver      "amdgpu"'
+        '   Option      "TearFree" "true"'
+        'EndSection'
+    )
 
-    sysLogger i "X11 screen tear fix"
-    cnfgContent='Section "Device"
-        Identifier  "AMD Graphics"
-        Driver      "amdgpu"
-        Option      "TearFree" "true"
-    EndSection'
-    cnfgFile="/etc/X11/xorg.conf.d/20-amd.conf"
+    local cnfgFile="/etc/X11/xorg.conf.d/20-amd.conf"
 
-    echo "$cnfgContent" | sudo tee "$cnfgFile"
+    sysLogger i "AMD x11 screen tear fix"
+
+
+    if [ "$XDG_SESSION_TYPE" == "x11" ]; then
+    
+        sysLogger i "Session is x11"
+
+        if lspci -nn | grep -Ei 'VGA compatible controller|3D controller|Display controller' | grep -q '\[1002:'; then
+            sysLogger i "GPU vendor: AMD"
+
+            printf '%s\n' "${cnfgContent[@]}" | sudo tee "$cnfgFile"
+
+        else
+            sysLogger w "GPU vendor is NOT AMD, config not applied"; return 1
+        fi
+
+
+    else
+        sysLogger w "Session is NOT x11, tearFix NOT applied."; return 1
+    fi
+
 
     if [ -s "$cnfgFile" ]; then
-        sysLogger i  "Config file created "$cnfgFile""
+        sysLogger i "Config file created "$cnfgFile""
+    else
+        sysLogger e "Config file NOT created "$cnfgFile""
     fi
 }
 
@@ -477,32 +503,6 @@ deamonsPurge(){
     sysLogger i "Extra step, purging 'cups' (printer deamon)"
     sudo apt-get purge cups -y
 }
-
-
-
-######################################################################################
-
-
-#### If 
-# scriptLauncher(){
-
-#     local scripts=(
-#         #### "$EXTRA_LXscripts/newPc/theme_updater.sh"
-#     )
-
-#     for script in "${scripts[@]}"; do
-
-#         if [ -s "$script" ]; then
-#             sysLogger i "Launching "$script"\n"
-#             "$script" || sysLogger e "execution failed for "$script"\n"     
-
-#         else sysLogger e "failed to launch "$script"\n"
-#         fi
-
-#     done 
-
-
-# }
 
 
 
