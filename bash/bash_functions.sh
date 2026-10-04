@@ -302,29 +302,22 @@ systemInfo(){
 
 ##################################################
 
-BKP_nxt(){
-    if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
-    
-    elif [ -n "$1" ] && [ -d "$1" ]; then
-        local zipFile="$1/bkp_nextcloud_$(get_file_date).zip"
 
-        7z a -mmt=8 "$zipFile" "$HOME/Nextcloud"
-        sysLogger i "Created $zipFile"
-    
-    else sysLogger e "Not a valid path: $1"; fi
-}
+BKP_folder(){
+    local source="${1:-}" target="${2:-}"
+    local zipFile
 
-
-BKP_nxt_scripts(){
-    if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
+    if [ -z "$source" ] || [ -z "$target" ]; then echo "Usage: BKP_folder <folder-to-bkp> <save-path>"; return 1; fi
     
-    elif [ -n "$1" ] && [ -d "$1" ]; then
-        local zipFile="$1/bkp_nextcloud_$(get_file_date).zip"
+    if [ -d "$source" ]; then
+        zipFile="${XDG_RUNTIME_DIR}/"$(get_file_date)"_bkp_"$( basename "$source" )".zip"
 
-        7z a -mmt=8 "$zipFile" "$HOME/Nextcloud/Linux" "$HOME/Nextcloud/Python"
-        sysLogger i "Created $zipFile"
-    
-    else sysLogger e "Not a valid path: $1"; fi
+        7z a -mmt=8 "$zipFile" "$source"
+
+        mv "$zipFile" "$target" || { sysLogger e "Failed to move the archive" ; return 1; }
+        sysLogger i "Created "$target"/$(basename "$zipFile")"
+     
+    fi
 }
 
 
@@ -332,7 +325,7 @@ BKP_home(){
     if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
     
     elif [ -n "$1" ] && [ -d "$1" ]; then
-        local zipFile="$1/bkp_nextcloud_$(get_file_date).zip"
+        local zipFile="$1/bkp_home_$(get_file_date).zip"
 
         7z a -mmt=8 "$zipFile"  ""$HOME"/.config" ""$HOME"/.gnupg" ""$HOME"/.linuxmint" ""$HOME"/.local" ""$HOME"/.pki" ""$HOME"/.ssh" ""$HOME"/.gtkrc-2.0" ""$HOME"/.gtkrc-xfce" ""$HOME"/.lesshst" ""$HOME"/.profile" ""$HOME"/.wget-hsts" ""$HOME"/.Xauthority" ""$HOME"/.xsession-errors"
         sysLogger i "Created $zipFile"
@@ -342,27 +335,116 @@ BKP_home(){
 
 ##################################################
 
+
 extract(){
-    local file="${1:-}"; local mmt=8; local files
+    local file="${1:-}"; local mmt=8; local dir; local failed=0
+    local files=(); local cmd=(); local -A seen=(); local globState
 
-    if [[ "$file" == "a" ]]; then files=(*.zip *.7z *.tar *.tar.gz *.rar); elif [[ -n "$file" ]]; then files=("$file"); fi
+    if [[ -z "$file" ]]; then
+        sysLogger e "Usage: extract <archive> | extract a"      #### a = every archive in the current folder
+        return 1
+    fi
 
-    if [ -z "$file" ]; then echo -e "Usage: extract <filename> or extract <a>" && files=(""); fi
+    if [[ "$file" == "a" ]]; then
+        globState="$(shopt -p nullglob)"                        #### remember the caller's setting
+        shopt -s nullglob                                       #### unmatched patterns vanish instead of staying literal
+        files=( *.zip *.7z *.rar *.tar *.tar.* *.tgz *.tbz2 *.txz )
+        eval "$globState"
+    else
+        if [[ ! -f "$file" ]]; then
+            sysLogger e "No such file: $file"
+            return 1
+        fi
+        files=( "$file" )
+    fi
 
     for file in "${files[@]}"; do
-        [[ -e "$file" ]] || continue
+        if [[ ! -f "$file" ]]; then
+            continue
+        fi
 
-        sysLogger i "Extracting: $file"
-        case "$file" in 
-            *.zip)     7z x -mmt="$mmt" "$file" ;; 
-            *.7z)      7z x -mmt="$mmt" "$file" ;;
-            *.tar.gz)  tar -xvzf "$file" ;;
-            *.tar|*.tar.*|*.tgz|*.tbz2|*.txz) tar -xf "$file" ;;
-            
-            *.rar)     7z x -mmt="$mmt" "$file" ;; #### -mmt... -p"" file for password archives
-            *)         sysLogger e "Unsupported file type: $file" ;;
+        if [[ -n "${seen[$file]:-}" ]]; then                    #### patterns overlap, e.g. foo.tar.zip
+            continue
+        fi
+        seen["$file"]=1
+
+        dir="${file%.*}"
+        if [[ "$dir" == *.tar ]]; then                          #### foo.tar.gz -> foo
+            dir="${dir%.tar}"
+        fi
+
+        case "$file" in                                         #### zip/7z/rar first: foo.tar.zip is a zip, not a tar
+            *.zip|*.7z|*.rar)                 cmd=( 7z x -mmt="$mmt" -o"$dir" -- "$file" ) ;;
+            *.tar|*.tar.*|*.tgz|*.tbz2|*.txz) cmd=( tar -xf "$file" -C "$dir" ) ;;
+            *)
+                sysLogger e "Unsupported file type: $file"
+                failed=$((failed+1))
+                continue
+                ;;
         esac
+
+        sysLogger i "Extracting: $file -> $dir/"
+
+        if ! mkdir -p -- "$dir"; then
+            sysLogger e "Cannot create folder: $dir"
+            failed=$((failed+1))
+            continue
+        fi
+
+        if ! "${cmd[@]}"; then
+            sysLogger e "Extraction failed: $file"
+            rmdir -- "$dir" 2>/dev/null                         #### only succeeds if nothing landed in it
+            failed=$((failed+1))
+            continue
+        fi
+
+        if [[ -e "$dir/${file##*/}" ]]; then                    #### the archive moves into its own folder
+            sysLogger e "Archive not moved: $dir/${file##*/} already exists"
+            failed=$((failed+1))
+        elif ! mv -- "$file" "$dir/"; then
+            sysLogger e "Archive not moved: $file"
+            failed=$((failed+1))
+        fi
     done
+
+    return "$failed"
+}
+
+##################################################
+
+rotateBackups(){
+    #### rotateBackups <folder> <keep> [glob]   -> keeps the <keep> newest files, deletes the rest
+    local dir="${1:-}"; local keep="${2:-}"; local pattern="${3:-*.zip}"
+    local backups=(); local victim; local removed=0; local failed=0
+
+
+    [[ -d "$dir" ]] || { sysLogger e "Not a folder $dir"; return 1; }
+
+    [[ "$keep" =~ ^[0-9]+$ ]] && (( keep > 0 )) || { sysLogger e "<keep> must be a positive integer, current '$keep'"; return 1; }
+
+    #### list the backups, NEWEST first
+    #### %T@ = mtime as a number ; NUL-separated so spaces/newlines in names are safe
+    mapfile -d '' -t backups < <( find "$dir" -maxdepth 1 -type f -name "$pattern" -printf '%T@\t%p\0' | sort -z -rn | cut -z -f2- )
+
+
+    #### glob defaults to *.zip ; only the folder itself is touched, never subfolders
+    if (( ${#backups[@]} <= keep )); then
+        sysLogger DEBUG "${#backups[@]}/$keep backups in $dir, nothing to rotate"
+        return 0
+    fi
+
+    for victim in "${backups[@]:keep}"; do
+        if rm -f -- "$victim"; then
+            sysLogger i "Removed ${victim##*/}"
+            removed=$((removed+1))
+        else
+            sysLogger e "could not remove $victim"
+            failed=$((failed+1))
+        fi
+    done
+
+    sysLogger DEBUG "$removed removed, $keep kept in $dir"
+    return "$failed"
 }
 
 ##################################################

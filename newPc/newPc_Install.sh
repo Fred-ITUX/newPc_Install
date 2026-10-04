@@ -275,7 +275,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		xdotool								 #### X11 -- window / keyboard utilities
 		ddcutil								 #### change monitors brightness
 		fzf									 #### terminal interactive selection
-		vlc
+		# vlc                                   #### flatpak in use
 		gedit 
 		piper								   #### logitech mouse software
 		gparted								 #### disk utility
@@ -361,7 +361,8 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		#### app/net.christianbeier.Gromit-MPX/x86_64/stable			 #### draw on screen
 		#### page.codeberg.libre_menu_editor.LibreMenuEditor			 #### app info and editor
 		app/com.github.hluk.copyq/x86_64/stable					 #### Clipboard manager
-		
+		app/org.videolan.VLC/x86_64/stable
+
 		#### Editing
 		com.obsproject.Studio									   #### OBS
 		org.audacityteam.Audacity								   #### Audacity
