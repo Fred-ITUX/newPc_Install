@@ -422,21 +422,43 @@ nemoSetup(){
     sudo chown root:sambashare /var/lib/samba/usershares
     sudo chmod 1770 /var/lib/samba/usershares
 
-    nemoScripts="$userHome/.local/share/nemo/scripts"
 
-    if [ ! -d "$nemoScripts" ]; then
-        sysLogger w "Folder "$nemoScripts" did not exist, creating"
-        asUser mkdir -p "$nemoScripts" || { sysLogger e "unexpected failure during folder creation, exiting"; return 1;} 
-    fi
+    local actionExtract=(
+        "[Nemo Action]"
+        "Active=true"
+        "Name=Extract here"
+        "Comment=Extract the selected archive(s), each into a folder of its own"
+        "Exec=/bin/bash "$userHome/Nextcloud/Linux/scripts/Nemo_scripts/extract.sh" %F"
+        "Icon-Name=package-x-generic"
+        "Selection=NotNone"
+        "Extensions=zip;7z;rar;tar;gz;xz;tgz;tbz2;txz;"
+        "Quote=double' "
+    )
 
 
-    if [ -s "$EXTRA_LXscripts/Other/NEMO_mediainfo.sh" ]; then
-        sysLogger i "Copying "$EXTRA_LXscripts/Other/NEMO_mediainfo.sh"  ->  "$nemoScripts""
-        asUser cp "$EXTRA_LXscripts/Other/NEMO_mediainfo.sh" "$nemoScripts"
-    fi
+    local actionMedaInfo=(
+        "[Nemo Action]"
+        "Active=true"
+        "Name=Video info"
+        "Comment=Show duration, bit rate, FPS, size and dimensions of the selected video(s)"
+        "Exec=/bin/bash "$userHome/Nextcloud/Linux/scripts/Nemo_scripts/mediainfo.sh" %F"
+        "Icon-Name=video-x-generic"
+        "Selection=NotNone"
+        "Extensions=mp4;mkv;avi;mov;webm;m4v;wmv;flv;mpg;mpeg;ts;m2ts;3gp;ogv;"
+        "Dependencies=mediainfo;zenity;"
+        "Quote=double"
+    )
 
-    if [ ! -s "$userHome/.local/share/nemo/scripts/NEMO_mediainfo.sh" ]; then
-        sysLogger e "nemoSetup mediainfo Copy failed"
+    sysLogger i "Building nemo actions into "$userHome/.local/share/nemo/actions/""
+
+    printf "%s\n" "${actionExtract[@]}" > "$userHome/.local/share/nemo/actions/extract_here.nemo_action"
+
+    printf "%s\n" "${actionMedaInfo[@]}" > "$userHome/.local/share/nemo/actions/video_info.nemo_action"
+
+    if [ ! -s "$userHome/.local/share/nemo/actions/extract_here.nemo_action" ] || [ ! -s "$userHome/.local/share/nemo/actions/video_info.nemo_action" ] ; then
+        sysLogger e "Nemo action failed to build"; return 1
+    else
+        sysLogger i "Nemo action built"
     fi
 }
 
