@@ -612,3 +612,38 @@ lockedBgFunction(){
 }
 
 ##################################################
+
+metaDateMod(){
+    #### Modifies the metadata dates of the files in the folder
+
+    local date="${1:-}"
+    local folder="${2:-}"
+
+    if [ -z "$date" ] || [ -z "$folder" ]; then
+        echo "Usage: metaDateMod <date (yyyy-mm-dd)> <folder> | . (pwd)"
+        return 1
+    fi
+
+    if [ "$folder" == "."  ]; then folder=$( pwd ) ; fi
+
+    date=""$date" 00:00:00" #### append the timestamp
+
+    echo -e "Set "$date" for all files in \n  $folder"
+
+
+    #### All filetypes
+    find "$folder" -type f -exec touch -d "$date" {} +
+
+    #### All specified filetypes
+    #### find "$folder" -type f -exec exiftool \
+    ####     "-CreateDate=$date" \
+    ####     "-ModifyDate=$date" \
+    ####     "-MediaCreateDate=$date" \
+    ####     "-MediaModifyDate=$date" \
+    ####     "-TrackCreateDate=$date" \
+    ####     "-TrackModifyDate=$date" \
+    ####     "-FileModifyDate=$date" \
+    ####     {} +
+}
+
+##################################################
