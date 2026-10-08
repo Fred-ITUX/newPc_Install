@@ -52,8 +52,8 @@ shutdown_routine(){
 
         #### Turn off the monitors
         #### 01 -- On   |   05 -- Off   |   04 -- Standby / Sleep
-        ddcutil --display 1 setvcp d6 04
-        # ddcutil --display 2 setvcp d6 05
+        #### ddcutil --sn "3CM3131PVV"      setvcp d6 04
+        ddcutil --sn "H4ZN504596"      setvcp d6 04
 
         if [ -d "$kdenBkpDir" ]; then rm -rf "$kdenBkpDir"; fi; fi
 }
