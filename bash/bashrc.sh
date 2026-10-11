@@ -84,9 +84,4 @@ else
 	alias kdenBKP="$HOME/Nextcloud/Kden/scripts/kden_temp_bkp.sh"
 	alias kdenUpd="$HOME/Nextcloud/Kden/scripts/kden_bkp_version_update.sh"
 
-	#### editing utilities
-	alias sub="py $PYscripts/subtitle.py"
-	alias yt="$HOME/Nextcloud/Kden/scripts/yt-dlp_downloader.sh"
-	alias editing="$LXscripts/Startup_Routine/Sessions.sh editing && kden"
-
 fi
