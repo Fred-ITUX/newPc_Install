@@ -648,3 +648,22 @@ metaDateMod(){
 }
 
 ##################################################
+
+steam_idToName(){
+    local name d id
+    local SC="/media/federico/SSD1TB/steam/steamapps/compatdata"
+    local STEAMAPPS
+    STEAMAPPS=$(dirname "$SC")
+
+    printf '\tSTEAM-ID\tNAME\n\t-------------------------------\n'
+
+    for d in "$SC"/*/; do
+        id=$(basename "$d")
+        name=$(grep -m1 '"name"' "$STEAMAPPS/appmanifest_$id.acf" 2>/dev/null | cut -d'"' -f4)
+        printf '\t%s\t\t%s\n' "$id" "${name:-unknown (non-Steam shortcut or uninstalled)}"
+    done | sort -n -k1,1
+}
+
+##################################################
+
+
