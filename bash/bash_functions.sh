@@ -7,7 +7,7 @@ if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo "[CR
 if $brokenEnv; then
     echo "[CRITICAL ERROR] Enviroment degraded, functions disabled"
     return 1
-fi;
+fi
 
 userCheck
 
@@ -17,9 +17,10 @@ bashUpd(){
     if [ -z "$LXscripts" ]; then local LXscripts="$HOME/Nextcloud/Linux/scripts"; fi
 
     local modules=(
-        "bashrc"
-        "bash_functions"
         "bash_common"
+        "bash_functions"
+        "bash_profile"
+        "bashrc"
     )
 
     for module in "${modules[@]}"; do

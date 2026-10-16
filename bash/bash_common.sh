@@ -235,21 +235,25 @@ sysLogger(){
     local logType="${1:-}"
     local logBody="${2:-}"
     local caller="${FUNCNAME[1]:-MAIN}"
-    local DEBUG="${DEBUG:-false}" 
+    local DEBUG="${DEBUG:-false}"
+    local color=""
+    local reset=""
 
     logType=$( echo "$logType" | tr '[:lower:]' '[:upper:]' )
-    
+
     case "$logType" in
-        W) logType="WARNING" ;;
-        I) logType="INFO" ;;
-        E) logType="ERROR" ;;
-        D|DEBUG) if $DEBUG; then logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}"; else return 0 ; fi ;;
+        W) logType="WARNING"; color='\e[33m' ;;
+        I) logType="INFO";    color='\e[32m' ;;
+        E) logType="ERROR";   color='\e[31m' ;;
+        D|DEBUG) if $DEBUG; then logType="DEBUG"; color='\e[36m'; caller="${FUNCNAME[2]:-MAIN}"; else return 0 ; fi ;;
 
         *) echo "[ERROR] Type '$logType' is not a valid log type"; return 1 ;;
     esac
 
-    
-    echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody"
+    #### Color only when stdout is a terminal; files, pipes and $(...) stay plain
+    if [ -t 1 ]; then reset='\e[0m'; else color=""; fi
+
+    echo -e "[${color}${logType}${reset}] {$caller} $(get_logger_date) -> $logBody"
 }
 
 
