@@ -42,11 +42,58 @@ repoPushLog="$LXlogs/startup_repo_push.log"
 ################################################################################################
 ####                            Bluetooth devices
 
+#### Controller-independent Bluetooth helpers: they find the dongle a device is connected through,
+#### so they keep working whichever dongle bluetoothctl happens to treat as default.
+
+btDevicePath(){
+    #### Prints the BlueZ object path of MAC on the dongle it is connected through; returns 1 if not connected
+    local mac="${1^^}"
+    local h path
+
+    for h in /sys/class/bluetooth/hci[0-9]; do
+        
+        path="/org/bluez/${h##*/}/dev_${mac//:/_}"
+        
+        if [ "$(busctl get-property org.bluez "$path" org.bluez.Device1 Connected 2>/dev/null)" == "b true" ]; then
+            echo "$path"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+
+btPairedPath(){
+    #### Path of MAC on the dongle it is paired with, connected or not
+    local mac="${1^^}"
+    local h path
+    for h in /sys/class/bluetooth/hci[0-9]; do
+        path="/org/bluez/${h##*/}/dev_${mac//:/_}"
+        if [ "$(busctl get-property org.bluez "$path" org.bluez.Device1 Paired 2>/dev/null)" == "b true" ]; then
+            echo "$path"
+            return 0
+        fi
+    done
+    return 1
+}
+
+#### Check bluetooth dongles info
+#### `lsusb | grep -i bluetooth; hciconfig -a | grep -E '^hci|Version'` 
+#### and connection `hcitool con`
+
+#### TP-Link UB500 (Newer 5.1 bluetooth)
+bluetoothDongleMain="B0:19:21:16:90:1F"
+
+#### TP-Link UB500 (Older 4.0 bluetooth)
+bluetoothDongleSecond="00:1A:7D:DA:71:15"
+
+#### A2DP Audio Sink profile
+bluetoothAudioSink="0000110b-0000-1000-8000-00805f9b34fb"    
+
+
 #### Sony WH-CH720N
 bluetoothHeadset="00:A4:1C:04:E1:1F"
-
-#### Earbuds / in-ear other bluetooth devices -- TWS
-bletoothInEar=""
 
 #### Other bluetooth controllers
 bluetoothController=""
