@@ -68,15 +68,59 @@ btPairedPath(){
     #### Path of MAC on the dongle it is paired with, connected or not
     local mac="${1^^}"
     local h path
+    
     for h in /sys/class/bluetooth/hci[0-9]; do
+        
         path="/org/bluez/${h##*/}/dev_${mac//:/_}"
+        
         if [ "$(busctl get-property org.bluez "$path" org.bluez.Device1 Paired 2>/dev/null)" == "b true" ]; then
+            
             echo "$path"
+            
             return 0
         fi
+    
     done
+    
     return 1
 }
+
+
+bluetoothDongleInfo(){
+
+    echo -e "\nIdentity, USB link and controller counters, one block per dongle"
+
+    for h in /sys/class/bluetooth/hci[0-9]; do
+        
+        n=${h##*/}
+        
+        u=$(dirname "$(readlink -f "$h/device")")
+        
+        echo -e "\n=== $n"
+        
+        for f in idVendor idProduct manufacturer product speed version bMaxPower; do
+            printf '%-13s %s\n' "$f" "$(cat "$u/$f" 2>/dev/null)"
+        done
+        hciconfig -a "$n" | grep -E "BD Address|HCI Version|LMP Version|Manufacturer|ACL MTU|RX bytes|TX bytes|errors|Features"
+    done
+
+
+    echo -e "\nFirmware and driver messages since boot"
+    journalctl -k -b | grep -E "hci[0-9]: (RTL|CSR)|btusb|rtl_bt"
+
+    echo -e "\nRadio and USB errors since boot"
+    journalctl -k -b | grep -ciE "Unexpected (start|continuation) frame"
+    journalctl -k -b | grep -iE "usb [0-9.-]+: .*(reset|disconnect|error|over-current)|hci[0-9].*(timeout|failed|error)"
+
+
+    echo -e "\nLive link numbers, with a device connected through the dongle"
+    hcitool -i hci0 tpl B8:7B:C5:51:8B:08 1     # max transmit power (dBm)
+    hcitool -i hci0 rssi B8:7B:C5:51:8B:08
+    hcitool -i hci0 afh B8:7B:C5:51:8B:08       # channel map in use
+
+}
+
+
 
 #### Check bluetooth dongles info
 #### `lsusb | grep -i bluetooth; hciconfig -a | grep -E '^hci|Version'` 
@@ -85,10 +129,10 @@ btPairedPath(){
 #### TP-Link UB500 (Newer 5.1 bluetooth)
 bluetoothDongleMain="B0:19:21:16:90:1F"
 
-#### TP-Link UB500 (Older 4.0 bluetooth)
+#### Cambridge Silicon Radio (Older 4.0 bluetooth)
 bluetoothDongleSecond="00:1A:7D:DA:71:15"
 
-#### A2DP Audio Sink profile
+#### A2DP Audio Sink profile ( avoid `LE` link which has no audio )
 bluetoothAudioSink="0000110b-0000-1000-8000-00805f9b34fb"    
 
 
