@@ -120,12 +120,6 @@ bluetoothDongleInfo(){
 
 }
 
-
-
-#### Check bluetooth dongles info
-#### `lsusb | grep -i bluetooth; hciconfig -a | grep -E '^hci|Version'` 
-#### and connection `hcitool con`
-
 #### TP-Link UB500 (Newer 5.1 bluetooth)
 bluetoothDongleMain="B0:19:21:16:90:1F"
 
