@@ -336,7 +336,6 @@ BKP_home(){
 
 ##################################################
 
-
 extract(){
     local file="${1:-}"; local mmt=8; local dir; local failed=0
     local files=(); local cmd=(); local -A seen=(); local globState
@@ -410,7 +409,6 @@ extract(){
 
     return "$failed"
 }
-
 
 ##################################################
 
@@ -667,4 +665,34 @@ steam_idToName(){
 
 ##################################################
 
+jsPolicyRoot(){
+    #### Root-level task: writes to /etc, so it runs as root, not through asUser
+    local userHome="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+    
+    local policySrc="$userHome/Nextcloud/Stuff/BrowserStuff/js_policy.json"
+    local policyDirs=( "/etc/brave/policies/managed" "/etc/opt/chrome/policies/managed" )
+    local policyDir
+    local failed=0
 
+    if [ ! -s "$policySrc" ]; then echo "JS policy backup not found: $policySrc"; return 1; fi
+    if ! python3 -m json.tool "$policySrc" > /dev/null; then echo "JS policy backup is not valid JSON: $policySrc"; return 1; fi
+
+    #### 644: the Flatpak sandboxes read it as the normal user
+    for policyDir in "${policyDirs[@]}"; do
+        if install -D -m 644 "$policySrc" "$policyDir/js_policy.json"; then
+            echo "JS policy installed: $policyDir/js_policy.json"
+        else
+            echo "Cannot install the JS policy in $policyDir"; failed=1
+        fi
+    done
+
+    return "$failed"
+}
+
+
+jsPolicy(){
+    #### Wrapper for the function above that requires running via sudo
+    sudo bash -c "$(declare -f jsPolicyRoot); jsPolicyRoot"
+}
+
+##################################################
