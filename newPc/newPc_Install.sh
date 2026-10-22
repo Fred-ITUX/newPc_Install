@@ -291,10 +291,10 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		font-manager
 
 		#### Audio
-		pulseaudio
 		pavucontrol 
+		# pulseaudio
 		# pulseeffects
-		pulseaudio-module-bluetooth 
+		# pulseaudio-module-bluetooth 
 
 		#### Editing
 		ffmpeg
