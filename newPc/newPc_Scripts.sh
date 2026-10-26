@@ -471,30 +471,58 @@ nemoSetup(){
 flatpakOverrides(){
     #### RESET ALL --        flatpak override --user --reset
 
-    fOverGPU(){
-        asUser flatpak override --user --device=dri "$1"
-    }
-    
+    local z app y
+
     #### GPU acceleration
     sysLogger i "Flatpak override setup"
-    fOverGPU com.google.Chrome
-    fOverGPU com.brave.Browser
-    fOverGPU com.valvesoftware.Steam
-    fOverGPU com.discordapp.Discord 
-    fOverGPU org.gimp.GIMP
-    fOverGPU org.audacityteam.Audacity
-    fOverGPU com.obsproject.Studio
-    fOverGPU org.kde.kdenlive
+    local driApp=(
+        "com.google.Chrome"
+        "com.brave.Browser"
+        "com.valvesoftware.Steam"
+        "com.discordapp.Discord"
+        "org.gimp.GIMP"
+        "org.audacityteam.Audacity"
+        "com.obsproject.Studio"
+        "org.kde.kdenlive"    
+    )
+
+    for z in "${driApp[@]}"; do 
+        sysLogger i "Adding GPU acceleration to app "$z""
+        asUser flatpak override --user --device=dri "$z" || { sysLogger e "Failed to apply override to app "$z"" ; }
+    done
 
     #### Steam SSD whitelist (for external storing)
-    asUser flatpak override --user --filesystem=/media/federico/SSD1TB com.valvesoftware.Steam
-    asUser flatpak override --user --filesystem=/media/federico/SSD1TB com.usebottles.bottles
+    local ssdPath="/media/federico/SSD1TB"
+    local ssdWhitelist=(
+        "com.valvesoftware.Steam"
+        "org.kde.kdenlive"
+    )
 
-    #### Allow all flatpak to see and use fonts and themes
-    asUser flatpak override --user --filesystem="$userHome/.local/share/icons":ro  
-    asUser flatpak override --user --filesystem="$userHome/.local/share/themes":ro  
-    asUser flatpak override --user --filesystem="$userHome/.local/share/fonts":ro  
+    sysLogger i "SSD path for flatpak whitelist: "$ssdPath""
+
+    for app in "${ssdWhitelist[@]}"; do
+        sysLogger i "Adding "$app" to SSD whitelist"
+        asUser flatpak override --user --filesystem="$ssdPath" "$app"  || { sysLogger e "Failed to apply override to app "$app"" ; }
+    done
+    
+     
+    sysLogger i "Theme whitelist read only path for all flatpak: "$ssdPath""
+    
+    local localPath="$userHome/.local/share"
+    local roThemes=(
+        "icons"
+        "themes"
+        "fonts"
+    )
+
+    for y in "${roThemes[@]}"; do
+        sysLogger i "Read only override for "$y""
+        asUser flatpak override --user --filesystem=""$localPath"/"$y"":ro  || { sysLogger e "Failed to apply override for path "$y"" ; }
+    done 
+
 }
+
+
 
 
 
