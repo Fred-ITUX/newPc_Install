@@ -647,6 +647,43 @@ swapSetup(){
 ######################################################################################
 
 
+tmpfsSetup(){
+    #### /tmp in RAM: faster temp I/O, wiped at every boot. Size is a cap, not a reservation (RAM is used only for files actually stored)
+    local SIZE="8G"
+    local fstabLine="tmpfs /tmp tmpfs defaults,noatime,mode=1777,size=$SIZE 0 0"
+
+    sysLogger i "tmpfs on /tmp setup started"
+
+    #### In case of a 2nd run
+    if grep -qE '^[[:space:]]*tmpfs[[:space:]]+/tmp[[:space:]]' /etc/fstab; then
+        sysLogger i "/tmp entry already present in /etc/fstab"
+    else
+        sudo cp /etc/fstab /etc/"$(date "+%Y-%m-%d_%H-%M-%S")"_fstab.bak || { sysLogger e "fstab backup failed, aborting"; return 1; }
+
+        #### A missing trailing newline would glue the new line onto the last entry
+        if [ -n "$(tail -c1 /etc/fstab)" ]; then
+            echo | sudo tee -a /etc/fstab >/dev/null || { sysLogger e "fstab newline fix failed"; return 1; }
+        fi
+
+        echo "$fstabLine" | sudo tee -a /etc/fstab >/dev/null || { sysLogger e "fstab write failed"; return 1; }
+        sysLogger i "Added to /etc/fstab: $fstabLine"
+    fi
+
+    #### Double check: exact line present + fstab syntax valid (only the exit code counts, unrelated entries may print warnings)
+    grep -qxF "$fstabLine" /etc/fstab || { sysLogger e "fstab check failed: line not found: $fstabLine"; return 1; }
+
+    local verifyOut
+    verifyOut=$(findmnt --verify 2>&1) || { sysLogger e "fstab syntax check failed:\n$verifyOut"; return 1; }
+    sysLogger i "findmnt --verify output:\n$verifyOut"
+
+    sysLogger i "fstab verified: $(grep -F '/tmp' /etc/fstab)\n/tmp becomes a tmpfs after the next reboot"
+}
+
+
+
+######################################################################################
+
+
 #### All these device-config scripts are better explained here: `Linux/docu/Audio/2026_09_26/2026_09_26-audio_config_scripts.md`
 
 
@@ -863,6 +900,7 @@ mainLauncher(){
         deamonsPurge
         #### scriptLauncher #### currently all external scripts have their own function
         swapSetup
+        tmpfsSetup
         #### bluetoothProfilePurge
         bluetoothProfileAntiSwitch
         wireplumberAudioDeviceBlacklist
