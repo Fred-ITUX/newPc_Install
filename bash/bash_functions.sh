@@ -559,9 +559,9 @@ allRepoPush(){
 			if ! bash "$script"; then sysLogger e "$(basename "$script") failed"; rc=1; fi
 		done
 	shopt -u nullglob
-	return "$rc"
-
 	sysLogger i "Repo update done"
+
+	return "$rc"
 }
 
 ##################################################
