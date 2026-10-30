@@ -23,13 +23,16 @@ export VISUAL="$EDITOR"
 
 
 brokenEnv=false
-
+helpersPresence=false
 
 if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
 if [ -s "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
 
 #### Enable bash completion if available
 if [ -f /usr/share/bash-completion/bash_completion ]; then source /usr/share/bash-completion/bash_completion; fi
+
+#### Disable the aliases if the repo is not cloned 
+if [ -d "$HOME/Github/HelperScripts" ]; then helpersPresence=true; fi
 
 
 #### Prompt components --- ANSI color codes
@@ -71,17 +74,24 @@ else
 
 	alias pswd="py $PYscripts/passwd_gen.py"
 
-	alias percentage="py $PYscripts/perc_calc.py"
+	alias test-sh="$HOME/Nextcloud/Linux/scripts/TestSuite/test.sh"
+	alias test-py="py $HOME/Nextcloud/Linux/scripts/TestSuite/test.py"
 
-	alias math="py $PYscripts/Games/math_calc.py"
+    alias minecraftRecipe="py $HOME/Nextcloud/Games/Minecraft/Recipes/recipe_maker/recipe_maker.py"
 
-	alias test-py="py $HOME/Nextcloud/Linux/scripts/Other/test.py"
-	alias test-sh="$HOME/Nextcloud/Linux/scripts/Other/test.sh"
-
-	#### kden
-	alias kden="$HOME/Nextcloud/Kden/scripts/kden_custom_launch.sh"
+	# alias kden="$HOME/Nextcloud/Kden/scripts/kden_custom_launch.sh"
 	alias kdenProject="$HOME/Nextcloud/Kden/scripts/kden_project_template.sh"
-	alias kdenBKP="$HOME/Nextcloud/Kden/scripts/kden_temp_bkp.sh"
+	alias kdenBkp="$HOME/Nextcloud/Kden/scripts/kden_temp_bkp.sh"
 	alias kdenUpd="$HOME/Nextcloud/Kden/scripts/kden_bkp_version_update.sh"
+
+    if $helpersPresence; then
+        
+        alias calc="$HOME/Github/HelperScripts/Python/Py_calculator_assistant/calculator_assistant.sh"
+        alias txt="$HOME/Github/HelperScripts/Python/Py_text_formatter/text_formatter.sh"
+        alias conv="$HOME/Github/HelperScripts/Python/Py_converter_files/converter_files.sh"
+
+    else 
+        echo "[WARNING] HelperScripts not found; aliases disabled"
+    fi
 
 fi
