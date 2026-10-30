@@ -550,22 +550,6 @@ orion-uninstall(){
 
 ##################################################
 
-allRepoPush(){
-	shopt -s nullglob
-	local script rc=0
-
-		for script in "$LXscripts"/Github/*_update.sh; do
-			sysLogger i "Running -- $(basename "$script")"
-			if ! bash "$script"; then sysLogger e "$(basename "$script") failed"; rc=1; fi
-		done
-	shopt -u nullglob
-	sysLogger i "Repo update done"
-
-	return "$rc"
-}
-
-##################################################
-
 getFileInfo(){
     for file in "$@"; do
 
