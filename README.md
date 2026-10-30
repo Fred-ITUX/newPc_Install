@@ -1,6 +1,27 @@
-# Setup
+# 🖥️ newPc_Install
 
-Clone the repo
+![Bash](https://img.shields.io/badge/bash-5-4EAA25?logo=gnubash&logoColor=white)
+![Distro](https://img.shields.io/badge/distro-Linux%20Mint%2022.1-87CF3E?logo=linuxmint&logoColor=white)
+![Desktop](https://img.shields.io/badge/desktop-GNOME-4A86CF?logo=gnome&logoColor=white)
+
+**Date**: 2026_10_29
+
+Turns a fresh Linux Mint install into the full desktop in two runs: packages first, then scripts, bash modules, GNOME settings and theme.
+
+```text
+newPc_Install/
+├── 🚀 newPc/setup.sh            launch platform: the ONLY place where sudo is typed
+├── 📦 newPc/newPc_Install.sh    run 1: packages, one at a time, failures recorded
+├── ⚙️ newPc/newPc_Scripts.sh    run 2: user scripts, configs and services
+├── 🎨 newPc/theme_updater.sh    theme, sourced by setup.sh
+├── 🧩 newPc/dconf_manager.sh    GNOME keybindings and extensions, sourced by newPc_Scripts.sh
+├── 🗂️ newPc/configs.sh          config file bodies, written atomically
+├── 💾 newPc/dconf_dump/         dated dconf exports (keybindings, media keys, extensions)
+├── 💾 newPc/DE_configs/         dated desktop-environment config snapshots
+└── 🐚 bash/                     bash_common, bash_functions, bash_profile, bashrc
+```
+
+## 📥 Clone
 
 ```bash
 cloneRepo(){
@@ -63,19 +84,11 @@ cloneRepo(){
 }
 ```
 
-### Execute
-
 ```bash
 cloneRepo || { echo "[ERROR] function terminated with an error"; }
 ```
 
-
-<br>
-
-
-# One launch setup
-
-## Install 
+## 📦 Run 1: install
 
 ```bash 
 if [ -f "$HOME/Github/newPc_Install/newPc/setup.sh" ] && [ -f "$HOME/Github/newPc_Install/newPc/newPc_Install.sh" ] ; then 
@@ -85,9 +98,9 @@ else
 fi 
 ```
 
-## Setup 
+## ⚙️ Run 2: setup
 
-> After the initial setup terminated
+Launch it after run 1 has finished.
 
 ```bash
 if [ -f "$HOME/Github/newPc_Install/newPc/setup.sh" ] && [ -f "$HOME/Github/newPc_Install/newPc/newPc_Scripts.sh" ]  ; then
@@ -97,3 +110,8 @@ else
 fi 
 ```
 
+## 🔐 Privilege model
+
+- **One sudo.** `sudo ./setup.sh <script.sh>` is the only elevated call. `setup.sh` and the child script run as root, so there are no further password prompts.
+- **Root stays out of the user's home.** Root keeps its own `HOME` and environment; anything that touches the user's home or GNOME session goes through `asUser`.
+- **No manual runs.** `newPc_Install.sh`, `newPc_Scripts.sh`, `theme_updater.sh` and `dconf_manager.sh` expect the environment and helper functions that `setup.sh` exports.
