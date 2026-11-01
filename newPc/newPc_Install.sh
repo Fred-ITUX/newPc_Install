@@ -351,7 +351,8 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		com.brave.Browser
 		app/com.google.Chrome/x86_64/stable
 		org.torproject.torbrowser-launcher
-		
+		app/org.chromium.Chromium/x86_64/stable
+
 		#### Utilities
 		com.github.tchx84.Flatseal/x86_64/stable					#### flatseal - flatpak permissions
 		app/com.mattjakeman.ExtensionManager/x86_64/stable		  #### GNOME - Extension Manager

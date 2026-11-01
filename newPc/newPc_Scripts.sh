@@ -483,7 +483,8 @@ flatpakOverrides(){
         "org.gimp.GIMP"
         "org.audacityteam.Audacity"
         "com.obsproject.Studio"
-        "org.kde.kdenlive"    
+        "org.kde.kdenlive"
+        "org.chromium.Chromium"
     )
 
     for z in "${driApp[@]}"; do 
