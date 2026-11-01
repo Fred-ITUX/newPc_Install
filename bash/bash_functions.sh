@@ -28,8 +28,8 @@ bashUpd(){
         #### echo -e "\nwould copy "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" "
         #### echo -e "would source "$HOME"/."$module"\n"
 
-        cp "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" 
-        source "$HOME"/."$module"
+        cp "$LXscripts"/bash/""$module".sh" "$HOME"/."$module" || { echo "[ERROR] Failed to copy $module"; return 1 ; }
+        source "$HOME"/."$module" || { echo "[ERROR] Sourcing failed for $module" ; return 1; }
 
     done
     
@@ -59,17 +59,53 @@ shutdown_routine(){
         if [ -d "$kdenBkpDir" ]; then rm -rf "$kdenBkpDir"; fi; fi
 }
 
+shutdownBlockers(){
+    #### Prints every app holding a "block" inhibitor on shutdown/reboot; empty = free to go
+    #### --what= does not filter the list (tested), so the shutdown token is matched in the WHAT column
+    systemd-inhibit --list --no-legend --mode=block | awk '{for(i=1;i<=NF;i++) if ($i ~ /(^|:)shutdown(:|$)/) {gsub(/ +/, " "); print; next}}'
+}
+
+#### Replace system commands by design; the pc must go through a routine before shutting down
 
 shutdown(){
+    #### Used for automatically shutdown when no user is around
+    local blockers
+    blockers="$(shutdownBlockers)"
+
+    #### Refuse BEFORE the routine, so browsers / monitor / history stay untouched
+    if [ -n "$blockers" ]; then
+        sysLogger e "Shutdown refused, blocked by: $blockers"
+        raiseAlarm "Shutdown refused, blocked by: $blockers"
+        return 1
+    fi
+
     shutdown_routine
-    systemctl poweroff
+
+    if ! systemctl poweroff; then
+        raiseAlarm "Shutdown failed after the routine, the pc is still on"
+        return 1
+    fi
 }
 
 
 reboot(){
+    local blockers
     read -r -p 'To reboot press enter'
+    blockers="$(shutdownBlockers)"
+
+    #### Refuse BEFORE the routine, so browsers / monitor / history stay untouched
+    if [ -n "$blockers" ]; then
+        sysLogger e "Reboot refused, blocked by: $blockers"
+        raiseAlarm "Reboot refused, blocked by: $blockers"
+        return 1
+    fi
+
     shutdown_routine
-    systemctl reboot
+
+    if ! systemctl reboot; then
+        raiseAlarm "Reboot failed after the routine, the pc is still on"
+        return 1
+    fi
 }
 
 
@@ -81,141 +117,88 @@ end(){
 ##################################################
 
 sysUPD(){
-    export DEBIAN_FRONTEND=noninteractive #### safety prompt avoid
-
-    local UPD_path="${XDG_RUNTIME_DIR}/UPD_logs"
-
-    if [ ! -d "$UPD_path" ]; then mkdir -p "$UPD_path" ; fi
-
     local outputLog="${1:-}"
+    local updPath="${XDG_RUNTIME_DIR}/UPD_logs"
+    local completeLog="$updPath/UPD_completeLog.log"
+    local fullLog step stepLog
+    local reported=0
 
     if [ -z "$outputLog" ]; then sysLogger e "sysUPD requires an output log path"; return 1; fi
 
-    local fixPkg="$UPD_path/UPD_fixPkg.log"
-    local update="$UPD_path/UPD_update.log"
-    local upgrade="$UPD_path/UPD_upgrade.log"
-    local flatpakUpdt="$UPD_path/UPD_flatpakUpdt.log"
-    local cleanup="$UPD_path/UPD_cleanup.log"
-    local completeLog="$UPD_path/UPD_completeLog.log"
+    mkdir -p "$updPath" || { sysLogger e "Cannot create $updPath"; return 1; }
 
-    #### Retain full log
-    local strtp_full="$(get_pathStartupUpdaterFull)"
-
-    echo -n > "$fixPkg" ; echo -n > "$update" ; echo -n > "$upgrade" ; echo -n > "$flatpakUpdt" ; echo -n > "$cleanup" ; echo -n > "$completeLog"
-
-    UPD_fix(){
-        echo -e "\n• Fix broken pkg: \n"
-        sudo -n /usr/bin/dpkg --configure -a
-        sudo -n /usr/bin/apt-get --fix-broken install -y
-    } > "$fixPkg"
+    
+    fullLog="$(get_pathStartupUpdaterFull)" #### Retain full log
 
 
-    UPD_updater(){
-        echo -e "\n• Update: \n"
-        sudo -n /usr/bin/apt-get --fix-missing -q update
-    } > "$update"
+    #### Order of execution, and the title each block gets in the logs
+    local steps=( 
+            fixPkg 
+            update 
+            upgrade 
+            flatpak 
+            cleanup 
+    )
+
+    local -A title=( [fixPkg]="Fix broken pkg" [update]="Update" [upgrade]="Upgrade" [flatpak]="Flatpak update" [cleanup]="Autoremove" )
 
 
-    UPD_upgrade(){
-        echo -e "\n• Upgrade: \n"
-        sudo -n /usr/bin/apt-get dist-upgrade -y
-    } > "$upgrade"
+    #### A block is left out of the complete log when it shows nothing happened:
+    #### quietIf  -> the output MATCHES the "nothing done" text
+    #### reportIf -> reverse logic, the output does NOT match any warning / error
+    local -A quietIf=(
+        [fixPkg]="0 upgraded, 0 newly installed, 0 to remove"
+        [upgrade]="0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded"
+        [flatpak]="Nothing to do"
+        [cleanup]="0 upgraded, 0 newly installed, 0 to remove"
+    )
+    local -A reportIf=( [update]='^\s*(W|E|Err):|WARN|ERROR|REMOVED' )
 
 
-    UPD_flatpak(){
-        echo -e "\n• Flatpak update: \n" 
-        flatpak update -y
-    } > "$flatpakUpdt"
-
-
-    UPD_cleanup(){
-        echo -e "\n• Autoremove: \n"
-        sudo -n /usr/bin/apt-get autoremove -y
-        sudo -n /usr/bin/apt-get clean
-    } > "$cleanup"
-
-
-    #### If the content matches with the empty preset, that block does not get saved
-    UPD_check(){
-
-        if [ -n "$content_fixPkg" ] && [ -z "$content_update" ] && [ -n "$content_upgrade" ] && [ -n "$content_flatpakUpdt" ] && [ -n "$content_cleanup" ]; then
-            echo -e "\n\t> Nothing to report" >> "$completeLog"; return 0
-        fi
-
-        if [ -n "$content_fixPkg" ]; then echo -n > "$fixPkg"
-            else cat "$fixPkg" >> "$completeLog"
-        fi
-
-        #### Reverse logic -- the only useful output is in case of ERRORS / WARNINGS
-        if [ -z "$content_update" ]; then echo -n > "$update"
-            else cat "$update" >> "$completeLog"
-        fi
-
-
-        if [ -n "$content_upgrade" ]; then echo -n > "$upgrade"
-            else cat "$upgrade" >> "$completeLog"
-        fi
-
-
-        if [ -n "$content_flatpakUpdt" ]; then echo -n > "$flatpakUpdt"
-            else cat "$flatpakUpdt" >> "$completeLog"
-        fi
-
-
-        if [ -n "$content_cleanup" ]; then echo -n > "$cleanup"
-            else cat "$cleanup" >> "$completeLog"
-        fi
+    UPD_run(){
+        case "$1" in
+            fixPkg)  sudo -n /usr/bin/dpkg --configure -a; sudo -n /usr/bin/apt-get --fix-broken install -y ;;
+            update)  sudo -n /usr/bin/apt-get --fix-missing -q update ;;
+            upgrade) sudo -n /usr/bin/apt-get dist-upgrade -y ;;
+            flatpak) flatpak update -y ;;
+            cleanup) sudo -n /usr/bin/apt-get autoremove -y; sudo -n /usr/bin/apt-get clean ;;
+        esac
     }
 
+    getSysInfoStart > "$completeLog"
+    getSysInfoStart >> "$fullLog"
 
-    getSysInfoStart >> "$completeLog"
-    getSysInfoStart >> "$strtp_full"
+    for step in "${steps[@]}"; do
+        stepLog="$updPath/UPD_$step.log"
 
+        #### stderr too: apt writes its E: / W: lines there. Indented to allow fold per-day
+        { echo -e "\n• ${title[$step]}: \n"; UPD_run "$step"; } 2>&1 | sed 's/^/\t/' > "$stepLog"
 
-    UPD_fix
-    UPD_updater
-    UPD_upgrade
-    UPD_flatpak
-    UPD_cleanup
+        cat "$stepLog" >> "$fullLog"
 
+        if [ -n "${quietIf[$step]:-}" ]; then
+            if grep -qiE "${quietIf[$step]}" "$stepLog"; then continue; fi
+        else
+            if ! grep -qiE "${reportIf[$step]}" "$stepLog"; then continue; fi
+        fi
 
-    #### Indent text to allow fold per-day
-    sed 's/^/\t/' -i "$fixPkg"
-    sed 's/^/\t/' -i "$update"
-    sed 's/^/\t/' -i "$upgrade"
-    sed 's/^/\t/' -i "$flatpakUpdt"
-    sed 's/^/\t/' -i "$cleanup"
+        cat "$stepLog" >> "$completeLog"
+        reported=$((reported+1))
+    done
 
+    if [ "$reported" -eq 0 ]; then echo -e "\n\t> Nothing to report" >> "$completeLog"; fi
 
-    cat "$fixPkg"       >> "$strtp_full" 
-    cat "$update"       >> "$strtp_full" 
-    cat "$upgrade"      >> "$strtp_full" 
-    cat "$flatpakUpdt"  >> "$strtp_full" 
-    cat "$cleanup"      >> "$strtp_full" 
-    getSysInfoEnd       >> "$strtp_full"
-
-
-    local content_fixPkg=$( cat "$fixPkg" | grep -iE "0 upgraded, 0 newly installed, 0 to remove" )
-    local content_update=$( cat "$update" | grep -iE "WARN|ERR|ERROR|REMOVED" )
-    local content_upgrade=$( cat "$upgrade" | grep -iE "0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded" )
-    local content_flatpakUpdt=$( cat "$flatpakUpdt" | grep -iE "Nothing to do" )
-    local content_cleanup=$( cat "$cleanup" | grep -iE "0 upgraded, 0 newly installed, 0 to remove" )
-
-    UPD_check
-
+    getSysInfoEnd >> "$fullLog"
     getSysInfoEnd >> "$completeLog"
-
-
-    # echo "$completeLog" | py "$LXscripts/Startup_Routine/log_cleaner.py" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
 
     py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
 
     #### Collapses multiple newlines into 2 to keep spacing
-    fileNewLineStrip "$strtp_full"
+    fileNewLineStrip "$fullLog"
     fileNewLineStrip "$completeLog"
 
     cat "$completeLog" >> "$outputLog"
-} 
+}
 
 
 updater(){
@@ -311,24 +294,36 @@ BKP_folder(){
     if [ -z "$source" ] || [ -z "$target" ]; then echo "Usage: BKP_folder <folder-to-bkp> <save-path>"; return 1; fi
     
     if [ -d "$source" ]; then
-        zipFile="${XDG_RUNTIME_DIR}/"$(get_file_date)"_bkp_"$( basename "$source" )".zip"
+        zipFile="$target/"$(get_file_date)"_bkp_"$( basename "$source" )".zip"
 
-        7z a -mmt=8 "$zipFile" "$source"
+        zip2 "$zipFile" "$source" || { sysLogger e "Failed to create archive $zipFile" ; return 1; }
 
-        mv "$zipFile" "$target" || { sysLogger e "Failed to move the archive" ; return 1; }
         sysLogger i "Created "$target"/$(basename "$zipFile")"
-     
+
+    else
+        sysLogger e "Folder not found "$source""
     fi
 }
 
 
 BKP_home(){
-    if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
-    
-    elif [ -n "$1" ] && [ -d "$1" ]; then
-        local zipFile="$1/bkp_home_$(get_file_date).zip"
+    #### App settings, saved passwords and GNOME extensions: the only parts of ~ not restored by Nextcloud or newPc
+    #### Relative to $HOME so the archive mirrors the home layout: restore = unzip into ~
+    local paths=( ".config" ".local/share/keyrings" ".local/share/gnome-shell/extensions" )
 
-        7z a -mmt=8 "$zipFile"  ""$HOME"/.config" ""$HOME"/.gnupg" ""$HOME"/.linuxmint" ""$HOME"/.local" ""$HOME"/.pki" ""$HOME"/.ssh" ""$HOME"/.gtkrc-2.0" ""$HOME"/.gtkrc-xfce" ""$HOME"/.lesshst" ""$HOME"/.profile" ""$HOME"/.wget-hsts" ""$HOME"/.Xauthority" ""$HOME"/.xsession-errors"
+    #### Re-downloadable modpacks; path as stored in the archive, so only this exact folder is skipped
+    local excludes=( '-x!.config/CurseForge' )
+
+    if [ -z "$1" ]; then sysLogger e "Enter bkp destination path."
+
+    elif [ -n "$1" ] && [ -d "$1" ]; then
+        #### Absolute, since 7z runs from $HOME
+        local zipFile
+        zipFile="$(realpath "$1")/bkp_home_$(get_file_date).zip"
+
+        #### 7z directly: zip2 takes a single file and no options. Subshell, so the caller's folder doesn't change
+        #### -snl: store symlinks as links, a dangling one (e.g. old pulse runtime) no longer fails the run
+        ( cd "$HOME" && 7z a -mmt="$(nproc)" -snl "${excludes[@]}" "$zipFile" "${paths[@]}" ) || { sysLogger e "Failed to backup folders"; return 1; }
         sysLogger i "Created $zipFile"
         
     else sysLogger e "Not a valid path: $1"; fi
@@ -451,7 +446,7 @@ rotateBackups(){
 
 stopwatch(){
     local time="0"
-    [[ "$time" =~ ^[0-9]+$ ]] || { sysLogger e "Usage: alarm <minutes>"; return 1; }
+    local mins secs
     echo -e "⏰ Starting stopwatch: $(get_formatted_date)\n"
 
     while true; do
@@ -468,7 +463,11 @@ stopwatch(){
 
 killp(){
     local sig="${1:-15}"; local process="${2:-}"
-	local pids=($(pgrep -f "$process")) #### Reads each PID into an indexed array, splitting on whitespace/newlines
+
+	#### Reads each PID into an indexed array, splitting on whitespace/newlines
+    #### pgrep -f = matches whole command lines
+    #### pgrep -x = matches the program name only
+    local pids=($(pgrep -x "$process")) 
 
     if [ -n "$process" ]; then
         for pid in "${pids[@]}"; do
@@ -519,7 +518,7 @@ latexUPD(){
 minecraft(){
     local mcFolder="/media/federico/SSD1TB/minecraft"
     
-    if [ ! -f "$mcFolder/launcher/TLauncher.jar" ]; then sysLogger e "TLauncher.jar not found"; fi
+    if [ ! -f "$mcFolder/launcher/TLauncher.jar" ]; then sysLogger e "TLauncher.jar not found"; return 1; fi
 
     nemo --tabs "$mcFolder/curseforge" "$mcFolder/curseforge/curse_minecraft/Instances" "$mcFolder/versions" "$HOME/Nextcloud/Games/Minecraft" &
     gamemoderun java -jar "$mcFolder/launcher/TLauncher.jar" 
@@ -586,8 +585,11 @@ lockedBgFunction(){
 
     "$func" &
     local pid=$!
-    
-    if ps -p "$pid"; then
+
+    #### Give it a second: a function that dies right away is caught instead of logged as started
+    #### kill -0 = sends no signal, only checks the PID exists; builtin, so no fork and no output
+    sleep 1
+    if kill -0 "$pid" 2>/dev/null; then
         PID_sysLogger i "$func started with PID=$pid"
     
     else 
@@ -680,3 +682,5 @@ jsPolicy(){
 }
 
 ##################################################
+
+

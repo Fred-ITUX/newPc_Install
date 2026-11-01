@@ -7,7 +7,7 @@ case $- in
 esac
 
 
-#### History settings
+#### History is kept long and detailed as it gets wiped at each shutdown and reboot
 HISTCONTROL=ignoreboth
 HISTSIZE=10000
 HISTFILESIZE=10000
@@ -25,7 +25,6 @@ export VISUAL="$EDITOR"
 brokenEnv=false
 helpersPresence=false
 
-if [ -s "$HOME/.bash_common" ]; then source "$HOME/.bash_common"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_common"; brokenEnv=true; fi
 if [ -s "$HOME/.bash_functions" ]; then source "$HOME/.bash_functions"; else echo -e "[CRITICAL ERROR] Bash module not found: $HOME/.bash_functions"; brokenEnv=true; fi
 
 #### Enable bash completion if available

@@ -19,9 +19,9 @@ PYscripts="$HOME/Nextcloud/Python/scripts"
 
 LXlogs="$HOME/Nextcloud/Linux/log"
 
-pathStartupUpdaterClean="$HOME/Nextcloud/Linux/log/startup_updater.log"
+pathStartupUpdaterClean="$LXlogs/startup_updater.log"
 
-get_pathStartupUpdaterFull(){ echo "$HOME/Nextcloud/Linux/log/adv_everyday/upd_"$(get_file_date)".log"; } 
+get_pathStartupUpdaterFull(){ echo "$LXlogs/adv_everyday/upd_"$(get_file_date)".log"; } 
 
 pathManualUpd="$LXlogs/manual_updater.log" 
 
@@ -87,6 +87,7 @@ btPairedPath(){
 
 
 bluetoothDongleInfo(){
+    local h n u f
 
     echo -e "\nIdentity, USB link and controller counters, one block per dongle"
 
@@ -210,7 +211,7 @@ createVenv(){
     local venvPath="$HOME/.venv"
     local requirements="$HOME/Nextcloud/Python/requirements.txt"
 
-    if [ -d "$venvPath" ]; then sysLogger e "venv already present, not creating"; return 0; fi
+    if [ -d "$venvPath" ]; then sysLogger i "venv already present, not creating"; return 0; fi
 
     sysLogger i "Creating venv $venvPath \n"
 
@@ -221,9 +222,9 @@ createVenv(){
     if [ -s "$requirements" ]; then
         pip install -r "$requirements" || { sysLogger e "requirements.txt install failed"; deactivate 2>/dev/null || true; return 1; }
 
-    else sysLogger e "No requirements.txt found, skipping package install"; fi
+    else sysLogger w "No requirements.txt found, skipping package install"; fi
 
-    echo -e "\n\n $(pip list) \n\n\n"
+    echo -e "\n\n\n $(python --version) \n $(pip list) \n\n\n"
 
     deactivate 2>/dev/null || true
     return 0
@@ -298,8 +299,15 @@ raiseAlarm(){
         fi
     fi
 
-    host="${hostPc:-No host}"
-    os="${osName:-No os}"
+    host="${hostPc:-}"
+    os="${osName:-}"
+    
+    if [ -z "$host" ] || [ -z "$os" ]; then
+        userCheck || { echo "[ERROR]: userCheck failed to execute"; host='ND'; }
+        get_osname || { echo "[ERROR]: get_osname failed to execute"; os='ND' ; }
+
+        host="${pc:-ND}"; os="${osname:-ND}"
+    fi
 
 
     # title="Title: 🚨 Error from $host@$os"
@@ -310,8 +318,9 @@ raiseAlarm(){
 
 
     #### Forward to Ntfy app only if the config is present
+    #### The app expectes a literal `Title: ` to show the correct title in the notification
     if $ntfyForward; then
-        curl -s -m 10 -H "$title" -H "$prio" -d "$body" "https://ntfy.sh/$(< "$configFile")" > /dev/null 2>&1 &
+        curl -s -m 10 -H "Title: $title" -H "$prio" -d "$body" "https://ntfy.sh/$(< "$configFile")" > /dev/null 2>&1 &
     fi
 }
 
@@ -324,13 +333,24 @@ sysLogger(){
     local color=""
     local reset=""
 
-    logType=$( echo "$logType" | tr '[:lower:]' '[:upper:]' )
+    #### Called through a wrapper (PID_sysLogger, *debugLogger): skip it and report the real caller
+    if [[ ${FUNCNAME[1]} == PID_sysLogger || ${FUNCNAME[1]} == *debugLogger ]]; then caller="${FUNCNAME[2]:-MAIN}"; fi
+
+    #### Syslogger gets used a lot, avoid the double fork (cannot be POSIX as is anyways)
+    #### logType=$( echo "$logType" | tr '[:lower:]' '[:upper:]' )
+    logType="${logType^^}"
 
     case "$logType" in
         W) logType="WARNING"; color='\e[33m' ;;
         I) logType="INFO";    color='\e[32m' ;;
         E) logType="ERROR";   color='\e[31m' ;;
-        D|DEBUG) if $DEBUG; then logType="DEBUG"; color='\e[36m'; caller="${FUNCNAME[2]:-MAIN}"; else return 0 ; fi ;;
+        
+        D|DEBUG) if [ "$DEBUG" == true ]; then
+                     logType="DEBUG"; color='\e[36m'
+                 else
+                     return 0
+        fi ;;
+
 
         *) echo "[ERROR] Type '$logType' is not a valid log type"; return 1 ;;
     esac
@@ -343,21 +363,13 @@ sysLogger(){
 
 
 PID_sysLogger(){
-    local logType="${1:-}"
-    local logBody="${2:-}"
-    local caller="${FUNCNAME[1]:-MAIN}"
-    logType=$( echo -e "$logType" | tr '[:lower:]' '[:upper:]' )
-    declare -a options=('W' 'I' 'E' 'DEBUG')
-    if  [ -z "$logType" ] || [[ ! " ${options[*]} " =~ [[:space:]]${logType}[[:space:]] ]]; then echo -e "Type error $logType"; return 1; fi
+    #### sysLogger appended to the PID log; sysLogger reports the real caller and stays uncolored in a file
+    if [ -z "${pid_log_file:-}" ]; then
+        echo "[ERROR] PID_sysLogger: pid_log_file not set (userCheck not run?) -> ${2:-}" >&2
+        return 1
+    fi
 
-    case "$logType" in
-        W) logType="WARNING" ;;
-        I) logType="INFO" ;;
-        E) logType="ERROR" ;;
-        DEBUG) logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}" ;;
-    esac
-
-    echo -e "[$logType] {$caller} $(get_logger_date) -> $logBody" >> "$pid_log_file" 
+    sysLogger "$@" >> "$pid_log_file"
 }
 
 
@@ -385,11 +397,20 @@ kindLogger(){
 
 fileReader(){
     local file="${1:-}"
-    local value
 
-    #### POSIX bash built-in function to read file without forking to cat
+    #### Optional, seconds: an older file means its collector stopped, value gets a ⏳ prefix
+    local maxAge="${2:-}"       
+    local value now age
+
+    #### Bash built-in $(<file): reads the file without forking to cat (not POSIX)
     if [ -r "$file" ]; then value=$(<"$file")
     else value="?"; fi
+
+    if [ -n "$maxAge" ] && [ "$value" != "?" ]; then
+        printf -v now '%(%s)T' -1                       #### current epoch, builtin, no fork
+        age=$(( now - $(stat -c %Y "$file") ))          #### file's last write, in seconds ago
+        if [ "$age" -gt "$maxAge" ]; then value="⏳$value"; fi
+    fi
 
     echo "$value"
 }
@@ -407,21 +428,26 @@ uptimeHMS() { #### Uptime since boot as hh:mm:ss (hours are NOT capped at 24, e.
 atomicWrite(){
     #### Takes the wanted filename, the path and the body and applies the `atomic write` process
     local fileName="${1:-}"
-    local destination="${2:-XDG_RUNTIME_DIR}" 
+    local destination="${2:-}"
     local body="${3:-}"
+    local tempFile destFile
 
-    if [ -z "$fileName" ]; then echo -e "Usage: atomicWrite <fileName :- aborts if none provided>\n\t<destination :- defaults to XDG_RUNTIME_DIR>\n\t<body :- defaults to NULL>"; return 1; fi
+    if [ -z "$fileName" ] || [ -z "$destination" ] || [ -z "$body" ]; then echo -e "Usage: atomicWrite <fileName> <destination> <body>"; return 1; fi
 
-    local tempFile="${XDG_RUNTIME_DIR}/tmp_"$fileName".XXXXXX"
+    tempFile=$(mktemp "$destination/tmp_$fileName.XXXXXX") || { sysLogger e "Failed to create temp file in $destination"; return 1; }
 
-    local destFile=""$destination"/"$fileName""
+    destFile=""$destination"/"$fileName""
 
-    mktemp "$tempFile" || { sysLogger e  "Failed to create temp file "$tempFile""; return 1; }
-
-    echo "$body" > "$tempFile" || { sysLogger e "Failed to write into "$tempFile"" ; return 1; }
+    echo "$body" > "$tempFile" || { sysLogger e "Failed to write into "$tempFile"" ; rm -f "$tempFile"; return 1; }
 
     if [ -r "$tempFile" ]; then
-        mv "$tempFile" "$destFile" || { sysLogger e "File created but failed to move "$tempFile" to "$destFile""; return 1; }
+        
+        if [ -s "$tempFile" ]; then
+            mv "$tempFile" "$destFile" || { sysLogger e "File created but failed to move "$tempFile" to "$destFile""; return 1; }
+        else
+            sysLogger e "Refusing to move empty "$tempFile" to "$destFile""; return 1
+        fi
+    
     else
         sysLogger e "Failed to move "$tempFile" to "$destFile""; return 1
     fi
@@ -482,38 +508,42 @@ lockManager(){
 
 cp2(){
     #### Replaces the old -- alias cp2="rsync -ah --progress"
-    userCheck || { echo "userCheck failed"; pc=''; hostMain=''; }
-    local cmd
-    local file="${1:-}" 
+    local file="${1:-}"
     local copy="${2:-}"
 
     if [ -z "$file" ] || [ -z "$copy" ]; then echo "Usage: cp2 <file> <copy>"; return 1; fi
 
     if [ ! -d "$file" ] && [ ! -f "$file" ] ; then echo ""$file" does not exist"; return 1; fi
 
-    if [ "$pc" == "$hostMain" ]; then cmd=(rsync -a --progress); else cmd=(rsync -ah --progress); fi
-
-    "${cmd[@]}" "$file" "$copy"
+    #### -hh = human-readable level 3: sizes in units of 1024 (K, M, G), like ls -h / df -h
+    rsync -ahh --progress "$file" "$copy"
 }
 
 
 zip2(){
     #### Replaces the old -- alias zip2="7z a -mmt=8"
-    userCheck || { echo "userCheck failed"; pc=''; hostMain=''; }
-    local coreCount
-    
-    local targetArchive="${1:-}" 
+    local targetArchive="${1:-}"
     local file="${2:-}"
 
     if [ -z "$targetArchive" ] || [ -z "$file" ]; then echo "Usage: zip2 <archive.zip> <file>"; return 1; fi
 
-    if [ "$pc" == "$hostMain" ]; then coreCount="12"; else coreCount="4"; fi
+
+    #### If the archive provided does not end in a format 7z can create, defaults to .zip
+    if [[ ! "${targetArchive,,}" =~ \.(zip|7z|tar|gz|xz|bz2|wim)$ ]]; then targetArchive="${targetArchive%"."}"; targetArchive="${targetArchive}.zip"; fi
+
+    #### One thread per available core on whichever machine this runs
+    7z a -mmt="$(nproc)" "$targetArchive" "$file"
+}
 
 
-    #### If the archive provided does not have a valid extension defaults to .zip
-    if [[ "$targetArchive" != *.* || "$targetArchive" =~ \.[^.]{0,2}$ ]]; then targetArchive="${targetArchive%"."}"; targetArchive="${targetArchive}.zip"; fi
-
-    7z a -mmt="$coreCount" "$targetArchive" "$file"
+commandCheck(){
+    local cmd="${1:-}"
+    
+    if [ -z "$cmd" ]; then echo "Usage: commandCheck <command to check>"; return 1 ; fi
+    
+    if ! command -v "$cmd" > /dev/null ; then 
+        sysLogger e ""$cmd" command not found"; return 1
+    fi
 }
 
 
@@ -528,7 +558,7 @@ stringStrip(){
         string="${string%"${string##*[![:space:]]}"}"  #### remove trailing
         echo "$string"
 
-    else echo -e "Usage VAR=\$( stringStrip \$STRING )"; fi
+    else echo -e "Usage VAR=\$( stringStrip \$STRING )" >&2; return 1; fi
 }
 
 
@@ -539,7 +569,7 @@ stringFullStrip(){ #### Removes multiple spaces in between too
         string=$( echo "$string" | awk '{$1=$1;print}' ) #### / awk '{$1=$1};1'
         echo "$string"
 
-    else echo -e "Usage VAR=\$( stringStrip \$STRING )"; fi
+    else echo -e "Usage VAR=\$( stringFullStrip \$STRING )" >&2; return 1; fi
 }
 
 
@@ -547,7 +577,7 @@ stringUpper(){
     local string="${1:-}"
 
     if [ -n "$string" ]; then echo "$string" | tr '[:lower:]' '[:upper:]' #### NON-POSIX -- echo ${string^^}
-    else echo -e "Usage VAR=\$( stringUpper \$STRING )"; fi
+    else echo -e "Usage VAR=\$( stringUpper \$STRING )" >&2; return 1; fi
 }
 
 
@@ -555,7 +585,7 @@ stringLower(){
     local string="${1:-}"
 
     if [ -n "$string" ]; then echo "$string" | tr '[:upper:]' '[:lower:]' #### NON-POSIX -- echo ${string,,}
-    else echo -e "Usage VAR=\$( stringLower \$STRING )"; fi
+    else echo -e "Usage VAR=\$( stringLower \$STRING )" >&2; return 1; fi
 }
 
 
@@ -567,7 +597,7 @@ stringNormalizeLow(){
         string=$( stringLower "$string" )
         echo "$string"
 
-    else echo -e "Usage VAR=\$( stringNormalizeLow \$STRING )"; fi
+    else echo -e "Usage VAR=\$( stringNormalizeLow \$STRING )" >&2; return 1; fi
 }
 
 
@@ -579,7 +609,7 @@ stringNormalizeUpp(){
         string=$( stringUpper "$string" )
         echo "$string"
 
-    else echo -e "Usage VAR=\$( stringNormalizeUpp \$STRING )"; fi
+    else echo -e "Usage VAR=\$( stringNormalizeUpp \$STRING )" >&2; return 1; fi
 }
 
 
@@ -591,7 +621,7 @@ stringNoBlanks(){
         string=$( echo "$string" | tr ' ' '_' )
         echo "$string"
 
-    else echo -e "Usage VAR=\$( stringNoBlanks \$STRING )"; fi
+    else echo -e "Usage VAR=\$( stringNoBlanks \$STRING )" >&2; return 1; fi
 }
 
 
@@ -604,7 +634,7 @@ stringNormalizeNoBlanks(){
         string=$( echo "$string" | tr ' ' '_' )
         echo "$string"
 
-    else echo -e "Usage VAR=\$( stringNormalizeNoBlanks \$STRING )"; fi
+    else echo -e "Usage VAR=\$( stringNormalizeNoBlanks \$STRING )" >&2; return 1; fi
 }
 
 
