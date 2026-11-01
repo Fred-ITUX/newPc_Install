@@ -685,6 +685,74 @@ tmpfsSetup(){
 ######################################################################################
 
 
+
+dataDisksSetup(){
+    #### Data disks mounted at boot by systemd, found by LABEL (no UUIDs): 
+    #### a replacement disk only needs the same label (e2label);
+    #### nofail = a missing disk never blocks the boot (wanted, not required, by local-fs.target)
+    
+    #### New disk: add its label below
+    local labels=( 
+        HDD1TB 
+        HDD2TB 
+        SSD1TB 
+        )
+    local mediaPath="/media/$realUser"
+    local label fstabLine backupDone=0
+
+    sysLogger i "Data disks fstab setup started"
+
+    for label in "${labels[@]}"; do
+        fstabLine="LABEL=$label $mediaPath/$label ext4 defaults,nofail,x-systemd.device-timeout=10s 0 2"
+
+        #### In case of a 2nd run: any entry already using this mountpoint, whatever its source (UUID=, LABEL=, /dev/...)
+        if grep -qE "^[[:space:]]*[^#[:space:]]+[[:space:]]+$mediaPath/$label[[:space:]]" /etc/fstab; then
+            sysLogger i "$mediaPath/$label entry already present in /etc/fstab"
+            continue
+        fi
+
+        #### One backup per run, before the first change
+        if [ "$backupDone" -eq 0 ]; then
+            sudo cp /etc/fstab /etc/"$(date "+%Y-%m-%d_%H-%M-%S")"_fstab.bak || { sysLogger e "fstab backup failed, aborting"; return 1; }
+            backupDone=1
+        fi
+
+        #### A missing trailing newline would glue the new line onto the last entry
+        if [ -n "$(tail -c1 /etc/fstab)" ]; then
+            echo | sudo tee -a /etc/fstab >/dev/null || { sysLogger e "fstab newline fix failed"; return 1; }
+        fi
+
+        echo "$fstabLine" | sudo tee -a /etc/fstab >/dev/null || { sysLogger e "fstab write failed"; return 1; }
+        sysLogger i "Added to /etc/fstab: $fstabLine"
+    done
+
+    #### Double check: one entry per mountpoint + fstab syntax valid (only the exit code counts, unrelated entries may print warnings)
+    for label in "${labels[@]}"; do
+        grep -qE "^[[:space:]]*[^#[:space:]]+[[:space:]]+$mediaPath/$label[[:space:]]" /etc/fstab || { sysLogger e "fstab check failed: no entry for $mediaPath/$label"; return 1; }
+    done
+
+    local verifyOut
+    verifyOut=$(findmnt --verify 2>&1) || { sysLogger e "fstab syntax check failed:\n$verifyOut"; return 1; }
+    sysLogger i "findmnt --verify output:\n$verifyOut"
+
+    sysLogger i "fstab verified:\n$(grep -F "$mediaPath/" /etc/fstab)\nThe data disks are mounted by systemd from the next reboot"
+}
+
+
+#### For the laptop branch:
+#### undo to avoid warnings at each boot
+#### sudo cp /etc/fstab /etc/"$(date "+%Y-%m-%d_%H-%M-%S")"_fstab.bak
+#### sudo sed -i -E '/^LABEL=(HDD1TB|HDD2TB|SSD1TB)[[:space:]]+\/media\/[^[:space:]]+\/(HDD1TB|HDD2TB|SSD1TB)[[:space:]]/d' /etc/fstab
+#### sudo systemctl daemon-reload
+#### sudo systemctl reset-failed
+#### findmnt --verify
+
+
+
+######################################################################################
+
+
+
 #### All these device-config scripts are better explained here: `Linux/docu/Audio/2026_09_26/2026_09_26-audio_config_scripts.md`
 
 
@@ -902,6 +970,7 @@ mainLauncher(){
         #### scriptLauncher #### currently all external scripts have their own function
         swapSetup
         tmpfsSetup
+        dataDisksSetup
         #### bluetoothProfilePurge
         bluetoothProfileAntiSwitch
         wireplumberAudioDeviceBlacklist
