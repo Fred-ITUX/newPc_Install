@@ -36,4 +36,4 @@ restoreSaved(){
 
 
 # dumpCurrent  || { echo "Function 'dumpCurrent' terminated with an [ERROR]" ; }
-restoreSaved || { echo "Function 'restoreSaved' terminated with an [ERROR]" ; }
+# restoreSaved || { echo "Function 'restoreSaved' terminated with an [ERROR]" ; }

@@ -416,7 +416,7 @@ fileReader(){
 }
 
 
-uptimeHMS() { #### Uptime since boot as hh:mm:ss (hours are NOT capped at 24, e.g. 27:03:10)
+uptimeHMS(){ #### Uptime since boot as hh:mm:ss (hours are NOT capped at 24, e.g. 27:03:10)
     local upSec
     read -r upSec _ < /proc/uptime      #### "97390.42 381122.10" -> first field = seconds since boot
     upSec=${upSec%.*}                   #### drop the decimals, bash only does integer math
@@ -523,16 +523,16 @@ cp2(){
 zip2(){
     #### Replaces the old -- alias zip2="7z a -mmt=8"
     local targetArchive="${1:-}"
-    local file="${2:-}"
 
-    if [ -z "$targetArchive" ] || [ -z "$file" ]; then echo "Usage: zip2 <archive.zip> <file>"; return 1; fi
+    if [ -z "$targetArchive" ] || [ "$#" -lt 2 ]; then echo "Usage: zip2 <archive.zip> <file|folder> [more files/folders...]"; return 1; fi
+    shift   #### Drop the archive name: "$@" now holds only the files/folders to add
 
 
     #### If the archive provided does not end in a format 7z can create, defaults to .zip
     if [[ ! "${targetArchive,,}" =~ \.(zip|7z|tar|gz|xz|bz2|wim)$ ]]; then targetArchive="${targetArchive%"."}"; targetArchive="${targetArchive}.zip"; fi
 
     #### One thread per available core on whichever machine this runs
-    7z a -mmt="$(nproc)" "$targetArchive" "$file"
+    7z a -mmt="$(nproc)" "$targetArchive" "$@"
 }
 
 
