@@ -261,8 +261,11 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		git 
 		gh									  #### github https session login
 		jq									  #### lightweight, flexible command-line JSON processor
-		docker.io 
-		docker-compose
+		# docker.io 
+		# docker-compose
+        podman
+        podman-compose
+        podman-docker
         nmap                                    #### Network scanner
         inotify-tools                           #### Event driven file monitor
 

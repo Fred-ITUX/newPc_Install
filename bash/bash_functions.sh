@@ -18,6 +18,7 @@ bashUpd(){
 
     local modules=(
         "bash_common"
+        "bash_completion"
         "bash_functions"
         "bash_profile"
         "bashrc"
@@ -523,6 +524,18 @@ minecraft(){
     nemo --tabs "$mcFolder/curseforge" "$mcFolder/curseforge/curse_minecraft/Instances" "$mcFolder/versions" "$HOME/Nextcloud/Games/Minecraft" &
     gamemoderun java -jar "$mcFolder/launcher/TLauncher.jar" 
 }
+
+
+minecraftRecipe(){
+    local script=""$HOME"/Nextcloud/Games/Minecraft/Recipes/recipe_maker/recipe_maker.py"
+    
+    if [ -f "$script" ]; then
+        py "$script" || { sysLogger e "Failed to launch "$script"" ; return 1 ; }
+    else        
+        sysLogger e "File not found "$script""
+    fi
+}
+
 
 ##################################################
 

@@ -60,25 +60,42 @@ export realUser realUid realGroup userHome userRuntime DEBUG
 #########################################################################
 ####    Exported functions
 #########################################################################
+get_logger_date(){ date "+%Y-%m-%d %H:%M:%S" ; } #### date "+%F %T"
 
 sysLogger(){
     local logType="${1:-}"
     local logBody="${2:-}"
     local caller="${FUNCNAME[1]:-MAIN}"
     local DEBUG="${DEBUG:-false}"
+    local color=""
+    local reset=""
 
-    logType=$( echo "$logType" | tr '[:lower:]' '[:upper:]' )
+    #### Called through a wrapper (PID_sysLogger, *debugLogger): skip it and report the real caller
+    if [[ ${FUNCNAME[1]} == PID_sysLogger || ${FUNCNAME[1]} == *debugLogger ]]; then caller="${FUNCNAME[2]:-MAIN}"; fi
+
+    #### Syslogger gets used a lot, avoid the double fork (cannot be POSIX as is anyways)
+    #### logType=$( echo "$logType" | tr '[:lower:]' '[:upper:]' )
+    logType="${logType^^}"
 
     case "$logType" in
-        W) logType="WARNING" ;;
-        I) logType="INFO" ;;
-        E) logType="ERROR" ;;
-        D|DEBUG) if $DEBUG; then logType="DEBUG"; caller="${FUNCNAME[2]:-MAIN}"; else return 0 ; fi ;;
+        W) logType="WARNING"; color='\e[33m' ;;
+        I) logType="INFO";    color='\e[32m' ;;
+        E) logType="ERROR";   color='\e[31m' ;;
+        
+        D|DEBUG) if [ "$DEBUG" == true ]; then
+                     logType="DEBUG"; color='\e[36m'
+                 else
+                     return 0
+        fi ;;
 
-        *) sysLogger e "Type '$logType' is not a valid log type"; return 1 ;;
+
+        *) echo "[ERROR] Type '$logType' is not a valid log type"; return 1 ;;
     esac
 
-    echo -e "[$logType] {$caller} $(date "+%Y-%m-%d %H:%M:%S") -> $logBody"
+    #### Color only when stdout is a terminal; files, pipes and $(...) stay plain
+    if [ -t 1 ]; then reset='\e[0m'; else color=""; fi
+
+    echo -e "[${color}${logType}${reset}] {$caller} $(get_logger_date) -> $logBody"
 }
 
 
@@ -114,8 +131,38 @@ atomicWrite(){
     asUser mv -f "$tempFile" "$destination/$fileName" || { asUser rm -f "$tempFile"; sysLogger e "Failed to move $tempFile to $destination/$fileName"; return 1; }
 }
 
-export -f sysLogger asUser atomicWrite
 
+isLinePresent(){
+    #### Checks whether a line is present in a file. Whitespace is ignored.
+    #### Returns 0 = found, 1 = not found, 2 = usage/file error
+    local position="${1:-}"
+    local content="${2:-}"
+    local file="${3:-}"
+    local needle
+
+    if [ -z "$position" ] || [ -z "$content" ] || [ -z "$file" ]; then
+        echo "Usage: isLinePresent <whole|start|end|any> <content> <file>"; return 2
+    fi
+    if [ ! -r "$file" ]; then
+        echo "isLinePresent: cannot read "$file""; return 2
+    fi
+
+    #### Remove all whitespace from the search text
+    needle="$(printf '%s' "$content" | tr -d '[:space:]')"
+
+    #### Remove all whitespace from the file's lines, then compare as plain text
+    case "$position" in
+        whole) sed 's/[[:space:]]//g' "$file" | grep -qxF -- "$needle" ;;
+        any)   sed 's/[[:space:]]//g' "$file" | grep -qF  -- "$needle" ;;
+        start) sed 's/[[:space:]]//g' "$file" | awk -v n="$needle" 'index($0, n) == 1 { f=1 } END { exit !f }' ;;
+        end)   sed 's/[[:space:]]//g' "$file" | awk -v n="$needle" 'length($0) >= length(n) && substr($0, length($0) - length(n) + 1) == n { f=1 } END { exit !f }' ;;
+        *) echo "Invalid position: "$position" (use whole/start/end/any)"; return 2 ;;
+    esac
+}
+
+
+
+export -f get_logger_date sysLogger asUser atomicWrite isLinePresent
 
 
 #########################################################################

@@ -660,3 +660,35 @@ fileNewLineStripComlete(){
 
 
 ################################################################################################
+
+
+isLinePresent(){
+    #### Checks whether a line is present in a file. Whitespace is ignored.
+    #### Returns 0 = found, 1 = not found, 2 = usage/file error
+    local position="${1:-}"
+    local content="${2:-}"
+    local file="${3:-}"
+    local needle
+
+    if [ -z "$position" ] || [ -z "$content" ] || [ -z "$file" ]; then
+        echo "Usage: isLinePresent <whole|start|end|any> <content> <file>"; return 2
+    fi
+    if [ ! -r "$file" ]; then
+        echo "isLinePresent: cannot read "$file""; return 2
+    fi
+
+    #### Remove all whitespace from the search text
+    needle="$(printf '%s' "$content" | tr -d '[:space:]')"
+
+    #### Remove all whitespace from the file's lines, then compare as plain text
+    case "$position" in
+        whole) sed 's/[[:space:]]//g' "$file" | grep -qxF -- "$needle" ;;
+        any)   sed 's/[[:space:]]//g' "$file" | grep -qF  -- "$needle" ;;
+        start) sed 's/[[:space:]]//g' "$file" | awk -v n="$needle" 'index($0, n) == 1 { f=1 } END { exit !f }' ;;
+        end)   sed 's/[[:space:]]//g' "$file" | awk -v n="$needle" 'length($0) >= length(n) && substr($0, length($0) - length(n) + 1) == n { f=1 } END { exit !f }' ;;
+        *) echo "Invalid position: "$position" (use whole/start/end/any)"; return 2 ;;
+    esac
+}
+
+
+################################################################################################

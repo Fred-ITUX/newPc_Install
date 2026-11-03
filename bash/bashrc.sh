@@ -61,10 +61,6 @@ alias c='clear'
 alias e='exit'
 alias addx='chmod +x'
 
-# alias cp2="rsync -ah --progress"     	#### Single-threaded copy with ETA
-# alias zip2="7z a -mmt=8"                #### Compress with limited cores
-
-
 
 if $brokenEnv; then
     echo -e "[CRITICAL ERROR] Enviroment degraded, path-dependent aliases disabled"
@@ -73,10 +69,10 @@ else
 
 	alias pswd="py $PYscripts/passwd_gen.py"
 
-	alias test-sh="$HOME/Nextcloud/Linux/scripts/TestSuite/test.sh"
-	alias test-py="py $HOME/Nextcloud/Linux/scripts/TestSuite/test.py"
+	alias test-sh="$LXscripts/TestSuite/test.sh"
+	alias test-py="py $LXscripts/TestSuite/test.py"
 
-    alias minecraftRecipe="py $HOME/Nextcloud/Games/Minecraft/Recipes/recipe_maker/recipe_maker.py"
+    alias gitman="$LXscripts/Github/git_manager.sh"
 
 	# alias kden="$HOME/Nextcloud/Kden/scripts/kden_custom_launch.sh"
 	alias kdenProject="$HOME/Nextcloud/Kden/scripts/kden_project_template.sh"

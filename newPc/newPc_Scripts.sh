@@ -123,7 +123,7 @@ startupBootstrap(){
 
 
 userGroupCheck(){
-    #### docker group removed
+    #### docker -- group removed; it is the same as passwordless sudo
     local groups=("video" "render"); local answer
 
     for group in "${groups[@]}"; do
@@ -949,6 +949,72 @@ jsPolicy(){
 ######################################################################################
 
 
+
+podmanConfigs(){
+
+    #### Turn off "Emulate Docker CLI using podman"
+    local silenceEmulateFile="/etc/containers/nodocker"
+    if [ ! -f "$silenceEmulateFile" ]; then
+        mkdir -p "/etc/containers" || { sysLogger e "Failed to create the folder /etc/containers" ; return 1;  }
+        touch "$silenceEmulateFile" || { sysLogger e "Failed to create the emulate silencer" ; return 1;  }
+    else
+        sysLogger i "Docker emulate silencer was already present: "$silenceEmulateFile""
+    fi
+
+
+    #### userns config -- keep the right user in the container
+    local localConfigFile=""$userHome"/.config/containers/containers.conf"
+
+    asUser mkdir -p ""$userHome"/.config/containers/" || { sysLogger e "Failed to create folder ""$userHome"/.config/containers/""; return 1 ;  }
+
+    #### In case of a 2nd run
+    if [ -s "$localConfigFile" ]; then
+
+        sysLogger i "File "$localConfigFile" already present and non-empty; checking for config presence"
+
+        #### Check for config ID
+        if isLinePresent whole 'userns = "keep-id"' "$localConfigFile"; then
+
+            sysLogger i "keep-id entry already present in "$localConfigFile""; return 0
+
+        else
+            sysLogger i "Other contents were found, but no keep-id; checking for other userns configs"
+
+            if isLinePresent start 'userns=' "$localConfigFile"; then
+                sysLogger e "Another userns config is already present, this requires a manual intervention"; return 1
+            fi
+
+            if isLinePresent whole '[containers]' "$localConfigFile"; then
+                #### If the type [containers] is already present, add the config under it
+                asUser sed -i '/^[[:space:]]*\[containers\][[:space:]]*$/a userns = "keep-id"' "$localConfigFile" || { sysLogger e "sed insert failed"; return 1; }
+
+            else
+                #### If the type is missing, add that too
+                printf '%s\n' '[containers]' 'userns = "keep-id"' | asUser tee -a "$localConfigFile" >/dev/null || { sysLogger e "append failed"; return 1; }
+            fi
+
+        fi
+
+    else
+        echo '[containers]' | asUser tee -a "$localConfigFile" >/dev/null || { sysLogger e "Failed to add type to config"; return 1; }
+        echo 'userns = "keep-id"' | asUser tee -a "$localConfigFile" >/dev/null || { sysLogger e "Failed to add content to config"; return 1; }
+    fi
+
+    #### Double check that the config is present
+    if isLinePresent whole 'userns = "keep-id"' "$localConfigFile"; then
+        sysLogger i "Config correctly applied"
+    else
+        sysLogger e "Config failed to apply"; return 1
+    fi
+}
+
+
+
+######################################################################################
+
+
+
+
 mainLauncher(){
 
     sysLogger i "Function mainLauncher started"
@@ -975,6 +1041,7 @@ mainLauncher(){
         bluetoothProfileAntiSwitch
         wireplumberAudioDeviceBlacklist
         jsPolicy
+        podmanConfigs
     )
 
     for func in "${functions[@]}"; do
