@@ -438,18 +438,14 @@ atomicWrite(){
 
     destFile=""$destination"/"$fileName""
 
-    echo "$body" > "$tempFile" || { sysLogger e "Failed to write into "$tempFile"" ; rm -f "$tempFile"; return 1; }
+    #### `echo` might be unsafe here as it would treat a body like '-n' or '-e' as an option and not print it
+    printf '%s\n' "$body" > "$tempFile" || { sysLogger e "Failed to write into "$tempFile"" ; rm -f "$tempFile"; return 1; }
 
     if [ -r "$tempFile" ]; then
         
-        if [ -s "$tempFile" ]; then
-            mv "$tempFile" "$destFile" || { sysLogger e "File created but failed to move "$tempFile" to "$destFile""; return 1; }
-        else
-            sysLogger e "Refusing to move empty "$tempFile" to "$destFile""; return 1
-        fi
-    
+        mv "$tempFile" "$destFile" || { sysLogger e "Failed to move "$tempFile" to "$destFile"; removing temp file"; rm -f "$tempFile"; return 1; }
     else
-        sysLogger e "Failed to move "$tempFile" to "$destFile""; return 1
+        sysLogger e "Unreadable file "$tempFile""; return 1
     fi
 }
 
@@ -483,6 +479,7 @@ sysInfoCache(){ #### Caches system info to avoid multiple executions of the same
         "get_file_date"
         "get_logger_date"
         "raiseAlarm"
+        "atomicWrite"
         )
 
     for line in "${lines[@]}"; do 
@@ -494,7 +491,7 @@ sysInfoCache(){ #### Caches system info to avoid multiple executions of the same
         body+=$( echo -e "\n\n$(typeset -fp $func)\n\n" )  
     done
 
-    atomicWrite "sysInfo.cache" "${XDG_RUNTIME_DIR}/" "$body" || { echo "ERROR - atomicWrite failed" ; return 1 ; }
+    atomicWrite "sysInfo.cache" "${XDG_RUNTIME_DIR}" "$body" || { echo "ERROR - atomicWrite failed" ; return 1 ; }
 }
 
 

@@ -132,6 +132,7 @@ atomicWrite(){
 }
 
 
+
 isLinePresent(){
     #### Checks whether a line is present in a file. Whitespace is ignored.
     #### Returns 0 = found, 1 = not found, 2 = usage/file error

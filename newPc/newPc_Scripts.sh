@@ -922,26 +922,40 @@ wireplumberAudioDeviceBlacklist(){
 
 
 #### Install the zero trust policies for chromium browsers
-jsPolicy(){
-    #### Root-level task: writes to /etc, so it runs as root, not through asUser
-    local policySrc="$userHome/Nextcloud/Stuff/BrowserStuff/js_policy.json"
-    local policyDirs=( "/etc/brave/policies/managed" "/etc/opt/chrome/policies/managed" )
-    local policyDir
-    local failed=0
 
-    if [ ! -s "$policySrc" ]; then echo E "JS policy backup not found: $policySrc"; return 1; fi
-    if ! python3 -m json.tool "$policySrc" > /dev/null; then echo E "JS policy backup is not valid JSON: $policySrc"; return 1; fi
+jsPolicyRoot(){
+    #### Root-level task: writes to /etc, so it runs as root, not through asUser
+    local userHome="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+        
+    local file="${1:-}"
+    local targetDir="${2:-}"
+
+    if [ -z "$file" ] || [ -z "$targetDir" ] ; then echo "Usage: jsPolicyRoot <file> <target dir>"; return 1 ;fi
+
+    local policySrc="$userHome/Nextcloud/Stuff/BrowserStuff/Policy/"$file""
+
+
+    if [ ! -s "$policySrc" ]; then echo "JSON not found: $policySrc"; return 1; fi
+    if ! python3 -m json.tool "$policySrc" > /dev/null; then echo "JS policy backup is not valid JSON: $policySrc"; return 1; fi
 
     #### 644: the Flatpak sandboxes read it as the normal user
-    for policyDir in "${policyDirs[@]}"; do
-        if install -D -m 644 "$policySrc" "$policyDir/js_policy.json"; then
-            echo I "JS policy installed: $policyDir/js_policy.json"
-        else
-            echo E "Cannot install the JS policy in $policyDir"; failed=1
-        fi
-    done
+    if install -D -m 644 "$policySrc" "$targetDir/$file"; then
+        echo "JS policy installed: $targetDir/$file"
+    else
+        echo "Cannot install the JS policy in $targetDir"; return 1
+    fi
+}
 
-    return "$failed"
+
+jsPolicy(){
+    sudo bash -c "$(declare -f jsPolicyRoot ); jsPolicyRoot 'jsPolicy.json' '/etc/brave/policies/managed'"
+    sudo bash -c "$(declare -f jsPolicyRoot  ); jsPolicyRoot 'jsPolicy.json' '/etc/opt/chrome/policies/managed'"
+}
+
+jsPolicyChromium(){
+    #### Chromium has no /etc/ access
+    local chromiumPath="/var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies/managed"
+    sudo bash -c "$(declare -f jsPolicyRoot ); jsPolicyRoot 'jsPolicy_Chormium.json' "$chromiumPath""
 }
 
 
@@ -1041,6 +1055,7 @@ mainLauncher(){
         bluetoothProfileAntiSwitch
         wireplumberAudioDeviceBlacklist
         jsPolicy
+        jsPolicyChromium
         podmanConfigs
     )
 
