@@ -79,6 +79,8 @@ else
 	alias kdenBkp="$HOME/Nextcloud/Kden/scripts/kden_temp_bkp.sh"
 	alias kdenUpd="$HOME/Nextcloud/Kden/scripts/kden_bkp_version_update.sh"
 
+    alias pokemon="$HOME/Nextcloud/Games/Pokemon/Emerald/launch_pokemod.sh"
+
     if $helpersPresence; then
         
         alias calc="$HOME/Github/HelperScripts/Python/Py_calculator_assistant/calculator_assistant.sh"

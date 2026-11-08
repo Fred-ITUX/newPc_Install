@@ -190,8 +190,13 @@ tearFix(){
 
     sysLogger i "AMD x11 screen tear fix"
 
+    #### sudo drops XDG_SESSION_TYPE: ask logind for the real user's graphical session type
+    local sessionType
+    sessionType=$(loginctl show-session "$(loginctl show-user "$realUser" -p Display --value)" -p Type --value 2>/dev/null)
 
-    if [ "$XDG_SESSION_TYPE" == "x11" ]; then
+
+    # if [ "$XDG_SESSION_TYPE" == "x11" ]; then
+    if [ "$sessionType" == "x11" ]; then
     
         sysLogger i "Session is x11"
 
@@ -451,6 +456,8 @@ nemoSetup(){
 
     sysLogger i "Building nemo actions into "$userHome/.local/share/nemo/actions/""
 
+    asUser mkdir -p "$userHome/.local/share/nemo/actions" || { sysLogger e "Failed to create folder $userHome/.local/share/nemo/actions"; return 1; }
+
     printf "%s\n" "${actionExtract[@]}" > "$userHome/.local/share/nemo/actions/extract_here.nemo_action"
 
     printf "%s\n" "${actionMedaInfo[@]}" > "$userHome/.local/share/nemo/actions/video_info.nemo_action"
@@ -493,7 +500,7 @@ flatpakOverrides(){
     done
 
     #### Steam SSD whitelist (for external storing)
-    local ssdPath="/media/federico/SSD1TB"
+    local ssdPath="/media/$realUser/SSD1TB"
     local ssdWhitelist=(
         "com.valvesoftware.Steam"
         "org.kde.kdenlive"
@@ -925,8 +932,8 @@ wireplumberAudioDeviceBlacklist(){
 
 jsPolicyRoot(){
     #### Root-level task: writes to /etc, so it runs as root, not through asUser
-    local userHome="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
-        
+    #### $userHome comes from setup.sh: $SUDO_USER is not usable here (it would be root)
+
     local file="${1:-}"
     local targetDir="${2:-}"
 
@@ -948,14 +955,15 @@ jsPolicyRoot(){
 
 
 jsPolicy(){
-    sudo bash -c "$(declare -f jsPolicyRoot ); jsPolicyRoot 'jsPolicy.json' '/etc/brave/policies/managed'"
-    sudo bash -c "$(declare -f jsPolicyRoot  ); jsPolicyRoot 'jsPolicy.json' '/etc/opt/chrome/policies/managed'"
+    #### Already root (launched by setup.sh): no sudo wrapper
+    jsPolicyRoot 'jsPolicy.json' '/etc/brave/policies/managed'      || return 1
+    jsPolicyRoot 'jsPolicy.json' '/etc/opt/chrome/policies/managed' || return 1
 }
 
 jsPolicyChromium(){
     #### Chromium has no /etc/ access
     local chromiumPath="/var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies/managed"
-    sudo bash -c "$(declare -f jsPolicyRoot ); jsPolicyRoot 'jsPolicy_Chormium.json' "$chromiumPath""
+    jsPolicyRoot 'jsPolicy_Chormium.json' "$chromiumPath"
 }
 
 

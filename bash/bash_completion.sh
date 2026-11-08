@@ -9,7 +9,8 @@ declare -gA _posWords
 
 _posComplete(){
     #### Called by bash on Tab: $1 = command name, COMP_CWORD = position of the word under the cursor
-    local cmd="$1" cur="${COMP_WORDS[COMP_CWORD]}"
+    #### ${1##*/} drops any path, so "./script.sh" and "/full/path/script.sh" use the "script.sh" lists
+    local cmd="${1##*/}" cur="${COMP_WORDS[COMP_CWORD]}"
     local words="${_posWords[$cmd,$COMP_CWORD]:-}"
 
     #### No list for this position = no suggestions
@@ -40,5 +41,10 @@ posComplete(){
 posComplete gitman \
     "codiumSync All_Scripts editingUT newPc_Install Games HelperScripts all" \
     "fetchPull commitPush"
+####
+
+#### Games/Pokemon/Emerald/launch_pokemod.sh (alias pokemon): one preset per file in Emerald/Presets/ (name without .rnqs)
+posComplete pokemon \
+    "GodMon IronMon Nuzlocke TheChosenOne TotalRandom_Madness --list"
 ####
 
