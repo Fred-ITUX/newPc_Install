@@ -692,6 +692,90 @@ tmpfsSetup(){
 ######################################################################################
 
 
+runtimeDirSetup(){
+    #### /run/user/<uid> (XDG_RUNTIME_DIR) is a separate tmpfs, sized by systemd-logind (default 10% of RAM), NOT by /etc/fstab
+    
+    #### Adaptive percentage based on available RAM
+    local SIZE="30%"
+    local dropInDir="/etc/systemd/logind.conf.d"
+    local dropInFile="$dropInDir/runtime-size.conf"
+    local sizeLine="RuntimeDirectorySize=$SIZE"
+
+    sysLogger i "Runtime dir size setup started"
+
+    #### In case of a 2nd run
+    if [ -f "$dropInFile" ] && grep -qxF "$sizeLine" "$dropInFile"; then
+        sysLogger i "$sizeLine already present in $dropInFile"
+    else
+        #### Drop-in instead of editing logind.conf: package updates may replace logind.conf, never the drop-ins
+        sudo mkdir -p "$dropInDir" || { sysLogger e "Failed to create $dropInDir"; return 1; }
+
+        printf '[Login]\n%s\n' "$sizeLine" | sudo tee "$dropInFile" >/dev/null || { sysLogger e "Write failed: $dropInFile"; return 1; }
+        sysLogger i "Written $dropInFile: $sizeLine"
+    fi
+
+    #### Double check: cat-config prints logind.conf + all drop-ins in load order, the LAST active line is the one applied
+    local verifyOut effectiveLine
+    verifyOut=$(systemd-analyze cat-config systemd/logind.conf 2>&1) || { sysLogger e "logind config check failed:\n$verifyOut"; return 1; }
+
+    effectiveLine=$(grep -E '^[[:space:]]*RuntimeDirectorySize=' <<< "$verifyOut" | tail -n1)
+
+    if [ "$effectiveLine" != "$sizeLine" ]; then
+        sysLogger e "logind config check failed: effective setting is '${effectiveLine:-none}', expected '$sizeLine' (another drop-in overrides it?)"
+        return 1
+    fi
+
+    sysLogger i "logind verified: $sizeLine\n$userRuntime gets the new size after the next login/reboot"
+}
+
+
+#### Check status
+# runtimeDirStatus(){
+#     local dropInFile="/etc/systemd/logind.conf.d/runtime-size.conf"
+
+#     echo "== Drop-in file =="
+#     if [ -f "$dropInFile" ]; then
+#         cat "$dropInFile"
+#     else
+#         echo "Not present: $dropInFile"
+#     fi
+
+#     echo -e "\n== Setting systemd will apply (last active line wins) =="
+#     systemd-analyze cat-config systemd/logind.conf | grep -E '^[[:space:]]*#?RuntimeDirectorySize'
+
+#     echo -e "\n== Live mount size (changes only after login/reboot) =="
+#     #### Runs as root: $userRuntime (from setup.sh) is the real user's /run/user/<uid>, $(id -u) would be 0
+#     df -h "$userRuntime"
+# }
+
+
+#### Undo modification
+# runtimeDirUndo(){
+#     local dropInDir="/etc/systemd/logind.conf.d"
+#     local dropInFile="$dropInDir/runtime-size.conf"
+
+#     if [ -f "$dropInFile" ]; then
+#         sudo rm "$dropInFile" || { sysLogger e "Failed to remove $dropInFile"; return 1; }
+#         sysLogger i "Removed $dropInFile"
+#     else
+#         sysLogger i "Nothing to undo: $dropInFile not present"
+#     fi
+
+#     #### rmdir only removes an empty folder: other drop-ins (if any) are left untouched
+#     if [ -d "$dropInDir" ] && [ -z "$(ls -A "$dropInDir")" ]; then
+#         sudo rmdir "$dropInDir" || { sysLogger e "Failed to remove empty $dropInDir"; return 1; }
+#         sysLogger i "Removed empty $dropInDir"
+#     fi
+
+#     sysLogger i "Back to the default (10% of RAM) after the next login/reboot"
+# }
+
+
+
+
+
+######################################################################################
+
 
 dataDisksSetup(){
     #### Data disks mounted at boot by systemd, found by LABEL (no UUIDs): 
@@ -1058,6 +1142,7 @@ mainLauncher(){
         #### scriptLauncher #### currently all external scripts have their own function
         swapSetup
         tmpfsSetup
+        runtimeDirSetup
         dataDisksSetup
         #### bluetoothProfilePurge
         bluetoothProfileAntiSwitch
