@@ -571,7 +571,7 @@ deamonsPurge(){
 swapSetup(){
     sysLogger i "Swap allocation and setup started"
 
-    local SWAP=4 #### GB +2GB default 
+    local SWAP=6 #### GB +2GB default 
     
     #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
     local SWAPPINESS=10
@@ -582,13 +582,13 @@ swapSetup(){
     local swapFavor ; local cacheFavor
 
 
-    if [ $SWAPPINESS -le 30 ] && [ $SWAPPINESS -ge 0 ] ; then
+    if (( SWAPPINESS <= 30 && SWAPPINESS >= 0 )) ; then
         swapFavor="RAM"
 
-    elif [ $SWAPPINESS -gt 30 ] && [ $SWAPPINESS -le 100 ] ; then
+    elif (( SWAPPINESS > 30 && SWAPPINESS <= 100 )) ; then
         swapFavor="SWAP"
 
-    elif [ $SWAPPINESS -gt 100 ] || [ $SWAPPINESS -lt 0 ]; then
+    elif (( SWAPPINESS > 100 || SWAPPINESS < 0 )); then
         sysLogger e "Swappiness error: not in range 0 - 100. Current: $SWAPPINESS)"; return 1
 
     else
@@ -596,13 +596,13 @@ swapSetup(){
     fi
 
 
-    if [ $CACHE_PRESSURE -le 30 ] && [ $CACHE_PRESSURE -ge 0 ] ; then
+    if (( CACHE_PRESSURE <= 30 && CACHE_PRESSURE >= 0 )) ; then
         cacheFavor="More RAM for cache"
 
-    elif [ $CACHE_PRESSURE -gt 30 ] && [ $CACHE_PRESSURE -le 200 ] ; then
+    elif (( CACHE_PRESSURE > 30 && CACHE_PRESSURE <= 200 )) ; then
         cacheFavor="Less RAM for cache"
 
-    elif [ $CACHE_PRESSURE -gt 200 ] || [ $CACHE_PRESSURE -lt 0 ]; then
+    elif (( CACHE_PRESSURE > 200 || CACHE_PRESSURE < 0 )); then
         sysLogger e "CACHE_PRESSURE error: not in range 0 - 200. Current: $CACHE_PRESSURE)"; return 1
 
     else
@@ -610,9 +610,9 @@ swapSetup(){
     fi
 
     sysLogger i "SWAP config: 
-    	> "$SWAP"GB swap memory will be created
+    	> ${SWAP}GB swap memory will be created
         > SWAPPINESS=$SWAPPINESS   CACHE_PRESSURE=$CACHE_PRESSURE
-	    > Swap favor:  "$swapFavor" - "$cacheFavor"
+	    > Swap favor:  $swapFavor - $cacheFavor
     "
 
     sysLogger i "Starting creating swapspace\n"
@@ -644,7 +644,7 @@ swapSetup(){
 
     sysLogger i "Finished creating swapspace"
 
-	local swapCheck=$(sudo swapon --show)
+	local swapCheck; swapCheck="$(sudo swapon --show)"
 	sysLogger i "Swap status check:\n$swapCheck \n"
 
     sysLogger i "Swap allocation and setup terminated"
@@ -657,14 +657,27 @@ swapSetup(){
 
 tmpfsSetup(){
     #### /tmp in RAM: faster temp I/O, wiped at every boot. Size is a cap, not a reservation (RAM is used only for files actually stored)
-    local SIZE="8G"
+    #### % of physical RAM (man 5 tmpfs): scales with each PC, same 30% as runtimeDirSetup
+    local SIZE="30%"
     local fstabLine="tmpfs /tmp tmpfs defaults,noatime,mode=1777,size=$SIZE 0 0"
+    local tmpEntryRegex='^[[:space:]]*tmpfs[[:space:]]+/tmp[[:space:]]'
 
     sysLogger i "tmpfs on /tmp setup started"
 
     #### In case of a 2nd run
-    if grep -qE '^[[:space:]]*tmpfs[[:space:]]+/tmp[[:space:]]' /etc/fstab; then
+    if grep -qxF "$fstabLine" /etc/fstab; then
         sysLogger i "/tmp entry already present in /etc/fstab"
+
+    #### Entry present but with other options (e.g. an older fixed size): replace that line only
+    elif grep -qE "$tmpEntryRegex" /etc/fstab; then
+        sudo cp /etc/fstab /etc/"$(date "+%Y-%m-%d_%H-%M-%S")"_fstab.bak || { sysLogger e "fstab backup failed, aborting"; return 1; }
+
+        sysLogger i "Replacing old /tmp entry: $(grep -E "$tmpEntryRegex" /etc/fstab)"
+
+        #### | as sed delimiter: the line contains / but never |
+        sudo sed -i -E "s|${tmpEntryRegex}.*|$fstabLine|" /etc/fstab || { sysLogger e "fstab /tmp entry update failed"; return 1; }
+        sysLogger i "Updated in /etc/fstab: $fstabLine"
+
     else
         sudo cp /etc/fstab /etc/"$(date "+%Y-%m-%d_%H-%M-%S")"_fstab.bak || { sysLogger e "fstab backup failed, aborting"; return 1; }
 
@@ -684,8 +697,42 @@ tmpfsSetup(){
     verifyOut=$(findmnt --verify 2>&1) || { sysLogger e "fstab syntax check failed:\n$verifyOut"; return 1; }
     sysLogger i "findmnt --verify output:\n$verifyOut"
 
-    sysLogger i "fstab verified: $(grep -F '/tmp' /etc/fstab)\n/tmp becomes a tmpfs after the next reboot"
+    sysLogger i "fstab verified: $(grep -F '/tmp' /etc/fstab)\n/tmp gets the new tmpfs settings after the next reboot"
 }
+
+
+
+
+# #### Check status
+# tmpfsStatus(){
+#     echo "== /tmp entry in /etc/fstab =="
+#     if ! grep -E '^[[:space:]]*tmpfs[[:space:]]+/tmp[[:space:]]' /etc/fstab; then
+#         echo "No tmpfs /tmp entry"
+#     fi
+
+#     echo -e "\n== fstab backups =="
+#     ls -1 /etc/*_fstab.bak 2>/dev/null
+
+#     echo -e "\n== Live /tmp (changes only after reboot) =="
+#     findmnt -no SOURCE,FSTYPE,OPTIONS /tmp
+#     df -h /tmp
+# }
+
+
+# #### Undo modification
+# tmpfsUndo(){
+#     #### Restores the newest backup made by tmpfsSetup: check tmpfsStatus first, it's the whole fstab
+#     local lastBak
+#     lastBak=$(ls -1t /etc/*_fstab.bak 2>/dev/null | head -n1)
+
+#     if [ -z "$lastBak" ]; then
+#         sysLogger e "No fstab backup found in /etc"
+#         return 1
+#     fi
+
+#     sudo cp "$lastBak" /etc/fstab || { sysLogger e "Restore failed from $lastBak"; return 1; }
+#     sysLogger i "Restored /etc/fstab from $lastBak\nPrevious /tmp settings come back after the next reboot"
+# }
 
 
 
