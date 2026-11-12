@@ -540,10 +540,35 @@ minecraftRecipe(){
 ##################################################
 
 pizza(){
-    echo "$(date +"%Y-%m-%d")" >> "$PYscripts/PizzaPlot/pizza_data.csv"
-    py "$PYscripts/PizzaPlot/pizza.py"
+
+    exec(){
+        py "$PYscripts/PizzaPlot/pizza.py"
+    }
+
+    ins(){
+        echo "$(date +"%Y-%m-%d")" >> "$PYscripts/PizzaPlot/pizza_data.csv"
+    }
+
+    show(){
+        flatpak run org.nomacs.ImageLounge "$PYscripts/PizzaPlot/PizzaPlot.png" >/dev/null 2>&1
+    }
+
     echo "🍕 Pizza 🍕"
-    flatpak run org.nomacs.ImageLounge "$PYscripts/PizzaPlot/PizzaPlot.png" > /dev/null &
+
+    local opt="${1:-}"
+    if [ -n "$opt" ]; then
+        case "$opt" in
+
+            --update) exec; show ;;
+
+            --data) echo -e "File: "$PYscripts/PizzaPlot/pizza_data.csv" \n$(cat "$PYscripts/PizzaPlot/pizza_data.csv")" ;;
+
+            --show) show ;;
+
+            *) ins; exec ; show ; 
+        esac
+    fi
+
 }
 
 ##################################################

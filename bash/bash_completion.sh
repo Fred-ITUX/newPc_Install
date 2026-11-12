@@ -48,3 +48,5 @@ posComplete pokemon \
     "GodMon IronMon Nuzlocke TheChosenOne TotalRandom_Madness --list"
 ####
 
+posComplete pizza \
+    "--show --update --data"
