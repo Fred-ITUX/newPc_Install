@@ -556,18 +556,16 @@ pizza(){
     echo "🍕 Pizza 🍕"
 
     local opt="${1:-}"
-    if [ -n "$opt" ]; then
-        case "$opt" in
+    case "$opt" in
 
-            --update) exec; show ;;
+        --update) exec; show ;;
 
-            --data) echo -e "File: "$PYscripts/PizzaPlot/pizza_data.csv" \n$(cat "$PYscripts/PizzaPlot/pizza_data.csv")" ;;
+        --data) echo -e "File: "$PYscripts/PizzaPlot/pizza_data.csv" \n$(cat "$PYscripts/PizzaPlot/pizza_data.csv")" ;;
 
-            --show) show ;;
+        --show) show ;;
 
-            *) ins; exec ; show ; 
-        esac
-    fi
+        *) ins; exec ; show ; 
+    esac
 
 }
 
