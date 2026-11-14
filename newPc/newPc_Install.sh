@@ -172,6 +172,10 @@ avail=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
 
 
 
+#### Cinnamon will be kept as a fallback from now on
+####    > Cinnamon* will be purged along with most gnome pre-installed apps
+
+
 echo -e "\n\n
 	+--------------------------+ 
 
@@ -182,7 +186,6 @@ echo -e "\n\n
     > An average of "$AVG_GB_NEEDED"GB gonna be used
     > The system passed the network check, online status confirmed
     > A big set of apt and flatpak apps will be installed
-    > Cinnamon* will be purged along with most gnome pre-installed apps
 	> The system will automatically reboot at the end \n"
 
 read -r -p "Press Enter to continue..."
@@ -426,9 +429,11 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 				+--------------------------------------------+\n\n\n"
 
 
-	sudo apt purge "cinnamon*" -y || { kindLogger "ERROR - apt purge cinnamon" ;  }
+    #### Cinnamon will be kept as a fallback
+	#### sudo apt purge "cinnamon*" -y || { kindLogger "ERROR - apt purge cinnamon" ;  }
 
 	appToPurge=(
+            "firefox"
 			"thunderbird*" 
 			"libreoffice*"
 			cheese 
