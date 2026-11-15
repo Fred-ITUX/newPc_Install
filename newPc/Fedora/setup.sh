@@ -30,8 +30,6 @@ runningScript="${1:-}"
 
 [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ] || { echo "[ERROR] Run via sudo from your normal user, not from a root shell" >&2; exit 1; }
 
-[[ "$SUDO_USER" =~ ^[a-z_][a-z0-9_-]*$ ]] || { echo "[ERROR] Unsafe username: $SUDO_USER" >&2; exit 1; }
-
 id -- "$SUDO_USER" >/dev/null 2>&1 || { echo "[ERROR] No such user: $SUDO_USER" >&2; exit 1; }
 
 [ -n "$runningScript" ] || { echo "[ERROR] No script to execute given, exiting" >&2; exit 1; }
