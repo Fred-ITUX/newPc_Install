@@ -139,10 +139,18 @@ userGroupCheck(){
         if id -nG "$realUser" | grep -qw "$group"; then
             sysLogger i ""$realUser" belongs to $group"
         else
-            sysLogger e ""$realUser" does NOT belong to $group"
-            sudo usermod -aG "$group" "$realUser"
+            sysLogger w ""$realUser" does NOT belong to $group, adding"
+            sudo usermod -aG "$group" "$realUser" || { sysLogger e "Failed to add "$realUser" to $group" ; return 1 ; }
+
+            if id -nG "$realUser" | grep -qw "$group"; then
+                sysLogger i ""$realUser" added to $group"
+            else
+                sysLogger e "Failed to add "$realUser" to $group"
+                return 1
+            fi
         fi
-    done   
+
+    done
 }
 
 
@@ -601,11 +609,16 @@ deamonsPurge(){
 
         sysLogger i "Disabling $deamon"
         sudo systemctl disable "$deamon" || sysLogger e "failed to disable "$deamon""
-
-        sysLogger i "Stopping $deamon"
-        sudo systemctl stop "$deamon"  || sysLogger e "failed to stop "$deamon""
     
     done
+
+    #### One call for all: stopped one by one, the avahi socket job got cancelled and the daemon crashed (seen on Fedora 45)
+    sysLogger i "Stopping ${deamonsToDisable[*]}"
+    sudo systemctl stop "${deamonsToDisable[@]}" || sysLogger e "failed to stop ${deamonsToDisable[*]}"
+
+    #### avahi cannot be purged (see newPc_Install.sh): masked = systemd refuses to start it, whoever asks
+    sysLogger i "Masking avahi-daemon.socket avahi-daemon.service"
+    sudo systemctl mask avahi-daemon.socket avahi-daemon.service || sysLogger e "failed to mask avahi"
 }
 
 
@@ -899,10 +912,19 @@ dataDisksSetup(){
         )
     local mediaPath="/media/$realUser"
     local label fstabLine backupDone=0
+    local presentLabels=()
 
     sysLogger i "Data disks fstab setup started"
 
     for label in "${labels[@]}"; do
+
+        #### A disk that is not plugged in gets no fstab entry (no "timed out waiting for device" at every boot)
+        if [ ! -e "/dev/disk/by-label/$label" ]; then
+            sysLogger w "Disk $label not found, skipped: plug it in and run again to add it"
+            continue
+        fi
+        presentLabels+=( "$label" )
+
         fstabLine="LABEL=$label $mediaPath/$label ext4 defaults,nofail,x-systemd.device-timeout=10s 0 2"
 
         #### The mountpoint folders don't exist on a fresh Fedora (on Mint the desktop had already created them),
@@ -930,8 +952,8 @@ dataDisksSetup(){
         sysLogger i "Added to /etc/fstab: $fstabLine"
     done
 
-    #### Double check: one entry per mountpoint + fstab syntax valid (only the exit code counts, unrelated entries may print warnings)
-    for label in "${labels[@]}"; do
+    #### Double check: one entry per mountpoint of the disks found + fstab syntax valid (only the exit code counts, unrelated entries may print warnings)
+    for label in "${presentLabels[@]}"; do
         grep -qE "^[[:space:]]*[^#[:space:]]+[[:space:]]+$mediaPath/$label[[:space:]]" /etc/fstab || { sysLogger e "fstab check failed: no entry for $mediaPath/$label"; return 1; }
     done
 

@@ -456,6 +456,12 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 			kmahjongg
 			kmines
 			kpat
+			"kmail*"					#### KDE mail / PIM suite, unused. Dry run on Fedora 45 (real machine): these six remove 50 packages,
+			kontact					 ####    none from Plasma; kleopatra and kdepim-addons go with them as dependents
+			korganizer
+			ktnef
+			pim-sieve-editor
+			akregator
 			cups						#### no printer (same choice as on Mint). Also removes plasma-print-manager, hplip, gutenprint,
 										####    ImageMagick and python3-pillow as unused dependencies (27 packages on Fedora 45)
 			localsearch				 #### GNOME's file indexer (the old "tracker"): installed and autostarted on KDE too, nothing requires it
@@ -465,7 +471,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 	#### It is disabled instead (newPc_Scripts.sh, deamonsPurge)
 	####
 	#### Other pre-installed apps that can be removed without touching Plasma (dry run on Fedora 45, add the ones you want):
-	####    kmail korganizer kaddressbook akregator kontact (or all of them at once: akonadi-server, 89 packages)
+	####    kaddressbook (or the whole PIM stack at once: akonadi-server, 89 packages)
 	####    elisa-player dragon k3b kamoso kolourpaint digikam krusader ktorrent neochat krdc krfb krdp kmouth skanpage qrca
 	####    plasma-welcome plasma-discover abrt-desktop kde-connect kwrite
 
