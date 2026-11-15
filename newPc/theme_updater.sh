@@ -3,7 +3,7 @@
 ###############################################################
 
 #### This script is NOT intended to be run manually
-#### It should be sourced and launched by setup.sh
+#### It is executed by themeSetup (newPc_Scripts.sh), which runs under setup.sh
 
 ###############################################################
 
@@ -13,16 +13,14 @@ if [ "$EUID" -ne 0 ] || [ -z "${realUser:-}" ] || ! declare -F asUser >/dev/null
 fi
 
 
-#### Fix required when running the script using sudo
+#### setTheme <key> <name>: icon | cursor | gtk  ->  org.gnome.desktop.interface <key>-theme
 setTheme() {
-    local type="$1"
-    local gSet="$2"
-    local name="$3"
+    local key="$1"
+    local name="$2"
 
-    case "$type" in
-        icon|cursor|theme) asUser gsettings set org.gnome.desktop.interface "${gSet}-theme" "$name" ;;
-
-        *) sysLogger e "Invalid theme type: $type"; return 1 ;;
+    case "$key" in
+        icon|cursor|gtk) asUser gsettings set org.gnome.desktop.interface "${key}-theme" "$name" ;;
+        *) sysLogger e "Invalid theme key: $key"; return 1 ;;
     esac
 }
 
@@ -38,66 +36,58 @@ asUser mkdir -p "$iconDir" "$themeDir" "$fontDir"
 gtkConfigFolder="$userHome/.config"
 
 
-# sudo apt install -y adwaita gnome-themes-extra gnome-icon-theme hicolor-icon-theme humanity-icon-theme
+#### Themes & fonts installed by newPc_Install.sh, linked into ~/.local/share for the flatpak overrides
+#### "<system folder> <link name under ~/.local/share>": add a theme here, nowhere else
+themeLinks=(
+	"/usr/share/icons/Papirus-Dark          icons/Papirus-Dark"
+	"/usr/share/icons/breeze_cursors        icons/breeze_cursors"
+	"/usr/share/icons/Adwaita               icons/Adwaita"
+	"/usr/share/themes/Adwaita-dark         themes/Adwaita-dark"
+	"/usr/share/fonts/truetype/dejavu       fonts/dejavu"
+	"/usr/share/fonts/opentype/comic-neue   fonts/comic-neue"
+)
 
-sysLogger i "Installing themes & icons"
-sudo apt-get install -y adwaita-icon-theme gnome-themes-extra \
-	papirus-icon-theme breeze-cursor-theme \
-	fonts-dejavu-core fonts-dejavu-extra fonts-comic-neue \
+
+sysLogger i "Checking themes & fonts installed by newPc_Install.sh"
+for entry in "${themeLinks[@]}"; do
+    read -r themePath _ <<< "$entry"
+    if [ ! -d "$themePath" ]; then sysLogger e "Missing $themePath: run newPc_Install.sh first, exiting"; exit 1; fi
+done
 
 
 sysLogger i "Updating the cache for each theme"
 
-# gtk-update-icon-cache /usr/share/icons/hicolor
 timeout 20 gtk-update-icon-cache "/usr/share/icons/Adwaita"
 timeout 20 gtk-update-icon-cache "/usr/share/icons/Papirus"
 timeout 20 gtk-update-icon-cache "/usr/share/icons/Papirus-Dark"
 
 
-
-sysLogger i "Creating symlinks into .local/share/ for flatpak ovverrides"
-
-
-
 symLink(){
-	sysLogger i "Creating symlking only if they do not already exist and if they are valid"
-	local papirusDark="$userHome/.local/share/icons/Papirus-Dark"
-	local breezeCursors="$userHome/.local/share/icons/breeze_cursors"
-	local adwaita="$userHome/.local/share/icons/Adwaita"
-	local adwaitaDark="$userHome/.local/share/themes/Adwaita-dark"
-	local dejavu="$userHome/.local/share/fonts/dejavu"
-	local comicNeue="$userHome/.local/share/fonts/comic-neue"
+	local entry target link
 
-	if [ ! -e "$papirusDark" ] && [ ! -L "$papirusDark" ]; then asUser ln -s /usr/share/icons/Papirus-Dark "$papirusDark"; fi
-	if [ ! -e "$breezeCursors" ] && [ ! -L "$breezeCursors" ]; then asUser ln -s /usr/share/icons/breeze_cursors "$breezeCursors"; fi
-	if [ ! -e "$adwaita" ] && [ ! -L "$adwaita" ]; then asUser ln -s /usr/share/icons/Adwaita "$adwaita"; fi
-	if [ ! -e "$adwaitaDark" ] && [ ! -L "$adwaitaDark" ]; then asUser ln -s /usr/share/themes/Adwaita-dark "$adwaitaDark"; fi
-	if [ ! -e "$dejavu" ] && [ ! -L "$dejavu" ]; then asUser ln -s /usr/share/fonts/truetype/dejavu "$dejavu"; fi
-	if [ ! -e "$comicNeue" ] && [ ! -L "$comicNeue" ]; then asUser ln -s /usr/share/fonts/truetype/comic-neue "$comicNeue"; fi
+	sysLogger i "Creating symlinks only if they do not already exist"
+
+	for entry in "${themeLinks[@]}"; do
+		read -r target link <<< "$entry"
+		link="$userHome/.local/share/$link"
+
+		if [ ! -e "$link" ] && [ ! -L "$link" ]; then
+			asUser ln -s "$target" "$link" || { sysLogger e "Symlink failed: $link -> $target"; return 1; }
+		fi
+	done
 }
 
 symLink || { sysLogger e "Symlink creation failed" ; exit 1; }
 
 #### Automate setup - themes
-sysLogger i "Enaging setTheme function"
+sysLogger i "Engaging setTheme function"
 
-####		type		gSet		name
-setTheme	"icon"	  	"icon"  	"Papirus-Dark" || { sysLogger e "setTheme failed in for Papirus-Dark" ; exit 1; }
-setTheme	"icon"	  	"cursor"	"breeze_cursors"  || { sysLogger e "setTheme failed in for breeze_cursors" ; exit 1; }
-setTheme	"theme"	 	"gtk"	   	"Adwaita-dark" || { sysLogger e "setTheme failed in for Adwaita-dark" ; exit 1; }
-
-
-# gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
-# gsettings set org.gnome.desktop.interface cursor-theme "breeze_cursors"
-# gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+####		key			name
+setTheme	"icon"		"Papirus-Dark"   || { sysLogger e "setTheme failed for Papirus-Dark" ; exit 1; }
+setTheme	"cursor"	"breeze_cursors" || { sysLogger e "setTheme failed for breeze_cursors" ; exit 1; }
+setTheme	"gtk"		"Adwaita-dark"   || { sysLogger e "setTheme failed for Adwaita-dark" ; exit 1; }
 
 sysLogger i "setTheme function executed"
-
-
-
-
-
-sysLogger i "Creating $gtkConfigFolder for both gtk 3 and 4"
 
 
 sysLogger i "Creating and setting terminal padding"
@@ -120,31 +110,35 @@ atomicWrite "settings.ini" "$gtkConfigFolder/gtk-4.0" "$(printf '[Settings]\ngtk
 
 
 sysLogger i "Set the background to a solid black across theme types"
-# gsettings set org.gnome.desktop.background picture-uri-dark "$userHome/Nextcloud/Linux/SysThemes/Themes/black_Bg.png"
 asUser gsettings set org.gnome.desktop.background picture-uri	  ''
 asUser gsettings set org.gnome.desktop.background picture-uri-dark ''
 asUser gsettings set org.gnome.desktop.background primary-color	'#000000'
 asUser gsettings set org.gnome.desktop.background color-shading-type 'solid'   
 
 
-#### Automate setup
+#### Fonts installed by newPc_Install.sh (fonts-dejavu-*)
 interface="DejaVu Sans Condensed"
 mono="DejaVu Sans Mono"
 editors="DejaVu Sans Mono"
 
-sysLogger i "Setup to be confirmed:
+sysLogger i "Fonts:
 interface = $interface
 mono = $mono
 editors = $editors"
 
 
-asUser fc-cache -fv > /dev/null
+asUser fc-cache -fv > /dev/null || { sysLogger e "fc-cache failed, exiting" ; exit 1; }
+
+#### gsettings accepts any font name, even a missing one: check that fontconfig actually knows each font
+for font in "$interface" "$mono" "$editors"; do
+    if ! asUser fc-list : family | grep -qiF "$font"; then sysLogger e "Font not found by fontconfig: $font, exiting"; exit 1; fi
+done
 
 #### Main font GNOME Shell uses
-asUser gsettings set org.gnome.desktop.interface font-name "$interface 11"
+asUser gsettings set org.gnome.desktop.interface font-name "$interface 11"          || { sysLogger e "Failed to set font-name" ; exit 1; }
 
 #### Gedit , LibreOffice (if they respect GTK rules)
-asUser gsettings set org.gnome.desktop.interface document-font-name "$mono 12"
+asUser gsettings set org.gnome.desktop.interface document-font-name "$mono 12"      || { sysLogger e "Failed to set document-font-name" ; exit 1; }
 
 #### Anything requiring a mono-spaced font (GNOME Terminal, code editors...)
-asUser gsettings set org.gnome.desktop.interface monospace-font-name "$editors 12"
+asUser gsettings set org.gnome.desktop.interface monospace-font-name "$editors 12"  || { sysLogger e "Failed to set monospace-font-name" ; exit 1; }

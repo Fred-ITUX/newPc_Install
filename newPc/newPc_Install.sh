@@ -22,12 +22,14 @@ pathFile="$userHome/newPc_"$start_time".log"
 
 
 safetyUpdateCheck(){
-	sudo dpkg --configure -a 
-	sudo apt --fix-broken install -y  
-	sudo apt update
-	sudo apt full-upgrade -y 
-	sudo apt autoremove -y 
+	local rc=0
+	sudo dpkg --configure -a          || rc=1
+	sudo apt --fix-broken install -y  || rc=1
+	sudo apt update                   || rc=1
+	sudo apt full-upgrade -y          || rc=1
+	sudo apt autoremove -y            || rc=1
 	sudo apt clean
+	return "$rc"
 }
 
 
@@ -206,7 +208,8 @@ kindLogger "Setup complete"
 
 kindLogger "Starting gnome install, expect prompts"
 
-sudo apt-get install gnome -y || { kindLogger "ERROR - Gnome installation failed, exiting" ; exit 1; } 
+#### Explicit dependencies install to mark them as manually installed to avoid mistakes during the purge phase
+sudo apt-get install gnome gnome-shell gdm3 -y || { kindLogger "ERROR - Gnome installation failed, exiting" ; exit 1; } 
 
 
 
@@ -290,6 +293,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		rar
 		p7zip-full 
 		p7zip-rar
+        pv
 		tree									#### ls tree
 		wine
 		bluez 
@@ -317,11 +321,20 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		cpufrequtils 
 		radeontop
 		default-jre
+
+		#### Theming (used by theme_updater.sh)
+		adwaita-icon-theme
+		gnome-themes-extra
+		papirus-icon-theme
+		breeze-cursor-theme
+		fonts-dejavu-core
+		fonts-dejavu-extra
+		fonts-comic-neue
 	)
 
-
-	kindLogger "Wine architecture safety setup for i386"
-	sudo dpkg --add-architecture i386 && sudo apt update || { kindLogger "ERROR - wine architecture" ; } 
+    #### Only needed for 32-bit Windows programs under Wine
+	#### kindLogger "Wine architecture safety setup for i386"
+	#### sudo dpkg --add-architecture i386 && sudo apt update || { kindLogger "ERROR - wine architecture" ; } 
 
 
 	kindLogger "Engaging installLoop: apt"
@@ -433,6 +446,8 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 	#### sudo apt purge "cinnamon*" -y || { kindLogger "ERROR - apt purge cinnamon" ;  }
 
 	appToPurge=(
+            cups
+            cups-daemon
             "firefox"
 			"thunderbird*" 
 			"libreoffice*"
@@ -501,7 +516,8 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 
 	purgeLoop apt appToPurge
 
-	sudo apt-get install nemo -y  || { kindLogger "ERROR - nemo install failed" ;} #### It gets removed from the cinnamon purge
+    #### Cinnamon does not get purged anymore
+	#### sudo apt-get install nemo -y  || { kindLogger "ERROR - nemo install failed" ;} #### It gets removed from the cinnamon purge
 
 	echo -e "\n\n\n
 				+------------------------------------------+ 

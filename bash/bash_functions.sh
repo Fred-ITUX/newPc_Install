@@ -721,7 +721,7 @@ jsPolicy(){
 jsPolicyChromium(){
     #### Chromium has no /etc/ access
     local chromiumPath="/var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies/managed"
-    sudo bash -c "$(declare -f jsPolicyRoot ); jsPolicyRoot 'jsPolicy_Chormium.json' "$chromiumPath""
+    sudo bash -c "$(declare -f jsPolicyRoot ); jsPolicyRoot 'jsPolicy_Chromium.json' "$chromiumPath""
 }
 
 

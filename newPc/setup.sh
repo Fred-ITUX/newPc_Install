@@ -59,6 +59,9 @@ export realUser realUid realGroup userHome userRuntime DEBUG
 
 #########################################################################
 ####    Exported functions
+####    Deliberate copies of bash_common.sh helpers: setup.sh runs on a fresh PC before
+####    Nextcloud syncs, so ~/.bash_common doesn't exist yet. atomicWrite keeps the same
+####    checks as bash_common's, but runs every step through asUser (setup.sh is root).
 #########################################################################
 get_logger_date(){ date "+%Y-%m-%d %H:%M:%S" ; } #### date "+%F %T"
 
@@ -104,31 +107,38 @@ asUser(){
     #### Use for: gsettings, dconf, flatpak --user, systemctl --user, gh, git, and ANY write under $userHome
     #### Only external commands: exported functions do not survive the user switch.
     local sessionEnv=( "XDG_RUNTIME_DIR=$userRuntime" "DBUS_SESSION_BUS_ADDRESS=unix:path=$userRuntime/bus" )
-    [ -n "${DISPLAY:-}" ] && sessionEnv+=( "DISPLAY=$DISPLAY" )
+    if [ -n "${DISPLAY:-}" ]; then sessionEnv+=( "DISPLAY=$DISPLAY" ); fi
 
     sudo -u "$realUser" -H env "${sessionEnv[@]}" "$@"
 }
 
 
 atomicWrite(){
-    #### Writes <body> into <destination>/<fileName> atomically, owned by the real user
+    #### Same checks as bash_common.sh atomicWrite, but every step runs as the real user (setup.sh is root)
     local fileName="${1:-}"
-    local destination="${2:-$userRuntime}"
+    local destination="${2:-}"
     local body="${3:-}"
-    local tempFile
+    local tempFile destFile
 
-    if [ -z "$fileName" ]; then echo -e "Usage: atomicWrite <fileName :- aborts if none provided>\n\t<destination :- defaults to $userRuntime>\n\t<body :- defaults to NULL>"; return 1; fi
+    if [ -z "$fileName" ] || [ -z "$destination" ] || [ -z "$body" ]; then echo -e "Usage: atomicWrite <fileName> <destination> <body>"; return 1; fi
 
     asUser mkdir -p "$destination" || { sysLogger e "Failed to create folder $destination"; return 1; }
 
     #### Temp file in the SAME folder as the target, so the final mv is an atomic rename (not a cross-filesystem copy)
     tempFile=$(asUser mktemp "$destination/.tmp_$fileName.XXXXXX") || { sysLogger e "Failed to create temp file in $destination"; return 1; }
 
+    destFile="$destination/$fileName"
+
     asUser chmod 0644 "$tempFile"
 
-    printf '%s\n' "$body" | asUser tee "$tempFile" >/dev/null || { asUser rm -f "$tempFile"; sysLogger e "Failed to write into $tempFile"; return 1; }
+    #### `echo` might be unsafe here as it would treat a body like '-n' or '-e' as an option and not print it
+    printf '%s\n' "$body" | asUser tee "$tempFile" >/dev/null || { sysLogger e "Failed to write into $tempFile"; asUser rm -f "$tempFile"; return 1; }
 
-    asUser mv -f "$tempFile" "$destination/$fileName" || { asUser rm -f "$tempFile"; sysLogger e "Failed to move $tempFile to $destination/$fileName"; return 1; }
+    if [ -r "$tempFile" ]; then
+        asUser mv -f "$tempFile" "$destFile" || { sysLogger e "Failed to move $tempFile to $destFile; removing temp file"; asUser rm -f "$tempFile"; return 1; }
+    else
+        sysLogger e "Unreadable file $tempFile"; asUser rm -f "$tempFile"; return 1
+    fi
 }
 
 

@@ -29,7 +29,7 @@ restoreSaved(){
         cp "$file" "$HOME/.config/mimeapps.list"
     
     else
-        echo "[ERROR] -> No file found "$file""
+        echo "[ERROR] -> No file found "$file""; return 1
     fi
 
 }

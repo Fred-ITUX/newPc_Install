@@ -155,7 +155,7 @@ firewallSetup(){
     sudo ufw default reject incoming || sysLogger e "UFW setuf fail for: ufw default reject incoming"
     sudo ufw default allow outgoing  || sysLogger e "UFW setuf fail for: ufw default allow outgoing"
 
-    #### Disable ipv6
+    #### ufw: no IPv6 rules, all incoming IPv6 dropped (IPv6 itself is disabled at boot by grubSetup)
     if grep -q '^IPV6=yes' "$UFW_CONF"; then
         sudo sed -i 's/^IPV6=yes/IPV6=no/' "$UFW_CONF"
     fi
@@ -233,7 +233,7 @@ grubSetup(){
     
     local grub_line_path="/etc/default/grub"
     local grub_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
-    local mod_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.autosuspend=-1 zswap.enabled=0"'
+    local mod_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.autosuspend=-1 zswap.enabled=0 ipv6.disable=1"'
 
     #### In case of a 2nd run   
     grep -q 'usbcore.autosuspend=-1' "$grub_line_path" && { sysLogger i "GRUB already configured"; return 0; }
@@ -404,7 +404,7 @@ themeSetup(){
     if [ -f "$themeScript" ]; then
         sysLogger i "Correctly read the script "$themeScript""
     else
-        sysLogger i "No script: "$themeScript""; return 1
+        sysLogger e "No script: "$themeScript""; return 1
     fi
 
     "$themeScript" || { sysLogger e "themeScript returned an error" ; return 1; }
@@ -437,7 +437,7 @@ nemoSetup(){
         "Icon-Name=package-x-generic"
         "Selection=NotNone"
         "Extensions=zip;7z;rar;tar;gz;xz;tgz;tbz2;txz;"
-        "Quote=double' "
+        "Quote=double"
     )
 
 
@@ -499,6 +499,19 @@ flatpakOverrides(){
         asUser flatpak override --user --device=dri "$z" || { sysLogger e "Failed to apply override to app "$z"" ; }
     done
 
+    #### No raw device access: GPU only (dri is granted above by the driApp loop)
+    local noDeviceApps=(
+        "org.gimp.GIMP"
+        "org.kde.kdenlive"
+        "org.audacityteam.Audacity"
+    )
+    local n
+
+    for n in "${noDeviceApps[@]}"; do
+        sysLogger i "Removing raw device access from "$n""
+        asUser flatpak override --user --nodevice=all "$n" || { sysLogger e "Failed to remove device access from app "$n"" ; }
+    done
+
     #### Steam SSD whitelist (for external storing)
     local ssdPath="/media/$realUser/SSD1TB"
     local ssdWhitelist=(
@@ -514,7 +527,6 @@ flatpakOverrides(){
     done
     
      
-    sysLogger i "Theme whitelist read only path for all flatpak: "$ssdPath""
     
     local localPath="$userHome/.local/share"
     local roThemes=(
@@ -523,10 +535,81 @@ flatpakOverrides(){
         "fonts"
     )
 
+    sysLogger i "Theme whitelist read only path for all flatpak: "$localPath""
+
     for y in "${roThemes[@]}"; do
         sysLogger i "Read only override for "$y""
         asUser flatpak override --user --filesystem=""$localPath"/"$y"":ro  || { sysLogger e "Failed to apply override for path "$y"" ; }
-    done 
+    done
+
+
+    #### Chromium: throwaway browser for sites outside the policy, never stores credentials
+    ####    > downloads only in ~/Downloads, no webcam / security keys, no bluetooth / casting, no keyring
+    sysLogger i "Restricting Chromium permissions"
+    asUser flatpak override --user \
+        --nofilesystem=home --filesystem=xdg-download \
+        --nodevice=all \
+        --no-talk-name=org.freedesktop.secrets --no-talk-name=org.kde.kwalletd5 --no-talk-name=org.kde.kwalletd6 \
+        --system-no-talk-name=org.bluez --system-no-talk-name=org.freedesktop.Avahi \
+        org.chromium.Chromium || { sysLogger e "Failed to restrict Chromium permissions" ; }
+
+
+    #### OBS: recordings only in ~/Videos, no capture devices, no plugins that launch host commands
+    sysLogger i "Restricting OBS permissions"
+    asUser flatpak override --user \
+        --nofilesystem=host --filesystem=xdg-videos \
+        --nodevice=all \
+        --no-talk-name=org.freedesktop.Flatpak \
+        com.obsproject.Studio || { sysLogger e "Failed to restrict OBS permissions" ; }
+
+
+    #### nomacs: files are opened one at a time (document portal), write access only where images are handled
+    local nomacsApp="org.nomacs.ImageLounge"
+    local nomacsNoAccess=(
+        "home"
+        "/media"
+        "/mnt"
+        "/run/media"
+    )
+    local nomacsRW=(
+        "xdg-pictures"
+        "xdg-download"
+    )
+    local p
+
+    sysLogger i "Restricting nomacs permissions"
+    for p in "${nomacsNoAccess[@]}"; do
+        asUser flatpak override --user --nofilesystem="$p" "$nomacsApp" || { sysLogger e "Failed to remove nomacs access to $p" ; }
+    done
+    for p in "${nomacsRW[@]}"; do
+        asUser flatpak override --user --filesystem="$p" "$nomacsApp" || { sysLogger e "Failed to apply nomacs write override for $p" ; }
+    done
+
+
+    #### Okular: PDFs are opened one at a time (document portal) and never modified; printing removed (CUPS purged)
+    sysLogger i "Restricting Okular permissions"
+    asUser flatpak override --user \
+        --nofilesystem=host \
+        --nosocket=cups \
+        org.kde.okular || { sysLogger e "Failed to restrict Okular permissions" ; }
+
+
+    #### OnlyOffice: documents live in the unlocked Cryptomator vaults; ~/Downloads as exchange folder
+    sysLogger i "Restricting OnlyOffice permissions"
+    asUser flatpak override --user \
+        --nofilesystem=host \
+        --filesystem=xdg-download \
+        --filesystem="$userHome/.local/share/Cryptomator/mnt" \
+        org.onlyoffice.desktopeditors || { sysLogger e "Failed to restrict OnlyOffice permissions" ; }
+
+
+    #### VLC: only opens local files; read only (subtitles / next file in folder still work), no keyring, GPU only
+    sysLogger i "Restricting VLC permissions"
+    asUser flatpak override --user \
+        --filesystem=host:ro \
+        --nodevice=all --device=dri \
+        --no-talk-name=org.freedesktop.secrets --no-talk-name=org.kde.kwalletd5 --no-talk-name=org.kde.kwalletd \
+        org.videolan.VLC || { sysLogger e "Failed to restrict VLC permissions" ; }
 
 }
 
@@ -543,9 +626,7 @@ deamonsPurge(){
 
     local deamonsToDisable=(
         "NetworkManager-wait-online.service"    #### Wait for network
-        "avahi-daemon.service"                  #### Local network discovery
-        "cups.service"                          #### Disable CUPS (printer deamon)
-        "cups.socket"
+        #### "avahi-daemon.service"             #### Already purged by newPc_Install.sh (appToPurge)
         )
     
     for deamon in "${deamonsToDisable[@]}"; do
@@ -557,9 +638,6 @@ deamonsPurge(){
         sudo systemctl stop "$deamon"  || sysLogger e "failed to stop "$deamon""
     
     done
-
-    sysLogger i "Extra step, purging 'cups' (printer deamon)"
-    sudo apt-get purge cups -y
 }
 
 
@@ -617,6 +695,10 @@ swapSetup(){
 
     sysLogger i "Starting creating swapspace\n"
 
+	#### In case of a 2nd run: the swap file already exists and is in fstab, only the sysctl part is re-applied
+	if grep -qE '^[[:space:]]*/swapspace[[:space:]]' /etc/fstab; then
+		sysLogger i "/swapspace already present in /etc/fstab, skipping creation"
+	else
 	sudo swapon --show
 	free -h
 	df -h
@@ -624,21 +706,18 @@ swapSetup(){
 	ls -lh /swapspace
 	sudo chmod 600 /swapspace || { sysLogger e "chmod failed in swap allocation" ; return 1; }
 	ls -lh /swapspace
-	sudo mkswap /swapspace
-	sudo swapon /swapspace
+	sudo mkswap /swapspace  || { sysLogger e "mkswap failed in swap allocation" ; return 1; }
+	sudo swapon /swapspace  || { sysLogger e "swapon failed in swap allocation" ; return 1; }
 	sudo swapon --show
 	free -h
 
 	sudo cp /etc/fstab /etc/"$(date "+%Y-%m-%d_%H-%M-%S")"_fstab.bak
 	echo '/swapspace none swap sw 0 0' | sudo tee -a /etc/fstab
+	fi
 	cat /proc/sys/vm/swappiness
 
 	printf 'vm.swappiness=%s\nvm.vfs_cache_pressure=%s\n' "$SWAPPINESS" "$CACHE_PRESSURE" \
 	| sudo tee /etc/sysctl.d/99-local-vm.conf >/dev/null
-	sudo sysctl --system
-
-	printf 'vm.swappiness=%s\nvm.vfs_cache_pressure=%s\n' "$SWAPPINESS" "$CACHE_PRESSURE" \
-    | sudo tee /etc/sysctl.d/99-local-vm.conf >/dev/null
 	sudo sysctl --system
 
 
@@ -940,6 +1019,7 @@ bluetoothProfileAntiSwitch(){
     #### HSP/HFP stays registered on purpose: its control channel is what carries the headset battery level.
     #### Writes a persistent WirePlumber user config. Idempotent: a no-op once the config is in place.
 
+    local wpVersion confFile oldConf confText
     wpVersion="$(wireplumber --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
 
     case "$wpVersion" in
@@ -964,7 +1044,9 @@ bluetoothProfileAntiSwitch(){
     esac
 
     #### Already applied: nothing to do
-    [ ! -e "$oldConf" ] && [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && return 0
+    if [ ! -e "$oldConf" ] && [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ]; then
+        return 0
+    fi
 
     #### Previous config removed HSP/HFP entirely, and battery reporting with it
     asUser rm -f "$oldConf"
@@ -989,6 +1071,7 @@ wireplumberAudioDeviceBlacklist(){
     ####   Disabled: GPU HDMI audio, webcam microphone, onboard S/PDIF output, onboard analog input
     #### Writes a persistent WirePlumber user config. Idempotent: a no-op once the config is in place.
 
+    local wpVersion confFile confText
     wpVersion="$(wireplumber --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+' | head -1)"
 
     case "$wpVersion" in
@@ -1040,7 +1123,9 @@ wireplumberAudioDeviceBlacklist(){
     esac
 
     #### Already applied: nothing to do
-    [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ] && return 0
+    if [ "$(cat "$confFile" 2>/dev/null)" = "$confText" ]; then
+        return 0
+    fi
 
     # mkdir -p "$(dirname "$confFile")" || return 1
     # printf '%s\n' "$confText" > "$confFile" || return 1
@@ -1061,6 +1146,9 @@ wireplumberAudioDeviceBlacklist(){
 
 #### Install the zero trust policies for chromium browsers
 
+#### Same functions present in bash_functions.sh, but there they are run via `bash -c`
+#### so they would require exporting sysLogger; kept echo for that reason
+
 jsPolicyRoot(){
     #### Root-level task: writes to /etc, so it runs as root, not through asUser
     #### $userHome comes from setup.sh: $SUDO_USER is not usable here (it would be root)
@@ -1068,19 +1156,19 @@ jsPolicyRoot(){
     local file="${1:-}"
     local targetDir="${2:-}"
 
-    if [ -z "$file" ] || [ -z "$targetDir" ] ; then echo "Usage: jsPolicyRoot <file> <target dir>"; return 1 ;fi
+    if [ -z "$file" ] || [ -z "$targetDir" ] ; then sysLogger e "Usage: jsPolicyRoot <file> <target dir>"; return 1 ;fi
 
     local policySrc="$userHome/Nextcloud/Stuff/BrowserStuff/Policy/"$file""
 
 
-    if [ ! -s "$policySrc" ]; then echo "JSON not found: $policySrc"; return 1; fi
-    if ! python3 -m json.tool "$policySrc" > /dev/null; then echo "JS policy backup is not valid JSON: $policySrc"; return 1; fi
+    if [ ! -s "$policySrc" ]; then sysLogger e "JSON not found: $policySrc"; return 1; fi
+    if ! python3 -m json.tool "$policySrc" > /dev/null; then sysLogger e "JS policy backup is not valid JSON: $policySrc"; return 1; fi
 
     #### 644: the Flatpak sandboxes read it as the normal user
     if install -D -m 644 "$policySrc" "$targetDir/$file"; then
-        echo "JS policy installed: $targetDir/$file"
+        sysLogger i "JS policy installed: $targetDir/$file"
     else
-        echo "Cannot install the JS policy in $targetDir"; return 1
+        sysLogger e "Cannot install the JS policy in $targetDir"; return 1
     fi
 }
 
@@ -1094,7 +1182,7 @@ jsPolicy(){
 jsPolicyChromium(){
     #### Chromium has no /etc/ access
     local chromiumPath="/var/lib/flatpak/extension/org.chromium.Chromium.Policy.system-policies/x86_64/1/policies/managed"
-    jsPolicyRoot 'jsPolicy_Chormium.json' "$chromiumPath"
+    jsPolicyRoot 'jsPolicy_Chromium.json' "$chromiumPath" || return 1
 }
 
 
@@ -1209,13 +1297,14 @@ mainLauncher(){
 
     for failed in "${failedRuns[@]}"; do
         sysLogger e "Run failed - $failed"
-    done 
+    done
 
+    if [ "${#failedRuns[@]}" -gt 0 ]; then return 1; fi
 }
 
 sysLogger i "All functions compiled, launching main now"
 
-mainLauncher
+mainLauncher || { sysLogger e "mainLauncher reported an ERROR" ; }
 
 sysLogger i "Main execution complete" 
 

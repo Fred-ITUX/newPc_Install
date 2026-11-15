@@ -183,7 +183,7 @@ setup_dconf_restore(){
 launcher_setup_dconf_dump(){
     mkdir -p "$newPcPath"
     
-    setup_dconf_dump || { sysLogger e "Function 'setup_dconf_dump' terminated with an error";  }
+    setup_dconf_dump || { sysLogger e "Function 'setup_dconf_dump' terminated with an error"; return 1; }
     
     mv "$dump_tempLog" "$dump_dconfLog" || { sysLogger e "Could not move \n"$dump_tempLog" \nto \n"$dump_dconfLog"" ; return 1;  }
     
@@ -195,7 +195,7 @@ launcher_setup_dconf_dump(){
 launcher_setup_dconf_restore(){
     asUser mkdir -p "$newPcPath"
     
-    setup_dconf_restore || { sysLogger e "Function 'setup_dconf_restore' terminated with an error";  }
+    setup_dconf_restore || { sysLogger e "Function 'setup_dconf_restore' terminated with an error"; return 1; }
     
     asUser mv "$restore_tempLog" "$restore_dconfLog" || { sysLogger e "Could not move \n"$restore_tempLog" \nto \n"$restore_dconfLog"" ; return 1;  }
     

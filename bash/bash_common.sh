@@ -209,7 +209,7 @@ End time   :  $(get_formatted_date)
 
 createVenv(){
     local venvPath="$HOME/.venv"
-    local requirements="$HOME/Nextcloud/Python/requirements.txt"
+    local lock="$HOME/Nextcloud/Python/requirements.lock"
 
     if [ -d "$venvPath" ]; then sysLogger i "venv already present, not creating"; return 0; fi
 
@@ -219,15 +219,34 @@ createVenv(){
 
     source "$venvPath/bin/activate" || { sysLogger e "Cannot activate the venv just created"; return 1; }
 
-    if [ -s "$requirements" ]; then
-        pip install -r "$requirements" || { sysLogger e "requirements.txt install failed"; deactivate 2>/dev/null || true; return 1; }
-
-    else sysLogger w "No requirements.txt found, skipping package install"; fi
+    #### Hash-checked: pip refuses any package or dependency whose version or sha256 isn't in the lock
+    if [ -s "$lock" ]; then
+        pip install --require-hashes -r "$lock" || { sysLogger e "requirements.lock install failed"; deactivate 2>/dev/null || true; return 1; }
+    else
+        sysLogger e "No requirements.lock found ($lock): generate it with pyLockUpdate"; deactivate 2>/dev/null || true; return 1
+    fi
 
     echo -e "\n\n\n $(python --version) \n $(pip list) \n\n\n"
 
     deactivate 2>/dev/null || true
     return 0
+}
+
+
+pyLockUpdate(){
+    #### Manual upgrade: regenerates requirements.lock (newest versions + sha256 of every package and dependency)
+    #### and shows what changed. The next boot (pyVenvUpdate) installs it
+    local pyDir="$HOME/Nextcloud/Python"
+    local venvPath="$HOME/.venv"
+
+    if [ ! -x "$venvPath/bin/pip-compile" ]; then sysLogger e "pip-compile not found in $venvPath (pip-tools in requirements.txt?)"; return 1; fi
+
+    cp "$pyDir/requirements.lock" "$pyDir/requirements.lock.bak" 2>/dev/null
+
+    ( cd "$pyDir" && "$venvPath/bin/pip-compile" --quiet --upgrade --generate-hashes --allow-unsafe --strip-extras -o requirements.lock requirements.txt ) \
+        || { sysLogger e "Lock regeneration failed, previous lock in requirements.lock.bak"; return 1; }
+
+    sysLogger i "requirements.lock regenerated. Version changes:\n$(diff <(grep -E '^[^ #].*==' "$pyDir/requirements.lock.bak" 2>/dev/null) <(grep -E '^[^ #].*==' "$pyDir/requirements.lock"))"
 }
 
 
