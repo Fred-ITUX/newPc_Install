@@ -125,7 +125,7 @@ systemInfo(){
         fi
     }
 
-    #### KDE keeps these in ~/.config/kdeglobals (written by newPc/Fedora/theme_updater.sh)
+    #### KDE keeps these in ~/.config/kdeglobals (written by newPc/theme_updater.sh)
     get_gtk_theme() {
         kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage 2>/dev/null
     }

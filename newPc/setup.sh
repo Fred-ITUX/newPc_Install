@@ -11,7 +11,7 @@ set -uo pipefail
 ####      > root keeps its own HOME / environment: root tools never write into the user's home
 ####      > anything touching the user's home or KDE session goes through `asUser`
 ####
-####    Fedora KDE version of newPc/setup.sh: dnf instead of apt, child scripts taken from newPc/Fedora/
+####    Fedora KDE version of newPc/setup.sh: dnf instead of apt, child scripts taken from newPc/
 ####
 ####    Everything exported below is inherited by the child script and by any
 ####    script the child launches or sources directly (theme_updater.sh).
@@ -200,7 +200,7 @@ dnf install -y --refresh git || { sysLogger e "Git install failed. No point in k
 
 #### Clone repo script && script exec -- the repo belongs to the user: every git call goes through asUser
 repoPath="$userHome/Github/newPc_Install"
-childScript="$repoPath/newPc/Fedora/$runningScript"
+childScript="$repoPath/newPc/$runningScript"
 
 echo -e "\n\t > Script to execute: $runningScript"
 

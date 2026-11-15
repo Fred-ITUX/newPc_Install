@@ -21,7 +21,7 @@
 
 firewalldStatusCheck(){
     #### Fedora replacement for ufwStatusCheck: same behaviour (check, self-heal, alarm), firewalld instead of UFW.
-    #### Expected state = what newPc/Fedora/newPc_Scripts.sh firewallSetup configures:
+    #### Expected state = what newPc/newPc_Scripts.sh firewallSetup configures:
     ####    > firewalld running, default zone "block" (incoming rejected, outgoing allowed)
     ####    > no interface bound to another zone, no service and no port open in the zone
     PID_debugLogger "Starting firewalld check"

@@ -11,7 +11,7 @@
 #### Fedora KDE version of Shortcuts/night_light.sh: KDE Night Light instead of the GNOME gsettings keys
 #### nightLightSet <true|false> [temperature]
 #### KWin keeps Night Light in ~/.config/kwinrc [NightColor] (key names checked in KDE's schema file on Fedora 45);
-#### the mode "Constant" (on whenever active, no sunset schedule) is set once by newPc/Fedora/newPc_Scripts.sh
+#### the mode "Constant" (on whenever active, no sunset schedule) is set once by newPc/newPc_Scripts.sh
 #### TO CONFIRM on Fedora: that KWin applies the change on "reconfigure" (needs a running Plasma session, not testable in a container)
 nightLightSet(){
     local active="$1"

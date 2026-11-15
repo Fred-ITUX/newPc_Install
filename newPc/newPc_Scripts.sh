@@ -353,7 +353,7 @@ KDE_performance(){
 themeSetup(){
     sysLogger i "Starting theme setup"
 
-    local themeScript="$userHome/Nextcloud/Linux/scripts/newPc/Fedora/theme_updater.sh"
+    local themeScript="$userHome/Nextcloud/Linux/scripts/newPc/theme_updater.sh"
     
     if [ -f "$themeScript" ]; then
         sysLogger i "Correctly read the script "$themeScript""

@@ -42,7 +42,7 @@ When moving `firewalldStatusCheck` in: rename the launcher in the `unFuncs` list
 | `gpu_watchdog.sh` | `Hardware_Info/` | Fan folder found by the name `amdgpu` instead of the fixed `card1` path |
 | `extract.sh` | `Nemo_scripts/` | `.rar` goes through `unrar`, with a pulsing progress bar |
 | `git_manager.sh` | `Github/` | `editingUT` no longer copies the GNOME window-session file |
-| `asUser-test-sh.sh` | `TestSuite/` | `asUser` also forwards `WAYLAND_DISPLAY` (same as `newPc/Fedora/setup.sh`) |
+| `asUser-test-sh.sh` | `TestSuite/` | `asUser` also forwards `WAYLAND_DISPLAY` (same as `newPc/setup.sh`) |
 
 ## Must stay in sync
 
