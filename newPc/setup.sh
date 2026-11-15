@@ -9,10 +9,12 @@ set -uo pipefail
 ####    Privilege model:
 ####      > setup.sh and the child script run as ROOT: no further password prompts
 ####      > root keeps its own HOME / environment: root tools never write into the user's home
-####      > anything touching the user's home or GNOME session goes through `asUser`
+####      > anything touching the user's home or KDE session goes through `asUser`
+####
+####    Fedora KDE version of newPc/setup.sh: dnf instead of apt, child scripts taken from newPc/Fedora/
 ####
 ####    Everything exported below is inherited by the child script and by any
-####    script the child launches or sources directly (theme_updater.sh, dconf_manager.sh).
+####    script the child launches or sources directly (theme_updater.sh).
 ####    It is NOT inherited through `sudo -u` (sudo strips exported functions and resets
 ####    the environment): that is why `asUser` passes the session variables explicitly.
 ####
@@ -27,8 +29,6 @@ runningScript="${1:-}"
 [ "$EUID" -eq 0 ] || { echo "[ERROR] Run with sudo: sudo $0 <script.sh>" >&2; exit 1; }
 
 [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ] || { echo "[ERROR] Run via sudo from your normal user, not from a root shell" >&2; exit 1; }
-
-[[ "$SUDO_USER" =~ ^[a-z_][a-z0-9_-]*$ ]] || { echo "[ERROR] Unsafe username: $SUDO_USER" >&2; exit 1; }
 
 id -- "$SUDO_USER" >/dev/null 2>&1 || { echo "[ERROR] No such user: $SUDO_USER" >&2; exit 1; }
 
@@ -53,7 +53,7 @@ export realUser realUid realGroup userHome userRuntime DEBUG
 
 [ -d "$userHome" ] || { echo "[ERROR] No home dir for $realUser" >&2; exit 1; }
 
-[ -S "$userRuntime/bus" ] || echo "[WARNING] No session bus at $userRuntime/bus: gsettings / dconf / systemctl --user will fail. Run from a logged-in desktop session." >&2
+[ -S "$userRuntime/bus" ] || echo "[WARNING] No session bus at $userRuntime/bus: kwriteconfig6 / plasma-apply-* / systemctl --user will fail. Run from a logged-in desktop session." >&2
 
 
 
@@ -104,10 +104,12 @@ sysLogger(){
 
 asUser(){
     #### Runs an external command as the real user, inside their session.
-    #### Use for: gsettings, dconf, flatpak --user, systemctl --user, gh, git, and ANY write under $userHome
+    #### Use for: kwriteconfig6, plasma-apply-*, flatpak --user, systemctl --user, gh, git, and ANY write under $userHome
     #### Only external commands: exported functions do not survive the user switch.
     local sessionEnv=( "XDG_RUNTIME_DIR=$userRuntime" "DBUS_SESSION_BUS_ADDRESS=unix:path=$userRuntime/bus" )
     if [ -n "${DISPLAY:-}" ]; then sessionEnv+=( "DISPLAY=$DISPLAY" ); fi
+    #### Wayland session: GUI tools need the compositor socket name too (sudo strips it, like DISPLAY)
+    if [ -n "${WAYLAND_DISPLAY:-}" ]; then sessionEnv+=( "WAYLAND_DISPLAY=$WAYLAND_DISPLAY" ); fi
 
     sudo -u "$realUser" -H env "${sessionEnv[@]}" "$@"
 }
@@ -186,19 +188,19 @@ sysLogger i "\t > Real user: $realUser ($realUid:$realGroup)   Home: $userHome"
 
 sysLogger i "Checking internet connectivity, the script will abort if the systems results offline."
 
-timeout 10 getent hosts archive.ubuntu.com >/dev/null || { sysLogger e "No network. Aborting."; exit 1; }
+timeout 10 getent hosts mirrors.fedoraproject.org >/dev/null || { sysLogger e "No network. Aborting."; exit 1; }
 
 sysLogger i "\nSystem online, continuing\n"
 
 
 #### Install git if not already present
-apt update || { sysLogger e "Apt update failed, not continuing with stale package index"; exit 1; }
-apt install git -y || { sysLogger e "Git install failed. No point in keeping execution, exiting"; exit 1; }
+#### --refresh: same role as `apt update`, dnf otherwise trusts its cached package index
+dnf install -y --refresh git || { sysLogger e "Git install failed. No point in keeping execution, exiting"; exit 1; }
 
 
 #### Clone repo script && script exec -- the repo belongs to the user: every git call goes through asUser
 repoPath="$userHome/Github/newPc_Install"
-childScript="$repoPath/newPc/$runningScript"
+childScript="$repoPath/newPc/Fedora/$runningScript"
 
 echo -e "\n\t > Script to execute: $runningScript"
 

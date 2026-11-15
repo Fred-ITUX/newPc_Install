@@ -23,12 +23,10 @@ pathFile="$userHome/newPc_"$start_time".log"
 
 safetyUpdateCheck(){
 	local rc=0
-	sudo dpkg --configure -a          || rc=1
-	sudo apt --fix-broken install -y  || rc=1
-	sudo apt update                   || rc=1
-	sudo apt full-upgrade -y          || rc=1
-	sudo apt autoremove -y            || rc=1
-	sudo apt clean
+	#### --refresh: re-download the package index first (apt update + full-upgrade in one step)
+	sudo dnf upgrade --refresh -y     || rc=1
+	sudo dnf autoremove -y            || rc=1
+	sudo dnf clean packages
 	return "$rc"
 }
 
@@ -44,7 +42,7 @@ installLoop(){
     local n=0
     local pkg rc
 
-    if [ "$kind" != apt ] && [ "$kind" != flatpak ]; then
+    if [ "$kind" != dnf ] && [ "$kind" != flatpak ]; then
         kindLogger "[FAILED] installLoop: unknown installer '$kind'\n"
         return 1
     fi
@@ -55,7 +53,7 @@ installLoop(){
 
         rc=0
         case "$kind" in
-            apt)     sudo apt-get install -y "$pkg"    || rc=$? ;;
+            dnf)     sudo dnf install -y "$pkg"        || rc=$? ;;
             flatpak) flatpak install flathub -y "$pkg" || rc=$? ;;
         esac
 
@@ -112,7 +110,7 @@ purgeLoop(){
 
 		rc=0
 		case "$kind" in
-			apt)	 sudo apt purge -y "$pkg"		   || rc=$? ;;
+			dnf)	 sudo dnf remove -y "$pkg"		   || rc=$? ;;
 		esac
 
 		if [ "$rc" -eq 0 ]; then
@@ -174,8 +172,7 @@ avail=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
 
 
 
-#### Cinnamon will be kept as a fallback from now on
-####    > Cinnamon* will be purged along with most gnome pre-installed apps
+#### Fedora KDE version of newPc/newPc_Install.sh: dnf + RPM Fusion instead of apt, KDE Plasma is already installed
 
 
 echo -e "\n\n
@@ -187,7 +184,7 @@ echo -e "\n\n
 
     > An average of "$AVG_GB_NEEDED"GB gonna be used
     > The system passed the network check, online status confirmed
-    > A big set of apt and flatpak apps will be installed
+    > A big set of dnf and flatpak apps will be installed
 	> The system will automatically reboot at the end \n"
 
 read -r -p "Press Enter to continue..."
@@ -206,14 +203,8 @@ kindLogger "Setup complete"
 
 
 
-kindLogger "Starting gnome install, expect prompts"
-
-#### Explicit dependencies install to mark them as manually installed to avoid mistakes during the purge phase
-sudo apt-get install gnome gnome-shell gdm3 -y || { kindLogger "ERROR - Gnome installation failed, exiting" ; exit 1; } 
-
-
-
-export DEBIAN_FRONTEND=noninteractive #### prompt avoid
+#### No desktop install step: the Fedora KDE edition already ships Plasma and its login manager
+#### No DEBIAN_FRONTEND either: dnf never prompts when called with -y
 
 kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status check:\n$pathFile"
 
@@ -254,21 +245,28 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 	echo -e "\n\n\n
 			+------------------------------------------+ 
 
-					REPOSITORY && APT APPS BEGIN
+					REPOSITORY && DNF APPS BEGIN
 
 			+------------------------------------------+\n\n\n"
+
+
+	#### RPM Fusion: needed for the full ffmpeg (Fedora's own ffmpeg-free lacks codecs) and for unrar
+	kindLogger "Enabling RPM Fusion (free + nonfree)"
+	fedoraVersion="$(rpm -E %fedora)"
+	sudo dnf install -y \
+		"https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${fedoraVersion}.noarch.rpm" \
+		"https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${fedoraVersion}.noarch.rpm" \
+		|| { kindLogger "ERROR - RPM Fusion setup failed, aborting (ffmpeg / unrar would fail later)" ; exit 1; }
 
 
 	appPackages=(
 		#### Devtools
 		python3-psutil						  #### required for scripts
-		wget 
+		wget2-wget							  #### provides /usr/bin/wget ("wget" alone is not a package on Fedora)
 		curl 
 		git 
 		gh									  #### github https session login
 		jq									  #### lightweight, flexible command-line JSON processor
-		# docker.io 
-		# docker-compose
         podman
         podman-compose
         podman-docker
@@ -278,75 +276,79 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		#### Utilities
 		flatpak
 		smartmontools						   #### temp check
-		gufw									#### firewall
+		firewalld							   #### firewall (Fedora default, configured by newPc_Scripts.sh firewallSetup)
+		firewall-config						 #### firewall GUI (replaces gufw, not packaged on Fedora)
+		grubby								  #### kernel command line editing (newPc_Scripts.sh grubSetup)
 		htop									#### task manager
-		redshift								#### brightness and night light -- X11
-		xdotool								 #### X11 -- window / keyboard utilities
 		ddcutil								 #### change monitors brightness
+		lm_sensors							  #### `sensors`: gpu_watchdog.sh, pc_usage.py
 		fzf									 #### terminal interactive selection
-		# vlc                                   #### flatpak in use
 		gedit 
 		piper								   #### logitech mouse software
 		gparted								 #### disk utility
-		nemo									#### file explorer
+		nemo									#### file explorer (dolphin gets purged below)
+		zenity								  #### dialogs used by the Nemo actions
+		libnotify							   #### `notify-send`: raiseAlarm, Nemo actions
 		moreutils							   #### ts command and other ut
-		rar
-		p7zip-full 
-		p7zip-rar
+		7zip									#### provides /usr/bin/7z (p7zip-full on Debian)
+		unrar								   #### Fedora's 7z cannot open .rar (p7zip-rar on Debian) -- RPM Fusion nonfree
         pv
 		tree									#### ls tree
 		wine
 		bluez 
 		bluez-tools
-		font-manager
+		bluez-deprecated						#### hciconfig / hcitool (bluetoothDongleInfo)
 
 		#### Audio
 		pavucontrol 
-		# pulseaudio
-		# pulseeffects
-		# pulseaudio-module-bluetooth 
+		pulseaudio-utils						#### `pactl`: micStatus.sh, right_idx.sh
 
 		#### Editing
-		ffmpeg
 		mediainfo 
 		mkvtoolnix 
-		#### mpv                                   #### Alternative media viewer
 
 		#### Gaming
 		steam-devices
-		vainfo 
-		mesa-utils
+		libva-utils							 #### vainfo
+		glx-utils							   #### glxinfo (mesa-utils on Debian)
 		gamemode
-		zram-tools 
-		cpufrequtils 
+		kernel-tools							#### cpupower (cpufrequtils on Debian)
 		radeontop
-		default-jre
+		java-25-openjdk						 #### default-jre on Debian
 
-		#### Theming (used by theme_updater.sh)
-		adwaita-icon-theme
-		gnome-themes-extra
-		papirus-icon-theme
-		breeze-cursor-theme
-		fonts-dejavu-core
-		fonts-dejavu-extra
-		fonts-comic-neue
+		#### Fonts (used by theme_updater.sh)
+		dejavu-sans-fonts					   #### includes DejaVu Sans Condensed
+		dejavu-sans-mono-fonts
+		comic-neue-fonts
 	)
 
-    #### Only needed for 32-bit Windows programs under Wine
-	#### kindLogger "Wine architecture safety setup for i386"
-	#### sudo dpkg --add-architecture i386 && sudo apt update || { kindLogger "ERROR - wine architecture" ; } 
+	#### Dropped from the Mint list:
+	####    redshift, xdotool        -> X11 only (KDE has Night Light built in)
+	####    gufw, font-manager, rar  -> not packaged on Fedora
+	####    zram-tools               -> Fedora already sets up zram swap (zram-generator-defaults)
+	####    theme packages           -> Breeze Dark ships with Plasma
+
+	#### Full ffmpeg from RPM Fusion. Fedora installs ffmpeg-free by default and the two conflict:
+	#### `dnf swap` replaces one with the other in a single transaction
+	kindLogger "Installing ffmpeg from RPM Fusion"
+	ffmpegFailures=0
+	if rpm -q ffmpeg-free >/dev/null 2>&1; then
+		sudo dnf swap -y ffmpeg-free ffmpeg --allowerasing || { kindLogger "[FAILED]: ffmpeg swap\n" ; ffmpegFailures=1; }
+	else
+		sudo dnf install -y ffmpeg --allowerasing || { kindLogger "[FAILED]: ffmpeg install\n" ; ffmpegFailures=1; }
+	fi
 
 
-	kindLogger "Engaging installLoop: apt"
+	kindLogger "Engaging installLoop: dnf"
 
-	installLoop apt appPackages; aptFailures=$?
+	installLoop dnf appPackages; dnfFailures=$?
 
 
 
 	echo -e "\n\n\n
 			+----------------------------------------+ 
 
-					REPOSITORY && APT APPS END
+					REPOSITORY && DNF APPS END
 
 			+----------------------------------------+\n\n\n"
 
@@ -374,13 +376,12 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 
 		#### Utilities
 		com.github.tchx84.Flatseal/x86_64/stable					#### flatseal - flatpak permissions
-		app/com.mattjakeman.ExtensionManager/x86_64/stable		  #### GNOME - Extension Manager
 		app/com.vscodium.codium/x86_64/stable					   #### VS Codium
 		com.nextcloud.desktopclient.nextcloud					   #### Nextcloud desktop client
 		#### app/com.usebottles.bottles/x86_64/stable					#### Bottles - WINE client
 		#### app/net.christianbeier.Gromit-MPX/x86_64/stable			 #### draw on screen
 		#### page.codeberg.libre_menu_editor.LibreMenuEditor			 #### app info and editor
-		app/com.github.hluk.copyq/x86_64/stable					 #### Clipboard manager
+		app/com.github.hluk.copyq/x86_64/stable					 #### Clipboard manager  -- TO CONFIRM on Fedora: clipboard access is limited on Wayland, KDE has Klipper built in
 		app/org.videolan.VLC/x86_64/stable
 
 		#### Editing
@@ -442,82 +443,34 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 				+--------------------------------------------+\n\n\n"
 
 
-    #### Cinnamon will be kept as a fallback
-	#### sudo apt purge "cinnamon*" -y || { kindLogger "ERROR - apt purge cinnamon" ;  }
-
+	#### TO CONFIRM on Fedora: review this list on the installed machine before the first run
+	####    dnf list --installed | less        -> what is really there
+	####    dnf remove --assumeno <package>    -> what a removal would drag out
+	#### Checked on Fedora 45 (container, full KDE environment installed): none of these removes
+	#### plasma-desktop, plasma-workspace, kwin or the login manager
 	appToPurge=(
-            cups
-            cups-daemon
-            "firefox"
-			"thunderbird*" 
-			"libreoffice*"
-			cheese 
-			hypnotix 
-			rhythmbox 
-			aisleriot 
-			celluloid  
-			hexchat 
-			onboard 
-			mahjongg 
-			pix 
-			remmina 
-			five-or-more 
-			four-in-a-row 
-			drawing 
-			xed 
-			lightsoff 
-			hitori 
-			quadrapassel 
-			shotwell 
-			swell-foop
-			avahi-daemon 
-			tali 
-			evolution 
-			evince 
-			iagno 
-			warpinator
-			mintchat
-			baobab
-			xreader
-			totem
-			eog
-			postfix
-			"timeshift*"
-			mintinstall
-			mintwelcome
-			"mintupdate*" 
-			mintmenu 
-			mintreport
-			blueman
-			transmission-gtk 
-			webapp-manager
-			simple-scan
-			system-config-printer
-			gnome-software
-			gnome-system-monitor
-			gnome-calendar
-			gnome-mahjongg 
-			gnome-mines 
-			gnome-sudoku 
-			gnome-todo 
-			gnome-chess 
-			gnome-2048 
-			gnome-contacts 
-			gnome-maps 
-			gnome-tetravex 
-			gnome-music 
-			gnome-nibbles 
-			gnome-klotski 
-			gnome-robots 
-			gnome-weather 
-			gnome-remote-desktop 
-			gnome-taquin 
+			dolphin					 #### replaced by nemo
+			dolphin-plugins
+			firefox					 #### Brave / Chrome / Chromium flatpaks are used instead
+			"libreoffice*"			  #### OnlyOffice flatpak is used instead
+			kmahjongg
+			kmines
+			kpat
+			cups						#### no printer (same choice as on Mint). Also removes plasma-print-manager, hplip, gutenprint,
+										####    ImageMagick and python3-pillow as unused dependencies (27 packages on Fedora 45)
+			localsearch				 #### GNOME's file indexer (the old "tracker"): installed and autostarted on KDE too, nothing requires it
 	)
 
-	purgeLoop apt appToPurge
+	#### NEVER add avahi here: on Fedora 45 `dnf remove avahi` also removes plasma-desktop and plasma-workspace (90 packages).
+	#### It is disabled instead (newPc_Scripts.sh, deamonsPurge)
+	####
+	#### Other pre-installed apps that can be removed without touching Plasma (dry run on Fedora 45, add the ones you want):
+	####    kmail korganizer kaddressbook akregator kontact (or all of them at once: akonadi-server, 89 packages)
+	####    elisa-player dragon k3b kamoso kolourpaint digikam krusader ktorrent neochat krdc krfb krdp kmouth skanpage qrca
+	####    plasma-welcome plasma-discover abrt-desktop kde-connect kwrite
 
-    #### Cinnamon does not get purged anymore
-	#### sudo apt-get install nemo -y  || { kindLogger "ERROR - nemo install failed" ;} #### It gets removed from the cinnamon purge
+	purgeLoop dnf appToPurge
+
 
 	echo -e "\n\n\n
 				+------------------------------------------+ 
@@ -595,7 +548,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 sync || { kindLogger "ERROR - Sync failed" ; } #### Synchronize cached writes to persistent storage
 
 
-if [ "${aptFailures:-1}" -eq 0 ] && [ "${flatpakFailures:-1}" -eq 0 ]; then
+if [ "${dnfFailures:-1}" -eq 0 ] && [ "${ffmpegFailures:-1}" -eq 0 ] && [ "${flatpakFailures:-1}" -eq 0 ]; then
 
 	autoRebootDelay=15
 	while ((autoRebootDelay >= 0)); do

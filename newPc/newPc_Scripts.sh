@@ -5,6 +5,8 @@
 
 #### This script is NOT intended to be run manually
 #### It should be launched by setup.sh
+####
+#### Fedora KDE version of newPc/newPc_Scripts.sh (firewalld, grubby, KDE settings; no dconf, no X11 tear fix)
 
 
 ###############################################################
@@ -149,21 +151,40 @@ userGroupCheck(){
 
 
 firewallSetup(){
-    local UFW_CONF="/etc/default/ufw"
+    #### firewalld "block" zone = same policy as the old ufw setup (default reject incoming / allow outgoing):
+    ####    > every unsolicited incoming packet is REJECTED (IPv4 and IPv6), replies to outgoing connections are accepted
+    ####    > outgoing connections are allowed
+    ####    > no service and no port is open (checked on Fedora 45: target %%REJECT%%, empty services / ports)
+    local zone="block"
+    local activeZones otherZones openServices openPorts
 
-    sysLogger i "UFW Firewall setup"
-    sudo ufw default reject incoming || sysLogger e "UFW setuf fail for: ufw default reject incoming"
-    sudo ufw default allow outgoing  || sysLogger e "UFW setuf fail for: ufw default allow outgoing"
+    sysLogger i "firewalld setup, default zone: $zone"
 
-    #### ufw: no IPv6 rules, all incoming IPv6 dropped (IPv6 itself is disabled at boot by grubSetup)
-    if grep -q '^IPV6=yes' "$UFW_CONF"; then
-        sudo sed -i 's/^IPV6=yes/IPV6=no/' "$UFW_CONF"
+    sudo systemctl enable --now firewalld || { sysLogger e "firewalld enable / start failed"; return 1; }
+
+    #### Applies to the running firewall AND to the saved configuration
+    sudo firewall-cmd --set-default-zone="$zone" || { sysLogger e "firewalld: cannot set the default zone to $zone"; return 1; }
+
+    #### An interface bound to another zone (e.g. by a NetworkManager connection) would bypass the default zone
+    #### Zone names are the non-indented lines, e.g. "block (default)"
+    activeZones=$(sudo firewall-cmd --get-active-zones | awk '/^[^[:space:]]/ {print $1}')
+    otherZones=$(grep -vx "$zone" <<< "$activeZones")
+
+    if [ -n "$otherZones" ]; then
+        sysLogger e "firewalld: interfaces are bound to other zones: $(tr '\n' ' ' <<< "$otherZones"). Move them to $zone (nmcli connection modify <name> connection.zone $zone)"
+        return 1
     fi
 
-    sudo ufw reload || { sysLogger e "firewall reload failed"; return 1; }
-    sudo ufw enable || { sysLogger e "firewall enable failed"; return 1; }
+    #### Strict policy check: nothing may be open in the zone
+    openServices=$(sudo firewall-cmd --zone="$zone" --list-services)
+    openPorts=$(sudo firewall-cmd --zone="$zone" --list-ports)
 
-    sysLogger i "UFW reloaded, current status:\n$(sudo ufw status verbose)"
+    if [ -n "$openServices" ] || [ -n "$openPorts" ]; then
+        sysLogger e "firewalld: zone $zone is not strict. Services: '${openServices}' Ports: '${openPorts}'"
+        return 1
+    fi
+
+    sysLogger i "firewalld active, current status:\n$(sudo firewall-cmd --zone="$zone" --list-all)"
 }
 
 
@@ -172,55 +193,7 @@ firewallSetup(){
 
 
 
-tearFix(){
-    #### NOTE: The TearFree X11 config is inhert on Wayland -- does not cause any issues as it is not used
-    #### Check GPU by vendor ID
-    ####    Intel:     8086
-    ####    NVIDIA:    10de
-    ####    AMD/ATI:   1002
-    local cnfgContent=(
-        'Section "Device"'
-        '   Identifier  "AMD Graphics"'
-        '   Driver      "amdgpu"'
-        '   Option      "TearFree" "true"'
-        'EndSection'
-    )
-
-    local cnfgFile="/etc/X11/xorg.conf.d/20-amd.conf"
-
-    sysLogger i "AMD x11 screen tear fix"
-
-    #### sudo drops XDG_SESSION_TYPE: ask logind for the real user's graphical session type
-    local sessionType
-    sessionType=$(loginctl show-session "$(loginctl show-user "$realUser" -p Display --value)" -p Type --value 2>/dev/null)
-
-
-    # if [ "$XDG_SESSION_TYPE" == "x11" ]; then
-    if [ "$sessionType" == "x11" ]; then
-    
-        sysLogger i "Session is x11"
-
-        if lspci -nn | grep -Ei 'VGA compatible controller|3D controller|Display controller' | grep -q '\[1002:'; then
-            sysLogger i "GPU vendor: AMD"
-
-            printf '%s\n' "${cnfgContent[@]}" | sudo tee "$cnfgFile"
-
-        else
-            sysLogger w "GPU vendor is NOT AMD, config not applied"; return 1
-        fi
-
-
-    else
-        sysLogger w "Session is NOT x11, tearFix NOT applied."; return 1
-    fi
-
-
-    if [ -s "$cnfgFile" ]; then
-        sysLogger i "Config file created "$cnfgFile""
-    else
-        sysLogger e "Config file NOT created "$cnfgFile""
-    fi
-}
+#### tearFix (AMD TearFree, /etc/X11/xorg.conf.d) removed: X11 only, KDE runs on Wayland
 
 
 
@@ -229,25 +202,36 @@ tearFix(){
 
 
 grubSetup(){
-    sysLogger i "GRUB USB not working after waking up (sleep / hybernation / suspend)"
-    
-    local grub_line_path="/etc/default/grub"
-    local grub_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"'
-    local mod_line='GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.autosuspend=-1 zswap.enabled=0 ipv6.disable=1"'
+    sysLogger i "Kernel arguments: USB not working after waking up (sleep / hybernation / suspend), zswap off, IPv6 off"
 
-    #### In case of a 2nd run   
-    grep -q 'usbcore.autosuspend=-1' "$grub_line_path" && { sysLogger i "GRUB already configured"; return 0; }
-    
+    #### Fedora boots through BLS entries: grubby edits the kernel command line of every installed kernel
+    #### (no /etc/default/grub sed + update-grub like on Mint)
+    #### TO CONFIRM on Fedora: that a kernel installed LATER inherits these arguments
+    local args=(
+        "usbcore.autosuspend=-1"
+        "zswap.enabled=0"
+        "ipv6.disable=1"
+    )
+    local arg current missing=()
 
-    if grep -q "$grub_line" "$grub_line_path"; then
-        sudo sed -i "s/^$grub_line/$mod_line/" "$grub_line_path"
-    
-    else sysLogger e "grub grep failed, grub not updated"; return 1
+    current=$(sudo grubby --info=DEFAULT) || { sysLogger e "grubby cannot read the default kernel entry"; return 1; }
 
-    fi
+    #### In case of a 2nd run: only the arguments not already present are added
+    for arg in "${args[@]}"; do
+        if ! grep -qF -- "$arg" <<< "$current"; then missing+=( "$arg" ); fi
+    done
 
-    sudo update-grub || {  sysLogger e "grub update failed" ; return 1; }
-    sysLogger i  "Grub updated with new ruleset"
+    if [ "${#missing[@]}" -eq 0 ]; then sysLogger i "Kernel arguments already configured"; return 0; fi
+
+    sudo grubby --update-kernel=ALL --args="${missing[*]}" || { sysLogger e "grubby update failed" ; return 1; }
+
+    #### Double check on the default entry
+    current=$(sudo grubby --info=DEFAULT)
+    for arg in "${args[@]}"; do
+        if ! grep -qF -- "$arg" <<< "$current"; then sysLogger e "Kernel argument not applied: $arg"; return 1; fi
+    done
+
+    sysLogger i  "Kernel command line updated: ${missing[*]} (active after the next reboot)"
 }
 
 
@@ -258,99 +242,85 @@ grubSetup(){
 #### Style, UI and enviroment setup
 
 
-GNOME_global_settings(){
-    sysLogger i "GNOME tweaks block"
+KDE_global_settings(){
+    sysLogger i "KDE tweaks block"
 
-    #### Remove recents from gnome settings
-    asUser gsettings set org.gnome.desktop.privacy remember-recent-files false
+    #### kwriteconfig6 edits the KDE config files directly (no running session needed, tested on Fedora 45)
+    #### Keys marked [schema] were found in KDE's own schema files (/usr/share/config.kcfg) on Fedora 45
+    #### Everything marked TO CONFIRM must be checked on the real machine: System Settings shows the same options
 
-    #### Disable gnome animation to make it smoother
-    asUser gsettings set org.gnome.desktop.interface enable-animations false
+    #### Remove recents: 2 = do not remember opened documents  [schema key; value TO CONFIRM on Fedora]
+    asUser kwriteconfig6 --file kactivitymanagerd-pluginsrc --group "Plugin-org.kde.ActivityManager.Resources.Scoring" --key what-to-remember 2
 
-    #### Disable app not responding pop-up (default 5000)
-    asUser gsettings set org.gnome.mutter check-alive-timeout 0
+    #### Disable animations to make it smoother  [schema]
+    asUser kwriteconfig6 --file kdeglobals --group KDE --key AnimationDurationFactor 0
 
-    #### Disable automatic suspend / blank
-    asUser gsettings set org.gnome.desktop.session idle-delay 0
-    asUser gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
-    asUser gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type 'nothing'
+    #### GNOME's "app not responding" pop-up timeout (check-alive-timeout): no KDE equivalent found, not set
 
-    #### Multitasking / workspaces setup
-    asUser gsettings set org.gnome.mutter dynamic-workspaces false
-    asUser gsettings set org.gnome.desktop.wm.preferences num-workspaces 4
-    asUser gsettings set org.gnome.mutter workspaces-only-on-primary false
-    asUser gsettings set org.gnome.shell.app-switcher current-workspace-only false
+    #### Disable automatic suspend / screen off / dimming / lock  -- TO CONFIRM on Fedora (powerdevilrc keys not found in a schema file)
+    local powerProfile
+    for powerProfile in AC Battery LowBattery; do
+        asUser kwriteconfig6 --file powerdevilrc --group "$powerProfile" --group SuspendAndIdle --key AutoSuspendAction 0
+        asUser kwriteconfig6 --file powerdevilrc --group "$powerProfile" --group Display --key TurnOffDisplayWhenIdle false
+        asUser kwriteconfig6 --file powerdevilrc --group "$powerProfile" --group Display --key DimDisplayWhenIdle false
+    done
+    asUser kwriteconfig6 --file kscreenlockerrc --group Daemon --key Autolock false   #### [schema]
 
-    # #### Disable edge tiling --- keep true for fullscreen shortcut
-    # asUser gsettings set org.gnome.mutter edge-tiling false
+    #### Multitasking / workspaces setup: 4 fixed virtual desktops (KDE never adds them dynamically, and they span every monitor)
+    #### TO CONFIRM on Fedora (kwinrc [Desktops] not found in a schema file)
+    asUser kwriteconfig6 --file kwinrc --group Desktops --key Number 4
+    asUser kwriteconfig6 --file kwinrc --group Desktops --key Rows 1
 
-    # #### Keep Super Key for overview / search 
-    # asUser gsettings set org.gnome.mutter overlay-key 'Super_L'
-
-    #### Night light setup
-    asUser gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic false
-    asUser gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
-    asUser gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
-    # asUser gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 2500 #### 1000~10000
-
-
-    ####            Terminal customization
-
-    #### Get default key value & set the cursor to underline
-    # local PROFILE=$(asUser gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
-    local PROFILE=$(asUser gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')
-
-    if [ -z "$PROFILE" ]; then
-        sysLogger e "Gnome terminal profile missing: "$PROFILE", aborting"
-        return 1
-    fi
-
-    asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-shape 'underline'
-
-    # asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" use-transparent-background true
-    # asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" background-transparency-percent 30
-
-    # asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" use-transparent-background false
+    #### Night light setup: off, and "Constant" mode (no sunset / sunrise schedule) so Shortcuts/night_light.sh decides alone when it is active
+    #### [schema: Mode accepts Constant or DarkLight on Fedora 45]
+    asUser kwriteconfig6 --file kwinrc --group NightColor --key Active false
+    asUser kwriteconfig6 --file kwinrc --group NightColor --key Mode Constant
+    # asUser kwriteconfig6 --file kwinrc --group NightColor --key NightTemperature 2500 #### 1000~10000
 
 
-    asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" cursor-blink-mode off
+    ####            Terminal customization (Konsole)
 
-    asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-rows 26 #### default 24
+    #### Profile file: underline cursor, no blink, 26 rows x 90 columns, 20px padding (was gtk.css in theme_updater.sh)
+    #### Key names found in Konsole's library on Fedora 45; values TO CONFIRM on Fedora (CursorShape: 0 block, 1 I-beam, 2 underline)
+    local konsoleProfile
+    konsoleProfile="[Appearance]
+Font=DejaVu Sans Mono,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 
-    asUser gsettings set "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/" default-size-columns 90 #### default 80
+[Cursor Options]
+BlinkingCursorEnabled=false
+CursorShape=2
+
+[General]
+Name=Custom
+Parent=FALLBACK/
+TerminalColumns=90
+TerminalMargin=20
+TerminalRows=26"
+
+    atomicWrite "Custom.profile" "$userHome/.local/share/konsole" "$konsoleProfile" || { sysLogger e "Konsole profile not written"; return 1; }
+    asUser kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "Custom.profile"
 
 
-    #### Check for all available customization options
-    #### asUser gsettings list-keys "org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$PROFILE/"
+    #### GNOME's indexer (tracker, now "localsearch") is removed by newPc_Install.sh (appToPurge)
+    sysLogger i "Disabling Baloo (home folder indexing)"
+    #### Tested on Fedora 45 without a session: writes Indexing-Enabled=false in baloofilerc
+    asUser balooctl6 disable || sysLogger e "balooctl6 disable failed"
 
 
-    sysLogger i "Disabling gnome tracker (home folder indexing)"
-    asUser systemctl --user mask tracker-miner-fs-3.service tracker-extract-3.service tracker-writeback-3.service
-    asUser tracker3 reset -s -r
-
-
-    
-    sysLogger i "Removing useless Ubuntu sessions options from login" 
-    rm -f /usr/share/xsessions/ubuntu*.desktop /usr/share/wayland-sessions/ubuntu*.desktop   
-
-
-
-    #### Enable gnome triple buffer rendering !!!! EXPERIMENTAL !!!!
-    # mkdir -p ~/.config/environment.d
-    # echo "MUTTER_DEBUG_TRIPLE_BUFFER=1
-    # CLUTTER_PAINT=disable-clipped-redraws:disable-culling" | sudo tee  ~/.config/environment.d/gnome-performance.conf
+    #### KWin re-reads its config on request; the rest applies at the next login
+    asUser qdbus-qt6 org.kde.KWin /KWin reconfigure > /dev/null 2>&1 || sysLogger i "KWin not reachable: settings apply at the next login"
 }
 
 
 
-GNOME_performance(){
+KDE_performance(){
     local limitConfPath; local limitConf
     
     sysLogger i  "Increase files processes - allows more open handles if needed, doesn't use more RAM (standard 1024)"
     echo -e "* soft nofile 1048576\n* hard nofile 1048576" | sudo tee /etc/security/limits.d/99-nofile.conf
 
 
-    sysLogger i  "Reduce GNOME stalls"
+    sysLogger i  "Reduce session stalls"
 
     limitConfPath="$userHome/.config/systemd/user.conf.d"
     limitConf="[Manager]
@@ -376,30 +346,14 @@ GNOME_performance(){
 
 
 
-dconfSetup(){
-    sysLogger i "Starting dconf setup using the last dump available"
-
-    local dconfScript="$userHome/Nextcloud/Linux/scripts/newPc/dconf_manager.sh"
-    
-    if [ -f "$dconfScript" ]; then
-        source "$dconfScript" || { sysLogger e "Failed to source the script "$dconfScript", exiting" ; return 1; }
-        sysLogger i "Correctly sourced the script "$dconfScript""
-    else
-        sysLogger e "No script: "$dconfScript""; return 1
-    fi
-
-
-    launcher_setup_dconf_restore || { sysLogger e "ERROR: launcher_setup_dconf_restore returned an error" ; return 1; }
-
-    sysLogger i "Done dconf setup"
-}
+#### dconfSetup removed: dconf_manager.sh restores GNOME keybindings / extensions only
 
 
 
 themeSetup(){
     sysLogger i "Starting theme setup"
 
-    local themeScript="$userHome/Nextcloud/Linux/scripts/newPc/theme_updater.sh"
+    local themeScript="$userHome/Nextcloud/Linux/scripts/newPc/Fedora/theme_updater.sh"
     
     if [ -f "$themeScript" ]; then
         sysLogger i "Correctly read the script "$themeScript""
@@ -422,10 +376,20 @@ themeSetup(){
 
 nemoSetup(){
 
-    sysLogger i  "Nemo / Nautilus use Samba net usershare to manage user shares"
-    sudo mkdir -p /var/lib/samba/usershares
-    sudo chown root:sambashare /var/lib/samba/usershares
-    sudo chmod 1770 /var/lib/samba/usershares
+    #### Samba usershares: Fedora has no sambashare group. Its samba-usershares package already ships
+    #### /var/lib/samba/usershares (root:usershares, 1770), checked on Fedora 45, so this only runs where sambashare exists
+    if getent group sambashare >/dev/null; then
+        sysLogger i  "Nemo / Nautilus use Samba net usershare to manage user shares"
+        sudo mkdir -p /var/lib/samba/usershares
+        sudo chown root:sambashare /var/lib/samba/usershares
+        sudo chmod 1770 /var/lib/samba/usershares
+    else
+        sysLogger i "No sambashare group: Samba usershares not configured"
+    fi
+
+    #### Nemo as the default file manager (dolphin is purged by newPc_Install.sh)
+    #### TO CONFIRM on Fedora: that Plasma (folder links, "open containing folder") follows ~/.config/mimeapps.list
+    asUser xdg-mime default nemo.desktop inode/directory || sysLogger e "Could not set nemo as the default file manager"
 
 
     local actionExtract=(
@@ -461,6 +425,9 @@ nemoSetup(){
     printf "%s\n" "${actionExtract[@]}" > "$userHome/.local/share/nemo/actions/extract_here.nemo_action"
 
     printf "%s\n" "${actionMedaInfo[@]}" > "$userHome/.local/share/nemo/actions/video_info.nemo_action"
+
+    #### Written by root (plain redirections above): hand both files back to the user
+    chown "$realUser:$realGroup" "$userHome/.local/share/nemo/actions/extract_here.nemo_action" "$userHome/.local/share/nemo/actions/video_info.nemo_action" || sysLogger e "Could not change the owner of the nemo actions"
 
     if [ ! -s "$userHome/.local/share/nemo/actions/extract_here.nemo_action" ] || [ ! -s "$userHome/.local/share/nemo/actions/video_info.nemo_action" ] ; then
         sysLogger e "Nemo action failed to build"; return 1
@@ -608,7 +575,7 @@ flatpakOverrides(){
     asUser flatpak override --user \
         --filesystem=host:ro \
         --nodevice=all --device=dri \
-        --no-talk-name=org.freedesktop.secrets --no-talk-name=org.kde.kwalletd5 --no-talk-name=org.kde.kwalletd \
+        --no-talk-name=org.freedesktop.secrets --no-talk-name=org.kde.kwalletd5 --no-talk-name=org.kde.kwalletd6 --no-talk-name=org.kde.kwalletd \
         org.videolan.VLC || { sysLogger e "Failed to restrict VLC permissions" ; }
 
 }
@@ -626,7 +593,8 @@ deamonsPurge(){
 
     local deamonsToDisable=(
         "NetworkManager-wait-online.service"    #### Wait for network
-        #### "avahi-daemon.service"             #### Already purged by newPc_Install.sh (appToPurge)
+        "avahi-daemon.socket"                   #### Network discovery. Cannot be purged on Fedora: removing avahi drags plasma-desktop out
+        "avahi-daemon.service"                  ####    > socket first: it would start the service again on demand
         )
     
     for deamon in "${deamonsToDisable[@]}"; do
@@ -649,7 +617,7 @@ deamonsPurge(){
 swapSetup(){
     sysLogger i "Swap allocation and setup started"
 
-    local SWAP=6 #### GB +2GB default 
+    local SWAP=6 #### GB, on top of the zram swap Fedora sets up by default
     
     #### Favor RAM over SWAP -- range 0 to 100 higher the number higher the priority of SWAP over RAM
     local SWAPPINESS=10
@@ -702,11 +670,20 @@ swapSetup(){
 	sudo swapon --show
 	free -h
 	df -h
-	sudo fallocate -l "$SWAP"G /swapspace || { sysLogger e "fallocate failed in swap allocation" ; return 1; }
-	ls -lh /swapspace
-	sudo chmod 600 /swapspace || { sysLogger e "chmod failed in swap allocation" ; return 1; }
-	ls -lh /swapspace
-	sudo mkswap /swapspace  || { sysLogger e "mkswap failed in swap allocation" ; return 1; }
+	#### btrfs (Fedora default): a swap file must be NOCOW and uncompressed, fallocate + mkswap is not enough.
+	#### `btrfs filesystem mkswapfile` creates it correctly, already 600 and formatted.
+	#### TO CONFIRM on Fedora: the btrfs branch and the SELinux label of /swapspace (boot-time swapon) were not tested
+	local rootFs; rootFs=$(findmnt -no FSTYPE /)
+	if [ "$rootFs" == "btrfs" ]; then
+		sudo btrfs filesystem mkswapfile --size "$SWAP"g /swapspace || { sysLogger e "btrfs mkswapfile failed in swap allocation" ; return 1; }
+		ls -lh /swapspace
+	else
+		sudo fallocate -l "$SWAP"G /swapspace || { sysLogger e "fallocate failed in swap allocation" ; return 1; }
+		ls -lh /swapspace
+		sudo chmod 600 /swapspace || { sysLogger e "chmod failed in swap allocation" ; return 1; }
+		ls -lh /swapspace
+		sudo mkswap /swapspace  || { sysLogger e "mkswap failed in swap allocation" ; return 1; }
+	fi
 	sudo swapon /swapspace  || { sysLogger e "swapon failed in swap allocation" ; return 1; }
 	sudo swapon --show
 	free -h
@@ -737,6 +714,8 @@ swapSetup(){
 tmpfsSetup(){
     #### /tmp in RAM: faster temp I/O, wiped at every boot. Size is a cap, not a reservation (RAM is used only for files actually stored)
     #### % of physical RAM (man 5 tmpfs): scales with each PC, same 30% as runtimeDirSetup
+    #### Fedora already mounts /tmp as tmpfs (tmp.mount, 50% of RAM): the fstab line below takes over and sets the size
+    #### TO CONFIRM on Fedora: `findmnt /tmp` after the reboot must show size=30%
     local SIZE="30%"
     local fstabLine="tmpfs /tmp tmpfs defaults,noatime,mode=1777,size=$SIZE 0 0"
     local tmpEntryRegex='^[[:space:]]*tmpfs[[:space:]]+/tmp[[:space:]]'
@@ -908,6 +887,10 @@ dataDisksSetup(){
     #### a replacement disk only needs the same label (e2label);
     #### nofail = a missing disk never blocks the boot (wanted, not required, by local-fs.target)
     
+    #### Fedora's desktop mounts removable disks under /run/media/<user>, but an fstab entry decides its own path:
+    #### the disks stay under /media/<user>, where every other script expects them (systemd creates missing mountpoint folders)
+    #### TO CONFIRM on Fedora: `findmnt` after the reboot
+
     #### New disk: add its label below
     local labels=( 
         HDD1TB 
@@ -921,6 +904,10 @@ dataDisksSetup(){
 
     for label in "${labels[@]}"; do
         fstabLine="LABEL=$label $mediaPath/$label ext4 defaults,nofail,x-systemd.device-timeout=10s 0 2"
+
+        #### The mountpoint folders don't exist on a fresh Fedora (on Mint the desktop had already created them),
+        #### and `findmnt --verify` below reports a missing one as an error (seen in the Fedora 45 test run)
+        sudo mkdir -p "$mediaPath/$label" || { sysLogger e "Cannot create mountpoint $mediaPath/$label"; return 1; }
 
         #### In case of a 2nd run: any entry already using this mountpoint, whatever its source (UUID=, LABEL=, /dev/...)
         if grep -qE "^[[:space:]]*[^#[:space:]]+[[:space:]]+$mediaPath/$label[[:space:]]" /etc/fstab; then
@@ -1263,13 +1250,11 @@ mainLauncher(){
     local functions=(
         newpcHistory
         startupBootstrap
-        GNOME_performance
-        GNOME_global_settings
+        KDE_performance
+        KDE_global_settings
         themeSetup
-        dconfSetup
         userGroupCheck
         firewallSetup
-        tearFix
         grubSetup
         nemoSetup
         flatpakOverrides
