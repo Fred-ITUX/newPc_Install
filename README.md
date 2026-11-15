@@ -73,9 +73,6 @@ cloneRepo(){
         mkdir -p ""$HOME"/Github"
         echo "Cloning the repo:  "$repoPath"/"$repo""
         git clone "$repo" "$repoPath"  || { echo "[ERROR] failed to clone the repo" ; return 1; }
-        
-        echo "Adding exec to all .sh scripts in the repo folder"
-        find "$repoPath" -type f -name '*.sh' -exec chmod +x {} +  || { echo "[ERROR] failed to grant exec to .sh scripts" ; return 1; }
 
     fi
 
