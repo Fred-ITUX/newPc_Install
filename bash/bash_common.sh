@@ -161,7 +161,11 @@ userCheck(){
 get_osname(){
     source /etc/os-release
     local sourcedName="${PRETTY_NAME,,}"
-    
+
+    #### Fedora: PRETTY_NAME ends with the edition in parentheses, e.g. "Fedora Linux 45 (KDE Plasma Desktop Edition)".
+    #### Dropped here, so osname stays short ("fedora_45") and has no shell special characters
+    sourcedName="${sourcedName%% (*}"
+
     local o=$( stringNormalizeLow "$sourcedName" | sed 's/linux//' )
     osname=$( stringNormalizeNoBlanks "$o" )
 }
@@ -479,16 +483,21 @@ sysInfoCache(){ #### Caches system info to avoid multiple executions of the same
     hostPc="$pc"
     osName="$osname"
     user=$(whoami)
+    lxPath="$LXscripts"
+    pyPath="$PYscripts"
     
-    local lines=( 
-        "hostPc="$hostPc"" 
-        "hostMain="$hostMain"" 
-        "osName="$osName"" 
-        "user="$user"" 
-        "lxPath="$LXscripts""
-        "pyPath="$PYscripts"" 
-        "pid_log_file="$pid_log_file""
+    #### Names of the variables written to the cache. Each value goes through printf %q (shell-quoted),
+    #### so a value with spaces, parentheses or other special characters can never break the `source` of the cache
+    local vars=( 
+        hostPc 
+        hostMain 
+        osName 
+        user 
+        lxPath
+        pyPath 
+        pid_log_file
         )
+    local name line
     
     local functionsToCache=( 
         "fileReader"
@@ -501,7 +510,8 @@ sysInfoCache(){ #### Caches system info to avoid multiple executions of the same
         "atomicWrite"
         )
 
-    for line in "${lines[@]}"; do 
+    for name in "${vars[@]}"; do 
+        printf -v line '%s=%q' "$name" "${!name}"       #### ${!name} = value of the variable called $name
         body+=$( echo -e "\n$line\n" )  
     done
 

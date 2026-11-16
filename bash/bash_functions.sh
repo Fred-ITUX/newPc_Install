@@ -308,9 +308,17 @@ BKP_folder(){
 
 
 BKP_home(){
-    #### App settings, saved passwords and GNOME extensions: the only parts of ~ not restored by Nextcloud or newPc
+    # #### App settings, saved passwords and GNOME extensions: the only parts of ~ not restored by Nextcloud or newPc
+    #### App settings, saved passwords (KWallet on KDE, keyrings on GNOME) and GNOME extensions: the only parts of ~ not restored by Nextcloud or newPc
     #### Relative to $HOME so the archive mirrors the home layout: restore = unzip into ~
-    local paths=( ".config" ".local/share/keyrings" ".local/share/gnome-shell/extensions" )
+    # local paths=( ".config" ".local/share/keyrings" ".local/share/gnome-shell/extensions" )
+    local candidates=( ".config" ".local/share/kwalletd" ".local/share/keyrings" ".local/share/gnome-shell/extensions" )
+    local paths=() candidate
+
+    #### Only the folders that exist: 7z returns an error for a missing path (tested on Fedora 45), which would fail the whole backup
+    for candidate in "${candidates[@]}"; do
+        if [ -e "$HOME/$candidate" ]; then paths+=( "$candidate" ); fi
+    done
 
     #### Re-downloadable modpacks; path as stored in the archive, so only this exact folder is skipped
     local excludes=( '-x!.config/CurseForge' )
