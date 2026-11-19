@@ -738,7 +738,7 @@ pizza(){
 
         --update) exec; show ;;
 
-        --data) echo -e "File: "$PYscripts/PizzaPlot/pizza_data.csv" \n$(cat "$PYscripts/PizzaPlot/pizza_data.csv")" ;;
+        --data) echo -e "File: "$PYscripts/PizzaPlot/pizza_data.csv" \n$(tail "$PYscripts/PizzaPlot/pizza_data.csv")" ;;
 
         --show) show ;;
 
