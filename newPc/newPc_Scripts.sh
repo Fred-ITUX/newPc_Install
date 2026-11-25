@@ -467,6 +467,7 @@ flatpakOverrides(){
         "com.obsproject.Studio"
         "org.kde.kdenlive"
         "org.chromium.Chromium"
+        # "com.nextcloud.desktopclient.nextcloud"
     )
 
     for z in "${driApp[@]}"; do 
@@ -585,6 +586,50 @@ flatpakOverrides(){
         --nodevice=all --device=dri \
         --no-talk-name=org.freedesktop.secrets --no-talk-name=org.kde.kwalletd5 --no-talk-name=org.kde.kwalletd6 --no-talk-name=org.kde.kwalletd \
         org.videolan.VLC || { sysLogger e "Failed to restrict VLC permissions" ; }
+
+
+    #### Smart card reader (pcsc): no app here uses a card or a hardware key
+    local noPcscApps=(
+        "com.brave.Browser"
+        "com.google.Chrome"
+        "com.discordapp.Discord"
+        "org.keepassxc.KeePassXC"
+    )
+
+    for app in "${noPcscApps[@]}"; do
+        sysLogger i "Removing smart card access from "$app""
+        asUser flatpak override --user --nosocket=pcsc "$app" || { sysLogger e "Failed to remove smart card access from app "$app"" ; }
+    done
+
+
+    #### The whitelisted Claude paths must exist before the override: a missing path may be skipped and Codium would then write into its throwaway home
+    asUser install -d -m 700 "$userHome/.claude" || { sysLogger e "Failed to create $userHome/.claude" ; }
+    if [ ! -e "$userHome/.claude.json" ]; then
+        asUser sh -c 'printf "{}" > "$1"' _ "$userHome/.claude.json" || { sysLogger e "Failed to create $userHome/.claude.json" ; }
+    fi
+
+
+    ### VSCodium: a text editor and nothing more. Must be the LAST flatpak able to spawn commands on the host
+    ###    > no org.freedesktop.Flatpak = no "flatpak-spawn --host". Checks / installs are run by the user in a host terminal
+    ###    > active: from here on Codium has no host access, so checks for the KDE configuration / deploy scripts are run by the user in a host terminal
+    sysLogger i "Restricting VSCodium permissions"
+    ###    > only GPU (dri) and network are kept: no agents / keyrings / buses; filesystem = whitelist below
+    ###    > ~/.claude + ~/.claude.json: Claude Code login (plain file, no keyring needed) and sessions / memory
+    ###    > ~/Nextcloud + ~/Github: all the work done on the pc. Scripts there are run as root: read diffs before running them
+    asUser flatpak override --user \
+        --nofilesystem=host --nofilesystem=host-os --nofilesystem=host-etc --nofilesystem=home \
+        --filesystem="$userHome/.claude" \
+        --filesystem="$userHome/.claude.json" \
+        --filesystem="$userHome/Nextcloud" \
+        --filesystem="$userHome/Github" \
+        --nofilesystem=xdg-run/gnupg \
+        --disallow=devel \
+        --nosocket=ssh-auth --nosocket=gpg-agent --nosocket=cups \
+        --nosocket=pulseaudio --nosocket=session-bus --nosocket=system-bus \
+        --nodevice=all --device=dri \
+        --no-talk-name=org.freedesktop.Flatpak \
+        --no-talk-name=org.freedesktop.secrets --no-talk-name=org.kde.kwalletd5 --no-talk-name=org.kde.kwalletd6 --no-talk-name=org.kde.kwalletd \
+        com.vscodium.codium || { sysLogger e "Failed to restrict VSCodium permissions" ; }
 
 }
 

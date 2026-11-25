@@ -375,7 +375,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		app/org.chromium.Chromium/x86_64/stable
 
 		#### Utilities
-		com.github.tchx84.Flatseal/x86_64/stable					#### flatseal - flatpak permissions
+		# com.github.tchx84.Flatseal/x86_64/stable					#### flatseal - flatpak permissions
 		app/com.vscodium.codium/x86_64/stable					   #### VS Codium
 		com.nextcloud.desktopclient.nextcloud					   #### Nextcloud desktop client
 		#### app/com.usebottles.bottles/x86_64/stable					#### Bottles - WINE client
