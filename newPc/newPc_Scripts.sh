@@ -539,10 +539,9 @@ flatpakOverrides(){
         com.obsproject.Studio || { sysLogger e "Failed to restrict OBS permissions" ; }
 
 
-    #### nomacs: files are opened one at a time (document portal), write access only where images are handled
+    #### nomacs: home is read only (see roHomeApps below), write access only where images are handled
     local nomacsApp="org.nomacs.ImageLounge"
     local nomacsNoAccess=(
-        "home"
         "/media"
         "/mnt"
         "/run/media"
@@ -562,12 +561,26 @@ flatpakOverrides(){
     done
 
 
-    #### Okular: PDFs are opened one at a time (document portal) and never modified; printing removed (CUPS purged)
+    #### Okular: PDFs are never modified (home is read only, see roHomeApps below); printing removed (CUPS purged)
     sysLogger i "Restricting Okular permissions"
     asUser flatpak override --user \
         --nofilesystem=host \
         --nosocket=cups \
         org.kde.okular || { sysLogger e "Failed to restrict Okular permissions" ; }
+
+
+    #### Home read only: viewers launched from the CLI with a plain path (the document portal only covers file managers / dialogs)
+    ####    > read only: no modification of anything in home; write access stays where granted above
+    local roHomeApps=(
+        "org.nomacs.ImageLounge"
+        "org.kde.okular"
+    )
+    local roApp
+
+    for roApp in "${roHomeApps[@]}"; do
+        sysLogger i "Home read only for $roApp"
+        asUser flatpak override --user --filesystem=home:ro "$roApp" || { sysLogger e "Failed to apply home read only to $roApp" ; }
+    done
 
 
     #### OnlyOffice: documents live in the unlocked Cryptomator vaults; ~/Downloads as exchange folder
