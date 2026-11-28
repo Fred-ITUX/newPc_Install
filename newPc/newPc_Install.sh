@@ -272,6 +272,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
         podman-docker
         nmap                                    #### Network scanner
         inotify-tools                           #### Event driven file monitor
+		make									#### Used to build custom kwidgets
 
 		#### Utilities
 		flatpak
@@ -298,6 +299,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		bluez 
 		bluez-tools
 		bluez-deprecated						#### hciconfig / hcitool (bluetoothDongleInfo)
+
 
 		#### Audio
 		pavucontrol 
@@ -381,7 +383,7 @@ kindLogger "\n\nFrom now on the script is automatic.\n > To monitor the status c
 		#### app/com.usebottles.bottles/x86_64/stable					#### Bottles - WINE client
 		#### app/net.christianbeier.Gromit-MPX/x86_64/stable			 #### draw on screen
 		#### page.codeberg.libre_menu_editor.LibreMenuEditor			 #### app info and editor
-		app/com.github.hluk.copyq/x86_64/stable					 #### Clipboard manager  -- TO CONFIRM on Fedora: clipboard access is limited on Wayland, KDE has Klipper built in
+		# app/com.github.hluk.copyq/x86_64/stable					 #### Clipboard manager  -- TO CONFIRM on Fedora: clipboard access is limited on Wayland, KDE has Klipper built in
 		app/org.videolan.VLC/x86_64/stable
 
 		#### Editing

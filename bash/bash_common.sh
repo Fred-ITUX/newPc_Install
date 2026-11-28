@@ -143,19 +143,39 @@ ps5Controller="24:A6:FA:8B:8A:B9"
 ################################################################################################
 
 
+# userCheck(){
+#     local host="$HOSTNAME"
+#     hostMain="fred"
+
+
+#     host=$(stringNormalizeLow "$host")
+
+#     case "$host" in
+#         fred) pc="$hostMain" ; pid_log_file="$LXlogs/pids_main.log" ;;
+#         federico-hp) pc="$host"; pid_log_file="$LXlogs/pids_extra.log" ;;
+
+#         *) pc="unknown"; pid_log_file="$LXlogs/pids_unknown.log" ;;
+#     esac 
+# }
+
 userCheck(){
-    local host="$HOSTNAME"
-    hostMain="federico"
+    local user
+    user=$(stringNormalizeLow "$USER")
+    hostMain="fred"
 
-    host=$(stringNormalizeLow "$host")
-
-    case "$host" in
-        federico) pc="$hostMain" ; pid_log_file="$LXlogs/pids_main.log" ;;
-        federico-hp) pc="$host"; pid_log_file="$LXlogs/pids_extra.log" ;;
+    case "$user" in
+        "$hostMain")   pc="$hostMain";   pid_log_file="$LXlogs/pids_main.log" ;;
+        LAPTOP_USER)   pc="federico-hp"; pid_log_file="$LXlogs/pids_extra.log" ;;
 
         *) pc="unknown"; pid_log_file="$LXlogs/pids_unknown.log" ;;
-    esac 
+    esac
 }
+
+
+
+
+
+
 
 
 get_osname(){

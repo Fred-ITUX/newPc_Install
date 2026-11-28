@@ -257,7 +257,7 @@ KDE_global_settings(){
     #### Keys marked [schema] were found in KDE's own schema files (/usr/share/config.kcfg) on Fedora 45
     #### Everything marked TO CONFIRM must be checked on the real machine: System Settings shows the same options
 
-    #### Remove recents: 2 = do not remember opened documents  [schema key; value TO CONFIRM on Fedora]
+    #### Remove recents: 2 = do not remember opened documents
     asUser kwriteconfig6 --file kactivitymanagerd-pluginsrc --group "Plugin-org.kde.ActivityManager.Resources.Scoring" --key what-to-remember 2
 
     #### Disable animations to make it smoother  [schema]
@@ -274,10 +274,57 @@ KDE_global_settings(){
     done
     asUser kwriteconfig6 --file kscreenlockerrc --group Daemon --key Autolock false   #### [schema]
 
+
     #### Multitasking / workspaces setup: 4 fixed virtual desktops (KDE never adds them dynamically, and they span every monitor)
-    #### TO CONFIRM on Fedora (kwinrc [Desktops] not found in a schema file)
+    #### Number/Rows in kwinrc are read by KWin at startup only: they cover the next login
     asUser kwriteconfig6 --file kwinrc --group Desktops --key Number 4
     asUser kwriteconfig6 --file kwinrc --group Desktops --key Rows 1
+
+    #### The running KWin keeps its current count: create the missing desktops live over D-Bus (nothing to do if already 4)
+    #### Checked on Fedora 45: createDesktop(position, name) appends, kwinrc then gets Id_1..Id_4
+    local desktopCount desktopIdx
+    desktopCount=$(asUser busctl --user get-property org.kde.KWin /VirtualDesktopManager org.kde.KWin.VirtualDesktopManager count 2>/dev/null | awk '{print $2}')
+    if [ -n "$desktopCount" ]; then
+        for (( desktopIdx = desktopCount; desktopIdx < 4; desktopIdx++ )); do
+            asUser busctl --user call org.kde.KWin /VirtualDesktopManager org.kde.KWin.VirtualDesktopManager createDesktop us "$desktopIdx" "Desktop $((desktopIdx + 1))" > /dev/null || sysLogger e "Could not create desktop $((desktopIdx + 1))"
+        done
+        sysLogger i "Virtual desktops: 4 fixed, shared by every monitor"
+    else
+        sysLogger i "KWin not reachable: the 4 desktops appear at the next login"
+    fi
+
+
+    #### Shortcuts to move between workspaces (overwrite the defaults)
+    #### Replaces KWin's default Meta+Ctrl(+Shift)+Left/Right with the old Mint keys:
+    ####   Ctrl+Alt+Left/Right   = switch to the previous/next desktop
+    ####   Shift+Alt+Left/Right  = move the focused window to the previous/next desktop
+    #### Value format: "active key,default key,friendly name". Only the active key changes;
+    #### the default is kept so "Reset to default" in System Settings still works.
+    #### Checked for conflicts: these four keys are free in kglobalshortcutsrc. Applies at the next login.
+    asUser kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Switch One Desktop to the Left"  "Ctrl+Alt+Left,Meta+Ctrl+Left,Switch One Desktop to the Left"
+    asUser kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Switch One Desktop to the Right" "Ctrl+Alt+Right,Meta+Ctrl+Right,Switch One Desktop to the Right"
+    asUser kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Window One Desktop to the Left"  "Shift+Alt+Left,Meta+Ctrl+Shift+Left,Window One Desktop to the Left"
+    asUser kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Window One Desktop to the Right" "Shift+Alt+Right,Meta+Ctrl+Shift+Right,Window One Desktop to the Right"
+
+
+    #### Meta+T opens Konsole (it was KWin's "Edit Tiles", removed on purpose; Konsole keeps its own default Ctrl+Alt+T)
+    ####    > "Edit Tiles" is released by setting its active key to none, the default (Meta+T) stays so "Reset to default" in System Settings still works
+    ####    > Plasma launches apps through their .desktop file via the [services] group in kglobalshortcutsrc (key _launch); several keys are tab separated
+    ####    > applies at the next login, as the other global shortcuts (not verified live)
+    sysLogger i "Shortcut Meta+T: Konsole (Edit Tiles unbound)"
+    asUser kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Edit Tiles" "none,Meta+T,Toggle Tiles Editor" || { sysLogger e "Edit Tiles not unbound"; return 1; }
+    asUser kwriteconfig6 --file kglobalshortcutsrc --group services --group org.kde.konsole.desktop --key _launch $'Meta+T\tCtrl+Alt+T' || { sysLogger e "Konsole shortcut not written"; return 1; }
+
+
+    #### Shortcut: Super+N opens the file manager (Nemo)
+    #### Replaces GNOME's built-in "Home folder" key (<Super>n). Plasma launches apps through
+    #### their .desktop file via the [services] group in kglobalshortcutsrc (key _launch).
+    #### Meta+N was checked: free in kglobalshortcutsrc. Nemo is already the default for inode/directory.
+    #### Format not yet verified live; needs a logout if kglobalaccel doesn't reload the file.
+    #### asUser kwriteconfig6 --file kglobalshortcutsrc --group services --group nemo.desktop --key _launch "Meta+N"
+
+    #### tearing: forbid in fullscreen windows (KWin default is true)
+    asUser kwriteconfig6 --file kwinrc --group Compositing --key AllowTearing false
 
     #### Night light setup: off, and "Constant" mode (no sunset / sunrise schedule) so Shortcuts/night_light.sh decides alone when it is active
     #### [schema: Mode accepts Constant or DarkLight on Fedora 45]
@@ -285,11 +332,24 @@ KDE_global_settings(){
     asUser kwriteconfig6 --file kwinrc --group NightColor --key Mode Constant
     # asUser kwriteconfig6 --file kwinrc --group NightColor --key NightTemperature 2500 #### 1000~10000
 
+    #### Pointer acceleration: always off (flat profile) on every mouse found at deploy time
+    #### Checked on Fedora 45: kcminputrc [Libinput][vendor][product][name] PointerAccelerationProfile=1 = flat (KWin shows pointerAccelerationProfileFlat=true)
+    local inputEvent inputDir inputVendor inputProduct inputName
+    for inputEvent in /sys/class/input/event*; do
+        if udevadm info -q property -p "$inputEvent" 2>/dev/null | grep -q "^ID_INPUT_MOUSE=1"; then
+            inputDir="$inputEvent/device"
+            inputVendor=$((16#$(<"$inputDir/id/vendor")))
+            inputProduct=$((16#$(<"$inputDir/id/product")))
+            inputName=$(<"$inputDir/name")
+            asUser kwriteconfig6 --file kcminputrc --group Libinput --group "$inputVendor" --group "$inputProduct" --group "$inputName" --key PointerAccelerationProfile 1
+        fi
+    done
+
 
     ####            Terminal customization (Konsole)
 
     #### Profile file: underline cursor, no blink, 26 rows x 90 columns, 20px padding (was gtk.css in theme_updater.sh)
-    #### Key names found in Konsole's library on Fedora 45; values TO CONFIRM on Fedora (CursorShape: 0 block, 1 I-beam, 2 underline)
+    #### Key names found in Konsole's library on Fedora 45 (CursorShape: 0 block, 1 I-beam, 2 underline)
     local konsoleProfile
     konsoleProfile="[Appearance]
 Font=DejaVu Sans Mono,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
@@ -518,6 +578,11 @@ flatpakOverrides(){
         asUser flatpak override --user --filesystem=""$localPath"/"$y"":ro  || { sysLogger e "Failed to apply override for path "$y"" ; }
     done
 
+    #### Dark pop-ups for GTK3 Flatpak apps: the sandbox has no access to the host's GTK settings, so it falls back to the light theme.
+    #### Adwaita is built into GTK3 (no package, no files). Breeze:dark did NOT render dark under the runtime's GTK 3.24 (tested with VSCodium).
+    #### Global override: an app-level GTK_THEME (even an empty one) beats it, so never write one per app.
+    sysLogger i "Dark GTK theme for all flatpak apps (GTK_THEME=Adwaita:dark)"
+    asUser flatpak override --user --env=GTK_THEME=Adwaita:dark || { sysLogger e "Failed to set GTK_THEME override" ; }
 
     #### Chromium: throwaway browser for sites outside the policy, never stores credentials
     ####    > downloads only in ~/Downloads, no webcam / security keys, no bluetooth / casting, no keyring

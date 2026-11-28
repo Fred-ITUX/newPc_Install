@@ -96,7 +96,7 @@ sysLogger i "Global theme applied"
 
 
 #### Set the background to a solid black
-#### TO CONFIRM on Fedora: needs a running plasmashell, so it only works from a logged-in Plasma session
+#### Needs a running plasmashell, so it only works from a logged-in Plasma session
 sysLogger i "Set the background to a solid black"
 read -r -d '' wallpaperScript <<'EOF'
 for (const d of desktops()) {
@@ -148,3 +148,232 @@ setFont     "WM"        "activeFont"            "$interface,11,$fontTail"   || e
 setFont     "General"   "fixed"                 "$mono,12,$fontTail"        || exit 1    #### Anything requiring a mono-spaced font (Konsole, code editors...)
 
 sysLogger i "Fonts set: they apply to newly started apps, fully after the next login"
+
+
+
+
+
+
+
+
+
+
+
+
+##################################################################
+
+####            PANELS
+####    Sectors: helpers (panelKscreen, panelMainScreen, panelEval) | panelsSetup (top panel + bottom docks + taskbar) | clockSetup (clock widget)
+####    Everything runs through plasmashell's scripting, so it needs a logged-in Plasma session (a failed call only warns, the rest of the script goes on)
+
+
+panelKscreen(){
+    #### Prints the screens as kscreen sees them (JSON)
+    #### sudo strips WAYLAND_DISPLAY and kscreen-doctor needs the compositor socket: take its name from the user's runtime dir
+    local waylandSocket
+    waylandSocket=$(find "$userRuntime" -maxdepth 1 -name 'wayland-[0-9]*' ! -name '*.lock' -printf '%f\n' 2>/dev/null | head -1)
+    if [ -z "$waylandSocket" ]; then sysLogger e "Wayland socket not found in $userRuntime" >&2; return 1; fi
+    asUser env WAYLAND_DISPLAY="$waylandSocket" kscreen-doctor -j
+}
+
+
+panelMainScreen(){
+    #### Prints the connector name of the main screen (the output with priority 1 in kscreen)
+    panelKscreen | jq -r '.outputs[] | select(.priority==1) | .name'
+}
+
+
+panelEval(){
+    #### panelEval <what> <javascript>: runs a Plasma scripting snippet in plasmashell as the real user
+    local what="$1" script="$2"
+    asUser qdbus-qt6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$script" > /dev/null 2>&1 || { sysLogger w "$what not changed (plasmashell not reachable): re-run from a Plasma session"; return 1; }
+}
+
+
+panelsSetup(){
+    #### TOP panel on the main screen: executor left | spacer | CLOCK | spacer | executor right | tray | show desktop
+    ####    > the two flexible spacers share the free space, so the clock is centered when both sides take about the same width
+    ####    > launcher, taskbar and separator live in the bottom docks; the Virtual Desktops widget (pager) is removed everywhere
+    #### BOTTOM docks, one per screen (both screens at all times): launcher with the Fedora logo + taskbar with the pinned apps and every desktop's windows
+    ####    > floating (detached from the edge), only as wide as its icons and centered, translucent, hidden only when a window covers it ("dodgewindows")
+    ####      and shown again when the cursor reaches the edge. Values are the lowercase names of the shell's own enums
+    ####    > icons are about the panel height minus its margins: tune bottomHeight if they come out smaller or bigger
+    ####    > created once per screen, reused on later runs
+    local mainScreen screenNames topHeight=30 bottomHeight=58 topScript bottomScript app launchers=""
+    #### Pinned apps, left to right (desktop file ids, checked in /usr/share/applications and the Flatpak exports)
+    local pinnedApps=("org.kde.kwrite.desktop" "com.vscodium.codium.desktop" "nemo.desktop" "com.brave.Browser.desktop" "com.google.Chrome.desktop" "org.kde.konsole.desktop" "org.pulseaudio.pavucontrol.desktop")
+
+    mainScreen=$(panelMainScreen) || { sysLogger e "Main screen not found"; return 1; }
+    screenNames=$(panelKscreen | jq -c '[.outputs[] | select(.enabled) | .name]') || { sysLogger e "Screens not found"; return 1; }
+    if [ -z "$mainScreen" ] || [ -z "$screenNames" ]; then sysLogger e "No screen found (kscreen-doctor)"; return 1; fi
+
+    #### "launchers" is a StringList in the widget's schema: Plasma scripting needs a real JS array, not a comma separated string
+    for app in "${pinnedApps[@]}"; do launchers+="\"applications:$app\","; done
+    launchers="${launchers%,}"
+    sysLogger i "Panels: top ${topHeight}px on $mainScreen, bottom docks ${bottomHeight}px on $screenNames, pinned: $launchers"
+
+    #### Top first: on a fresh deploy it turns the default (bottom) panel into the top one, then the docks are created as new panels
+    read -r -d '' topScript <<EOF
+const screenId = screenForConnector("$mainScreen");
+const t = panels().find(p => p.location === "top") || panels()[0];
+t.location = "top";
+t.screen = screenId;
+t.height = $topHeight;
+for (const p of panels()) { for (const w of p.widgets()) { if (w.type === "org.kde.plasma.pager") { w.remove(); } } }
+for (const w of t.widgets()) { if (["org.kde.plasma.kickoff", "org.kde.plasma.icontasks", "org.kde.plasma.marginsseparator"].includes(w.type)) { w.remove(); } }
+function byType(ty) { return t.widgets().filter(w => w.type === ty); }
+function byCmd(name) { return t.widgets().filter(w => { if (w.type !== "local.executor") { return false; } w.currentConfigGroup = ["General"]; return String(w.readConfig("command")).indexOf(name) >= 0; }); }
+while (byType("org.kde.plasma.panelspacer").length < 2) { t.addWidget("org.kde.plasma.panelspacer"); }
+const spacers = byType("org.kde.plasma.panelspacer");
+const order = [].concat(byCmd("left_idx.sh"), [spacers[0]], byType("org.kde.plasma.digitalclock"), [spacers[1]], byCmd("right_idx.sh"), byType("org.kde.plasma.systemtray"), byType("org.kde.plasma.showdesktop"));
+order.forEach((w, i) => { w.index = i; });
+EOF
+    panelEval "Top panel" "$topScript" || return 1
+
+    read -r -d '' bottomScript <<EOF
+for (const name of $screenNames) {
+    const screenId = screenForConnector(name);
+    let b = panels().find(p => p.location === "bottom" && p.screen === screenId);
+    if (!b) { b = new Panel(); b.location = "bottom"; }
+    b.screen = (screenId === 0) ? 1 : 0;
+    b.screen = screenId;
+    b.height = $bottomHeight;
+    b.floating = true;
+    b.lengthMode = "fit";
+    b.alignment = "center";
+    b.opacity = "translucent";
+    b.hiding = "dodgewindows";
+    const has = ty => b.widgets().some(w => w.type === ty);
+    if (!has("org.kde.plasma.kickoff")) { b.addWidget("org.kde.plasma.kickoff"); }
+    if (!has("org.kde.plasma.icontasks")) { b.addWidget("org.kde.plasma.icontasks"); }
+    for (const w of b.widgets()) {
+        if (w.type === "org.kde.plasma.kickoff") { w.currentConfigGroup = ["General"]; w.writeConfig("icon", "fedora-logo-icon"); }
+        if (w.type === "org.kde.plasma.icontasks") { w.currentConfigGroup = ["General"]; w.writeConfig("launchers", [$launchers]); w.writeConfig("showOnlyCurrentDesktop", false); }
+    }
+}
+EOF
+    panelEval "Bottom docks" "$bottomScript" || return 1
+}
+
+
+clockSetup(){
+    #### Clock widget: European date and 24h time, without touching the system locale
+    ####    > keys from the widget's own config schema (group Appearance): dateFormat "custom" uses customDateFormat, use24hFormat 2 = force 24h
+    ####    > dateDisplayFormat: 0 = adaptive (default), 1 = date beside the time, 2 = date below the time
+    ####    > same look as the old GNOME bar (Exec/middle_idx.sh: date "+ %a %d | %H:%M "): "Sat 28 | 17:01", the date part is "ddd dd |"
+    sysLogger i "Clock widget: date 'ddd dd |' beside the time, 24h time"
+
+    local clockScript clockKeys
+    read -r -d '' clockScript <<'EOF'
+for (const p of panels()) {
+    for (const w of p.widgets()) {
+        if (w.type === "org.kde.plasma.digitalclock") {
+            w.currentConfigGroup = ["Appearance"];
+            w.writeConfig("dateFormat", "custom");
+            w.writeConfig("customDateFormat", "ddd dd |");
+            w.writeConfig("use24hFormat", 2);
+            w.writeConfig("dateDisplayFormat", 1);
+        }
+    }
+}
+EOF
+    panelEval "Clock format" "$clockScript" || return 1
+
+    #### Plasma writes the applet file a moment after the change: read the keys back to prove it stuck
+    sleep 2
+    clockKeys=$(asUser grep -E "^(dateFormat|customDateFormat|use24hFormat|dateDisplayFormat)=" "$userHome/.config/plasma-org.kde.plasma.desktop-appletsrc")
+    if [ -z "$clockKeys" ]; then sysLogger w "Clock keys not found in plasma-org.kde.plasma.desktop-appletsrc (not written yet, or no clock widget)"; return 1; fi
+    sysLogger i "Clock keys now in the applet file: $(echo "$clockKeys" | tr '\n' ' ')"
+}
+
+
+panelDodgeSetup(){
+    #### Panel Dodge (KWin script, Plasma 6): moves the top panel to the other monitor while a window is fullscreen on the main screen, back afterwards
+    ####    > cloned next to the other repos in ~/Github, built with its Makefile and installed for the user
+    ####    > its own "make install" ends with qdbus6, which does not exist on Fedora (qdbus-qt6): install and reload are done here instead
+    ####    > config keys read from its own config/main.xml: MainOutput (connector of the main screen), PanelId (the top panel), SideScreen (-1 = the other screen)
+    local repoDir="$userHome/Github/panel-dodge" tool mainScreen topPanelId archive
+    for tool in git make zip kpackagetool6; do
+        if ! command -v "$tool" > /dev/null 2>&1; then sysLogger e "$tool is not installed (packages go in newPc_Install.sh)"; return 1; fi
+    done
+
+    if [ -d "$repoDir/.git" ]; then
+        sysLogger i "Panel Dodge already cloned, updating"
+        asUser git -C "$repoDir" pull --ff-only || { sysLogger e "Panel Dodge update failed"; return 1; }
+    else
+        sysLogger i "Cloning Panel Dodge into $repoDir"
+        asUser git clone https://github.com/iacosta3994/panel-dodge "$repoDir" || { sysLogger e "Panel Dodge clone failed"; return 1; }
+    fi
+
+    asUser make -C "$repoDir" build > /dev/null || { sysLogger e "Panel Dodge build failed"; return 1; }
+    archive=$(ls "$repoDir"/panel-dodge-*.kwinscript 2>/dev/null | head -1)
+    if [ -z "$archive" ]; then sysLogger e "Panel Dodge archive not found in $repoDir"; return 1; fi
+    asUser kpackagetool6 --type=KWin/Script -i "$archive" > /dev/null 2>&1 || asUser kpackagetool6 --type=KWin/Script -u "$archive" > /dev/null || { sysLogger e "Panel Dodge install failed"; return 1; }
+
+    mainScreen=$(panelMainScreen) || { sysLogger e "Main screen not found"; return 1; }
+    topPanelId=$(asUser qdbus-qt6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript 'print(panels().find(p => p.location === "top").id)' 2>/dev/null)
+    if [ -z "$topPanelId" ]; then sysLogger e "Top panel not found (plasmashell not reachable)"; return 1; fi
+    sysLogger i "Panel Dodge: panel $topPanelId, main screen $mainScreen"
+
+    asUser kwriteconfig6 --file kwinrc --group Script-panel-dodge --key MainOutput "$mainScreen"
+    asUser kwriteconfig6 --file kwinrc --group Script-panel-dodge --key PanelId "$topPanelId"
+    asUser kwriteconfig6 --file kwinrc --group Plugins --key panel-dodgeEnabled true
+    asUser qdbus-qt6 org.kde.KWin /KWin reconfigure > /dev/null 2>&1 || { sysLogger w "KWin not reachable: Panel Dodge starts at the next login"; return 1; }
+    sysLogger i "Panel Dodge installed and enabled"
+}
+
+
+
+
+commandMenuSetup(){
+    #### Shortcuts menu in the top bar (replaces the GNOME Custom Command List): the "Command Menu" Plasma 6 widget, right after the RIGHT executor (before the tray)
+    ####    > repo cloned next to the other repos in ~/Github, installed for the user with its own install.sh (plugin id com.github.tesla.plasmacommandmenu)
+    ####    > the menu is ~/.commands.json, a copy of Shortcuts/commands.json (single source of truth); the widget re-reads it every time the menu opens
+    ####    > replaces the Quick Launch attempt: its widget and its hidden shortcut-N.desktop launchers are removed
+    local repoDir="$userHome/Github/plasma-command-menu" menuFile="$userHome/Nextcloud/Linux/scripts/Shortcuts/commands.json" appsDir="$userHome/.local/share/applications"
+    local tool menuScript
+    for tool in git jq kpackagetool6; do
+        if ! command -v "$tool" > /dev/null 2>&1; then sysLogger e "$tool is not installed (packages go in newPc_Install.sh)"; return 1; fi
+    done
+    if [ ! -f "$menuFile" ]; then sysLogger e "commands.json not found: $menuFile"; return 1; fi
+    jq -e . "$menuFile" > /dev/null 2>&1 || { sysLogger e "$menuFile is not valid JSON"; return 1; }
+
+    if [ -d "$repoDir/.git" ]; then
+        sysLogger i "Command Menu already cloned, updating"
+        asUser git -C "$repoDir" pull --ff-only || { sysLogger e "Command Menu update failed"; return 1; }
+    else
+        sysLogger i "Cloning Command Menu into $repoDir"
+        asUser git clone https://github.com/willheisenberg/plasma-command-menu "$repoDir" || { sysLogger e "Command Menu clone failed"; return 1; }
+    fi
+    asUser bash "$repoDir/install.sh" > /dev/null || { sysLogger e "Command Menu install failed"; return 1; }
+
+    #### Shortcuts/commands.json -> ~/.commands.json: the widget reads its menu from there (it expands "~" but not "$HOME" in that path, and runs every command through sh -c, so $HOME inside a command works)
+    atomicWrite ".commands.json" "$userHome" "$(cat "$menuFile")" || { sysLogger e "~/.commands.json not written"; return 1; }
+    sysLogger i "Command Menu: $(jq '.menu | length' "$menuFile") entries copied to $userHome/.commands.json"
+
+    asUser rm -f "$appsDir"/shortcut-[0-9]*.desktop
+
+    read -r -d '' menuScript <<'EOF'
+const t = panels().find(p => p.location === "top");
+for (const w of t.widgets()) { if (w.type === "org.kde.plasma.quicklaunch") { w.remove(); } }
+let m = t.widgets().find(w => w.type === "com.github.tesla.plasmacommandmenu");
+if (!m) { m = t.addWidget("com.github.tesla.plasmacommandmenu"); }
+const right = t.widgets().find(w => { if (w.type !== "local.executor") { return false; } w.currentConfigGroup = ["General"]; return String(w.readConfig("command")).indexOf("right_idx.sh") >= 0; });
+if (right) { m.index = right.index + 1; }
+EOF
+
+    asUser qdbus-qt6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$menuScript" > /dev/null 2>&1 || { sysLogger w "Command Menu widget not added (plasmashell not reachable, or it does not know the widget yet: systemctl --user restart plasma-plasmashell.service)"; return 1; }
+}
+
+
+
+
+
+panelsSetup || { sysLogger e "Failed to set up the panels"; }
+clockSetup  || { sysLogger e "Failed to apply format to clock"; }
+panelDodgeSetup || { sysLogger e "Failed to set up Panel Dodge"; }
+commandMenuSetup || { sysLogger e "Failed to set up the shortcuts menu"; }
+
+
+
+

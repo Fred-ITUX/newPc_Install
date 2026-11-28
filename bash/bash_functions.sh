@@ -117,6 +117,91 @@ end(){
 
 ##################################################
 
+# sysUPD(){
+#     local outputLog="${1:-}"
+#     local updPath="${XDG_RUNTIME_DIR}/UPD_logs"
+#     local completeLog="$updPath/UPD_completeLog.log"
+#     local fullLog step stepLog
+#     local reported=0
+
+#     if [ -z "$outputLog" ]; then sysLogger e "sysUPD requires an output log path"; return 1; fi
+
+#     mkdir -p "$updPath" || { sysLogger e "Cannot create $updPath"; return 1; }
+
+    
+#     fullLog="$(get_pathStartupUpdaterFull)" #### Retain full log
+
+
+#     #### Order of execution, and the title each block gets in the logs
+#     local steps=( 
+#             fixPkg 
+#             update 
+#             upgrade 
+#             flatpak 
+#             cleanup 
+#     )
+
+#     local -A title=( [fixPkg]="Fix broken pkg" [update]="Update" [upgrade]="Upgrade" [flatpak]="Flatpak update" [cleanup]="Autoremove" )
+
+
+#     #### A block is left out of the complete log when it shows nothing happened:
+#     #### quietIf  -> the output MATCHES the "nothing done" text
+#     #### reportIf -> reverse logic, the output does NOT match any warning / error
+#     local -A quietIf=(
+#         [fixPkg]="0 upgraded, 0 newly installed, 0 to remove"
+#         [upgrade]="0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded"
+#         [flatpak]="Nothing to do"
+#         [cleanup]="0 upgraded, 0 newly installed, 0 to remove"
+#     )
+#     local -A reportIf=( [update]='^\s*(W|E|Err):|WARN|ERROR|REMOVED' )
+
+
+#     UPD_run(){
+#         case "$1" in
+#             fixPkg)  sudo -n /usr/bin/dpkg --configure -a; sudo -n /usr/bin/apt-get --fix-broken install -y ;;
+#             update)  sudo -n /usr/bin/apt-get --fix-missing -q update ;;
+#             upgrade) sudo -n /usr/bin/apt-get dist-upgrade -y ;;
+#             flatpak) flatpak update -y ;;
+#             cleanup) sudo -n /usr/bin/apt-get autoremove -y; sudo -n /usr/bin/apt-get clean ;;
+#         esac
+#     }
+
+#     getSysInfoStart > "$completeLog"
+#     getSysInfoStart >> "$fullLog"
+
+#     for step in "${steps[@]}"; do
+#         stepLog="$updPath/UPD_$step.log"
+
+#         #### stderr too: apt writes its E: / W: lines there. Indented to allow fold per-day
+#         { echo -e "\n• ${title[$step]}: \n"; UPD_run "$step"; } 2>&1 | sed 's/^/\t/' > "$stepLog"
+
+#         cat "$stepLog" >> "$fullLog"
+
+#         if [ -n "${quietIf[$step]:-}" ]; then
+#             if grep -qiE "${quietIf[$step]}" "$stepLog"; then continue; fi
+#         else
+#             if ! grep -qiE "${reportIf[$step]}" "$stepLog"; then continue; fi
+#         fi
+
+#         cat "$stepLog" >> "$completeLog"
+#         reported=$((reported+1))
+#     done
+
+#     if [ "$reported" -eq 0 ]; then echo -e "\n\t> Nothing to report" >> "$completeLog"; fi
+
+#     getSysInfoEnd >> "$fullLog"
+#     getSysInfoEnd >> "$completeLog"
+
+#     py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
+
+#     #### Collapses multiple newlines into 2 to keep spacing
+#     fileNewLineStrip "$fullLog"
+#     fileNewLineStrip "$completeLog"
+
+#     cat "$completeLog" >> "$outputLog"
+# }
+
+
 sysUPD(){
     local outputLog="${1:-}"
     local updPath="${XDG_RUNTIME_DIR}/UPD_logs"
@@ -128,41 +213,41 @@ sysUPD(){
 
     mkdir -p "$updPath" || { sysLogger e "Cannot create $updPath"; return 1; }
 
-    
+
     fullLog="$(get_pathStartupUpdaterFull)" #### Retain full log
 
 
     #### Order of execution, and the title each block gets in the logs
+    #### dnf has no separate "update" (refresh the index) and no "fix broken" step:
+    #### `dnf upgrade --refresh` downloads the index and upgrades in one go
     local steps=( 
-            fixPkg 
-            update 
             upgrade 
             flatpak 
             cleanup 
     )
 
-    local -A title=( [fixPkg]="Fix broken pkg" [update]="Update" [upgrade]="Upgrade" [flatpak]="Flatpak update" [cleanup]="Autoremove" )
+    local -A title=( [upgrade]="Upgrade" [flatpak]="Flatpak update" [cleanup]="Autoremove" )
 
 
     #### A block is left out of the complete log when it shows nothing happened:
     #### quietIf  -> the output MATCHES the "nothing done" text
-    #### reportIf -> reverse logic, the output does NOT match any warning / error
+    ####             (dnf: "Nothing to do." ; flatpak: "Nothing to do." or, with no app installed, "Nothing to update.")
+    #### problem  -> ... unless it ALSO shows a warning / error (e.g. a repository that could not be reached)
+    ####             \berror\b = the whole word only: `dnf clean` always ends with "0 errors occurred", which must not count
     local -A quietIf=(
-        [fixPkg]="0 upgraded, 0 newly installed, 0 to remove"
-        [upgrade]="0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded"
-        [flatpak]="Nothing to do"
-        [cleanup]="0 upgraded, 0 newly installed, 0 to remove"
+        [upgrade]="Nothing to do"
+        [flatpak]="Nothing to (do|update)"
+        [cleanup]="Nothing to do"
     )
-    local -A reportIf=( [update]='^\s*(W|E|Err):|WARN|ERROR|REMOVED' )
+    local problem='\berror\b|[1-9][0-9]* errors|fail|warning|cannot|could not|problem'
 
 
     UPD_run(){
         case "$1" in
-            fixPkg)  sudo -n /usr/bin/dpkg --configure -a; sudo -n /usr/bin/apt-get --fix-broken install -y ;;
-            update)  sudo -n /usr/bin/apt-get --fix-missing -q update ;;
-            upgrade) sudo -n /usr/bin/apt-get dist-upgrade -y ;;
+            #### These three dnf command lines must match the UPDATE alias in enable_sudo_whitelist.sh character by character
+            upgrade) sudo -n /usr/bin/dnf upgrade --refresh -y ;;
             flatpak) flatpak update -y ;;
-            cleanup) sudo -n /usr/bin/apt-get autoremove -y; sudo -n /usr/bin/apt-get clean ;;
+            cleanup) sudo -n /usr/bin/dnf autoremove -y; sudo -n /usr/bin/dnf clean packages ;;
         esac
     }
 
@@ -172,16 +257,12 @@ sysUPD(){
     for step in "${steps[@]}"; do
         stepLog="$updPath/UPD_$step.log"
 
-        #### stderr too: apt writes its E: / W: lines there. Indented to allow fold per-day
+        #### stderr too: dnf writes its errors there. Indented to allow fold per-day
         { echo -e "\n• ${title[$step]}: \n"; UPD_run "$step"; } 2>&1 | sed 's/^/\t/' > "$stepLog"
 
         cat "$stepLog" >> "$fullLog"
 
-        if [ -n "${quietIf[$step]:-}" ]; then
-            if grep -qiE "${quietIf[$step]}" "$stepLog"; then continue; fi
-        else
-            if ! grep -qiE "${reportIf[$step]}" "$stepLog"; then continue; fi
-        fi
+        if grep -qiE "${quietIf[$step]}" "$stepLog" && ! grep -qiE "$problem" "$stepLog"; then continue; fi
 
         cat "$stepLog" >> "$completeLog"
         reported=$((reported+1))
@@ -202,94 +283,89 @@ sysUPD(){
 }
 
 
-#### fedoraMigration
-# sysUPD(){
-#     local outputLog="${1:-}"
-#     local updPath="${XDG_RUNTIME_DIR}/UPD_logs"
-#     local completeLog="$updPath/UPD_completeLog.log"
-#     local fullLog step stepLog
-#     local reported=0
-#
-#     if [ -z "$outputLog" ]; then sysLogger e "sysUPD requires an output log path"; return 1; fi
-#
-#     mkdir -p "$updPath" || { sysLogger e "Cannot create $updPath"; return 1; }
-#
-#
-#     fullLog="$(get_pathStartupUpdaterFull)" #### Retain full log
-#
-#
-#     #### Order of execution, and the title each block gets in the logs
-#     #### dnf has no separate "update" (refresh the index) and no "fix broken" step:
-#     #### `dnf upgrade --refresh` downloads the index and upgrades in one go
-#     local steps=( 
-#             upgrade 
-#             flatpak 
-#             cleanup 
-#     )
-#
-#     local -A title=( [upgrade]="Upgrade" [flatpak]="Flatpak update" [cleanup]="Autoremove" )
-#
-#
-#     #### A block is left out of the complete log when it shows nothing happened:
-#     #### quietIf  -> the output MATCHES the "nothing done" text
-#     ####             (dnf: "Nothing to do." ; flatpak: "Nothing to do." or, with no app installed, "Nothing to update.")
-#     #### problem  -> ... unless it ALSO shows a warning / error (e.g. a repository that could not be reached)
-#     ####             \berror\b = the whole word only: `dnf clean` always ends with "0 errors occurred", which must not count
-#     local -A quietIf=(
-#         [upgrade]="Nothing to do"
-#         [flatpak]="Nothing to (do|update)"
-#         [cleanup]="Nothing to do"
-#     )
-#     local problem='\berror\b|[1-9][0-9]* errors|fail|warning|cannot|could not|problem'
-#
-#
-#     UPD_run(){
-#         case "$1" in
-#             #### These three dnf command lines must match the UPDATE alias in enable_sudo_whitelist.sh character by character
-#             upgrade) sudo -n /usr/bin/dnf upgrade --refresh -y ;;
-#             flatpak) flatpak update -y ;;
-#             cleanup) sudo -n /usr/bin/dnf autoremove -y; sudo -n /usr/bin/dnf clean packages ;;
-#         esac
-#     }
-#
-#     getSysInfoStart > "$completeLog"
-#     getSysInfoStart >> "$fullLog"
-#
-#     for step in "${steps[@]}"; do
-#         stepLog="$updPath/UPD_$step.log"
-#
-#         #### stderr too: dnf writes its errors there. Indented to allow fold per-day
-#         { echo -e "\n• ${title[$step]}: \n"; UPD_run "$step"; } 2>&1 | sed 's/^/\t/' > "$stepLog"
-#
-#         cat "$stepLog" >> "$fullLog"
-#
-#         if grep -qiE "${quietIf[$step]}" "$stepLog" && ! grep -qiE "$problem" "$stepLog"; then continue; fi
-#
-#         cat "$stepLog" >> "$completeLog"
-#         reported=$((reported+1))
-#     done
-#
-#     if [ "$reported" -eq 0 ]; then echo -e "\n\t> Nothing to report" >> "$completeLog"; fi
-#
-#     getSysInfoEnd >> "$fullLog"
-#     getSysInfoEnd >> "$completeLog"
-#
-#     py "$LXscripts/Startup_Routine/log_cleaner.py" "$completeLog" || { sysLogger e "$LXscripts/Startup_Routine/log_cleaner.py failed, appending raw log"; }
-#
-#     #### Collapses multiple newlines into 2 to keep spacing
-#     fileNewLineStrip "$fullLog"
-#     fileNewLineStrip "$completeLog"
-#
-#     cat "$completeLog" >> "$outputLog"
-# }
-
-
 updater(){
     sysUPD "$pathManualUpd" 
     gedit "$pathManualUpd" &
 }
 
 ##################################################
+
+# systemInfo(){
+#     local infoArray
+
+#     get_wm(){
+#     if [ "$XDG_CURRENT_DESKTOP" == "GNOME" ]; then echo "Mutter"; elif [ "$XDG_CURRENT_DESKTOP" == "KDE" ]; then echo "KWin"
+#     else
+#         wm=$(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null | awk -F'#' '/^_NET_SUPPORTING_WM_CHECK/ {print $2}' | xargs -I{} xprop -id {} _NET_WM_NAME 2>/dev/null | cut -d '"' -f2)
+#         echo "${wm:-Unknown}" 
+#     fi 
+#     }
+#     get_compositor(){
+#         if pgrep -x picom > /dev/null; then
+#             echo "picom"
+#         elif pgrep -x compton > /dev/null; then
+#             echo "compton"
+#         elif [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
+#             echo "KWin (built-in)"
+#         elif [ "$XDG_CURRENT_DESKTOP" = "GNOME" ]; then
+#             echo "Mutter (built-in)"
+#         else
+#             echo "Unknown"
+#         fi
+#     }
+
+#     get_gtk_theme() {
+#         gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null | tr -d "'"
+#     }
+#     get_icon_theme() {
+#         gsettings get org.gnome.desktop.interface icon-theme 2>/dev/null | tr -d "'"
+#     }
+#     get_font_name() {
+#         gsettings get org.gnome.desktop.interface font-name 2>/dev/null | tr -d "'"
+#     }
+
+#     get_shell_version() {
+#         case "$SHELL" in
+#             */bash) bash --version | head -n1 ;;
+#             */zsh) zsh --version ;;
+#             */fish) fish --version ;;
+#             *) echo "$SHELL" ;;
+#         esac
+#     }
+
+#     get_gnome_version(){
+#         local isGnome=$(echo "$XDG_CURRENT_DESKTOP")
+#         if [ "$isGnome" == "GNOME" ]; then printOut=$(echo -e "$(gnome-shell --version 2>/dev/null | cut -d' ' -f3)"); else printOut=""; fi
+#         echo "$printOut"
+#     }
+
+
+
+#     infoArray=(
+#         $'\033[1mSystem Info:\033[0m ' "$(get_formatted_date)"
+#         "OS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \")"
+#         "Kernel: $(uname -r)"
+#         "Uptime: $(uptime -p | sed 's/up //')"
+#         "Packages: $(dpkg-query -f '.\n' -W 2>/dev/null | wc -l)"
+#         "Flatpak pkg: $(flatpak list | wc -l)"
+#         "Shell: $(get_shell_version)"
+#         "DE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_gnome_version)"
+#         "Session: ${XDG_SESSION_TYPE:-unknown}"
+#         "WM: $(get_wm)"
+#         "Compositor: $(get_compositor)"
+#         "Theme: $(get_gtk_theme)"
+#         "Icons: $(get_icon_theme)"
+#         "Font: $(get_font_name)"
+#         "CPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//')"
+#         "GPU: $(lspci | grep VGA | cut -d: -f3 | xargs)"
+#         "RAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}')"
+#         "SWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
+#     )
+
+
+#     printf '%s\n' "${infoArray[@]}"
+# }
+
 
 systemInfo(){
     local infoArray
@@ -315,14 +391,16 @@ systemInfo(){
         fi
     }
 
+    #### KDE keeps these in ~/.config/kdeglobals (written by newPc/theme_updater.sh)
     get_gtk_theme() {
-        gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null | tr -d "'"
+        kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage 2>/dev/null
     }
     get_icon_theme() {
-        gsettings get org.gnome.desktop.interface icon-theme 2>/dev/null | tr -d "'"
+        kreadconfig6 --file kdeglobals --group Icons --key Theme 2>/dev/null
     }
     get_font_name() {
-        gsettings get org.gnome.desktop.interface font-name 2>/dev/null | tr -d "'"
+        #### "DejaVu Sans Condensed,11,-1,5,..." -> "DejaVu Sans Condensed 11"
+        kreadconfig6 --file kdeglobals --group General --key font 2>/dev/null | awk -F',' '{print $1, $2}'
     }
 
     get_shell_version() {
@@ -334,10 +412,9 @@ systemInfo(){
         esac
     }
 
-    get_gnome_version(){
-        local isGnome=$(echo "$XDG_CURRENT_DESKTOP")
-        if [ "$isGnome" == "GNOME" ]; then printOut=$(echo -e "$(gnome-shell --version 2>/dev/null | cut -d' ' -f3)"); else printOut=""; fi
-        echo "$printOut"
+    get_de_version(){
+        #### "plasmashell 6.8.2" -> "6.8.2"
+        if [ "$XDG_CURRENT_DESKTOP" == "KDE" ]; then plasmashell --version 2>/dev/null | awk '{print $2}'; fi
     }
 
 
@@ -347,10 +424,10 @@ systemInfo(){
         "OS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \")"
         "Kernel: $(uname -r)"
         "Uptime: $(uptime -p | sed 's/up //')"
-        "Packages: $(dpkg-query -f '.\n' -W 2>/dev/null | wc -l)"
+        "Packages: $(rpm -qa 2>/dev/null | wc -l)"
         "Flatpak pkg: $(flatpak list | wc -l)"
         "Shell: $(get_shell_version)"
-        "DE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_gnome_version)"
+        "DE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_de_version)"
         "Session: ${XDG_SESSION_TYPE:-unknown}"
         "WM: $(get_wm)"
         "Compositor: $(get_compositor)"
@@ -366,85 +443,6 @@ systemInfo(){
 
     printf '%s\n' "${infoArray[@]}"
 }
-
-
-#### fedoraMigration
-# systemInfo(){
-#     local infoArray
-#
-#     get_wm(){
-#     if [ "$XDG_CURRENT_DESKTOP" == "GNOME" ]; then echo "Mutter"; elif [ "$XDG_CURRENT_DESKTOP" == "KDE" ]; then echo "KWin"
-#     else
-#         wm=$(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null | awk -F'#' '/^_NET_SUPPORTING_WM_CHECK/ {print $2}' | xargs -I{} xprop -id {} _NET_WM_NAME 2>/dev/null | cut -d '"' -f2)
-#         echo "${wm:-Unknown}" 
-#     fi 
-#     }
-#     get_compositor(){
-#         if pgrep -x picom > /dev/null; then
-#             echo "picom"
-#         elif pgrep -x compton > /dev/null; then
-#             echo "compton"
-#         elif [ "$XDG_CURRENT_DESKTOP" = "KDE" ]; then
-#             echo "KWin (built-in)"
-#         elif [ "$XDG_CURRENT_DESKTOP" = "GNOME" ]; then
-#             echo "Mutter (built-in)"
-#         else
-#             echo "Unknown"
-#         fi
-#     }
-#
-#     #### KDE keeps these in ~/.config/kdeglobals (written by newPc/theme_updater.sh)
-#     get_gtk_theme() {
-#         kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage 2>/dev/null
-#     }
-#     get_icon_theme() {
-#         kreadconfig6 --file kdeglobals --group Icons --key Theme 2>/dev/null
-#     }
-#     get_font_name() {
-#         #### "DejaVu Sans Condensed,11,-1,5,..." -> "DejaVu Sans Condensed 11"
-#         kreadconfig6 --file kdeglobals --group General --key font 2>/dev/null | awk -F',' '{print $1, $2}'
-#     }
-#
-#     get_shell_version() {
-#         case "$SHELL" in
-#             */bash) bash --version | head -n1 ;;
-#             */zsh) zsh --version ;;
-#             */fish) fish --version ;;
-#             *) echo "$SHELL" ;;
-#         esac
-#     }
-#
-#     get_de_version(){
-#         #### "plasmashell 6.8.2" -> "6.8.2"
-#         if [ "$XDG_CURRENT_DESKTOP" == "KDE" ]; then plasmashell --version 2>/dev/null | awk '{print $2}'; fi
-#     }
-#
-#
-#
-#     infoArray=(
-#         $'\033[1mSystem Info:\033[0m ' "$(get_formatted_date)"
-#         "OS: $(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/*release | cut -d= -f2 | tr -d \")"
-#         "Kernel: $(uname -r)"
-#         "Uptime: $(uptime -p | sed 's/up //')"
-#         "Packages: $(rpm -qa 2>/dev/null | wc -l)"
-#         "Flatpak pkg: $(flatpak list | wc -l)"
-#         "Shell: $(get_shell_version)"
-#         "DE: ${XDG_CURRENT_DESKTOP:-Unknown} $(get_de_version)"
-#         "Session: ${XDG_SESSION_TYPE:-unknown}"
-#         "WM: $(get_wm)"
-#         "Compositor: $(get_compositor)"
-#         "Theme: $(get_gtk_theme)"
-#         "Icons: $(get_icon_theme)"
-#         "Font: $(get_font_name)"
-#         "CPU: $(lscpu | grep 'Model name' | sed 's/Model name:\s*//')"
-#         "GPU: $(lspci | grep VGA | cut -d: -f3 | xargs)"
-#         "RAM: $(free -h | awk '/Mem:/ {print $3 " / " $2}')"
-#         "SWAP: $(free -h | awk '/Swap:/ {print $3 " / " $2}')"
-#     )
-#
-#
-#     printf '%s\n' "${infoArray[@]}"
-# }
 
 ##################################################
 
@@ -539,11 +537,10 @@ extract(){
         fi
 
         case "$file" in                                         #### zip/7z/rar first: foo.tar.zip is a zip, not a tar
-            *.zip|*.7z|*.rar)                 cmd=( 7z x -mmt="$mmt" -o"$dir" -- "$file" ) ;;
+            # *.zip|*.7z|*.rar)                 cmd=( 7z x -mmt="$mmt" -o"$dir" -- "$file" ) ;;
             
-            #### fedoraMigration
-            # *.zip|*.7z)                       cmd=( 7z x -mmt="$mmt" -o"$dir" -- "$file" ) ;;
-            # *.rar)                            cmd=( unrar x -o- -- "$file" "$dir/" ) ;;     #### Fedora's 7z has no RAR support; -o- = never overwrite
+            *.zip|*.7z)                       cmd=( 7z x -mmt="$mmt" -o"$dir" -- "$file" ) ;;
+            *.rar)                            cmd=( unrar x -o- -- "$file" "$dir/" ) ;;     #### Fedora's 7z has no RAR support; -o- = never overwrite
             
             *.tar|*.tar.*|*.tgz|*.tbz2|*.txz) cmd=( tar -xf "$file" -C "$dir" ) ;;
             *)
@@ -657,13 +654,11 @@ killp(){
 latexSET(){
     nemo --tabs "$HOME/Nextcloud/Docker" "$HOME/Nextcloud/Latex" &
     
-    gnome-terminal --tab --working-directory="$HOME/Nextcloud/Latex"  &  
-    #### fedoraMigration
-    # konsole --new-tab --workdir "$HOME/Nextcloud/Latex"  &  
+    # gnome-terminal --tab --working-directory="$HOME/Nextcloud/Latex"  &  
+    konsole --new-tab --workdir "$HOME/Nextcloud/Latex"  &  
 
-    gnome-terminal --tab --working-directory="$HOME/Nextcloud/Docker/Containers/latex" & 
-    #### fedoraMigration
-    # konsole --new-tab --workdir "$HOME/Nextcloud/Docker/Containers/latex" & 
+    # gnome-terminal --tab --working-directory="$HOME/Nextcloud/Docker/Containers/latex" & 
+    konsole --new-tab --workdir "$HOME/Nextcloud/Docker/Containers/latex" & 
 }
 
 latexUPD(){
