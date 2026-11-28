@@ -39,7 +39,7 @@ posComplete(){
 
 #### Linux/scripts/Github/git_manager.sh
 posComplete gitman \
-    "codiumSync All_Scripts editingUT newPc_Install Games HelperScripts all" \
+    "repoClone codiumSync All_Scripts editingUT newPc_Install Games HelperScripts all" \
     "fetchPull commitPush"
 ####
 

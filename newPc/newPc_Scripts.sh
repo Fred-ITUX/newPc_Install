@@ -306,6 +306,12 @@ KDE_global_settings(){
     asUser kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Window One Desktop to the Left"  "Shift+Alt+Left,Meta+Ctrl+Shift+Left,Window One Desktop to the Left"
     asUser kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Window One Desktop to the Right" "Shift+Alt+Right,Meta+Ctrl+Shift+Right,Window One Desktop to the Right"
 
+    #### Meta+H minimizes the focused window (checked: Meta+H is free in kglobalshortcutsrc)
+    ####    > KWin's "Window Minimize" already has Meta+PgDown: both keys are kept, tab separated
+    ####    > value format "active keys,default key,friendly name"; applies at the next login (not verified live)
+    sysLogger i "Shortcut Meta+H: minimize the focused window"
+    asUser kwriteconfig6 --file kglobalshortcutsrc --group kwin --key "Window Minimize" $'Meta+H\tMeta+PgDown,Meta+PgDown,Minimize Window' || { sysLogger e "Minimize shortcut not written"; return 1; }
+
 
     #### Meta+T opens Konsole (it was KWin's "Edit Tiles", removed on purpose; Konsole keeps its own default Ctrl+Alt+T)
     ####    > "Edit Tiles" is released by setting its active key to none, the default (Meta+T) stays so "Reset to default" in System Settings still works
@@ -410,6 +416,31 @@ KDE_performance(){
     else sysLogger e "user conf failed to apply to "$limitConfPath/limits.conf""
     fi
 }
+
+
+
+KDEmonitorsRgbFull(){
+    #### Every enabled monitor: RGB range Full (the default "Automatic" sends the limited range to TV-timing modes, which washes the blacks out)
+    ####    > kscreen-doctor has no help text for it, but its binary knows output.<name>.rgbrange.<automatic|full|limited>
+    ####    > sudo strips WAYLAND_DISPLAY and kscreen-doctor needs the compositor socket: take its name from the user's runtime dir
+    local waylandSocket outputs name total full
+    waylandSocket=$(find "$userRuntime" -maxdepth 1 -name 'wayland-[0-9]*' ! -name '*.lock' -printf '%f\n' 2>/dev/null | head -1)
+    if [ -z "$waylandSocket" ]; then sysLogger e "Wayland socket not found in $userRuntime"; return 1; fi
+    outputs=$(asUser env WAYLAND_DISPLAY="$waylandSocket" kscreen-doctor -j | jq -r '.outputs[] | select(.enabled) | .name')
+    if [ -z "$outputs" ]; then sysLogger e "No enabled monitor found (kscreen-doctor)"; return 1; fi
+
+    for name in $outputs; do
+        asUser env WAYLAND_DISPLAY="$waylandSocket" kscreen-doctor "output.$name.rgbrange.full" > /dev/null 2>&1 || { sysLogger e "RGB range not set on $name"; return 1; }
+        sysLogger i "RGB range set to Full on $name"
+    done
+
+    #### Read it back: every enabled monitor must now report "RgbRange: Full"
+    total=$(echo "$outputs" | wc -l)
+    full=$(asUser env WAYLAND_DISPLAY="$waylandSocket" kscreen-doctor -o | sed 's/\x1b\[[0-9;]*m//g' | grep -c "RgbRange: Full")
+    if [ "$full" -ne "$total" ]; then sysLogger w "RGB range Full reported on $full of $total monitors"; return 1; fi
+    sysLogger i "RGB range Full confirmed on all $total monitors"
+}
+
 
 
 
@@ -548,22 +579,6 @@ flatpakOverrides(){
         asUser flatpak override --user --nodevice=all "$n" || { sysLogger e "Failed to remove device access from app "$n"" ; }
     done
 
-    #### Steam SSD whitelist (for external storing)
-    local ssdPath="/media/$realUser/SSD1TB"
-    local ssdWhitelist=(
-        "com.valvesoftware.Steam"
-        "org.kde.kdenlive"
-    )
-
-    sysLogger i "SSD path for flatpak whitelist: "$ssdPath""
-
-    for app in "${ssdWhitelist[@]}"; do
-        sysLogger i "Adding "$app" to SSD whitelist"
-        asUser flatpak override --user --filesystem="$ssdPath" "$app"  || { sysLogger e "Failed to apply override to app "$app"" ; }
-    done
-    
-     
-    
     local localPath="$userHome/.local/share"
     local roThemes=(
         "icons"
@@ -1397,6 +1412,7 @@ mainLauncher(){
         startupBootstrap
         KDE_performance
         KDE_global_settings
+        KDEmonitorsRgbFull
         themeSetup
         userGroupCheck
         firewallSetup
